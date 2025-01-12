@@ -1,0 +1,186 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Globe, Search, Loader2 } from 'lucide-react';
+import countries from './countryList';
+
+interface CountrySelectorProps {
+  onCountryChange: (country: string) => void;
+}
+
+export function CountrySelector({ onCountryChange }: CountrySelectorProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedCountry, setSelectedCountry] = useState<string>('global');
+  const [isOpen, setIsOpen] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const hasAttemptedDetection = useRef(false);
+
+  // Function to detect user's country
+  const detectCountry = async () => {
+    if (hasAttemptedDetection.current) return;
+    
+    try {
+      setIsLoading(true);
+      hasAttemptedDetection.current = true;
+
+      // Try multiple geolocation APIs for redundancy
+      const apis = [
+        'https://ipapi.co/json/',
+        'https://api.ipify.org?format=json',
+        'https://ip-api.com/json'
+      ];
+
+      for (const api of apis) {
+        try {
+          const response = await fetch(api);
+          if (!response.ok) continue;
+          
+          const data = await response.json();
+          console.log('API Response:', api, data);
+
+          // Handle different API response formats
+          const countryCode = data.country_code || data.country || data.countryCode;
+          if (!countryCode) continue;
+
+          const normalizedCountryCode = countryCode.toUpperCase();
+          console.log('Normalized country code:', normalizedCountryCode);
+
+          const foundCountry = countries.find(
+            c => c.code.toUpperCase() === normalizedCountryCode
+          );
+
+          if (foundCountry) {
+            console.log('Found matching country:', foundCountry);
+            setSelectedCountry(foundCountry.code);
+            onCountryChange(foundCountry.code);
+            break; // Exit loop if successful
+          }
+        } catch (error) {
+          console.error('Error with API:', api, error);
+          continue; // Try next API
+        }
+      }
+    } catch (error) {
+      console.error('Error detecting country:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Initial detection on mount
+  useEffect(() => {
+    detectCountry();
+    
+    // Cleanup function
+    return () => {
+      hasAttemptedDetection.current = false;
+    };
+  }, []);
+
+  // Focus search input when dropdown opens
+  useEffect(() => {
+    if (isOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isOpen]);
+
+  const filteredCountries = countries.filter(country =>
+    country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    country.code.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const selectedCountryData = countries.find(
+    c => c.code.toLowerCase() === selectedCountry.toLowerCase()
+  );
+
+  const handleRetryDetection = async () => {
+    hasAttemptedDetection.current = false;
+    await detectCountry();
+  };
+
+  return (
+    <div className="relative flex flex-col items-center">
+      <div className="flex items-center space-x-3">
+        <span className="text-sm font-medium text-gray-700">Your Current Country:</span>
+        <button 
+          className="flex items-center space-x-2 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 border border-gray-200"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isLoading ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <>
+              {selectedCountry === 'global' ? (
+                <>
+                  <Globe className="w-5 h-5" />
+                  <span className="text-sm">Global</span>
+                </>
+              ) : (
+                <>
+                  {selectedCountryData?.flag && <span className="mr-2">{selectedCountryData.flag}</span>}
+                  <span className="text-sm">{selectedCountryData?.name}</span>
+                </>
+              )}
+            </>
+          )}
+        </button>
+      </div>
+      
+      {isOpen && (
+        <div className="absolute mt-1 w-64 bg-white rounded-lg shadow-lg py-2 z-50 border border-gray-100">
+          {/* Search input */}
+          <div className="px-3 pb-2">
+            <div className="relative">
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search country..."
+                className="w-full pl-9 pr-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <Search className="absolute left-2.5 top-2 h-4 w-4 text-gray-400" />
+            </div>
+          </div>
+
+          {/* Country list */}
+          <div className="max-h-64 overflow-y-auto">
+            {filteredCountries.map((country) => (
+              <button
+                key={country.code}
+                onClick={() => {
+                  setSelectedCountry(country.code);
+                  onCountryChange(country.code);
+                  setSearchQuery('');
+                  setIsOpen(false);
+                }}
+                className={`flex items-center w-full px-4 py-2 text-sm hover:bg-gray-50 ${
+                  selectedCountry === country.code 
+                    ? 'text-blue-600 bg-blue-50' 
+                    : 'text-gray-700'
+                }`}
+              >
+                {country.code === 'global' ? (
+                  <>
+                    <Globe className="w-4 h-4 mr-2" />
+                    <span>{country.name}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="mr-2">{country.flag}</span>
+                    <span>{country.name}</span>
+                  </>
+                )}
+              </button>
+            ))}
+            {filteredCountries.length === 0 && (
+              <div className="px-4 py-2 text-sm text-gray-500 text-center">
+                No countries found
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+} 
