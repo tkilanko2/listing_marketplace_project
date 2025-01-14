@@ -17,7 +17,7 @@ import {
   Bookmark,
   Heart,
   Share2,
-  MessageCircle
+  Mail
 } from 'lucide-react';
 import { ServiceGallery } from '../components/ServiceGallery';
 import { ProviderProfile } from '../components/ProviderProfile';
@@ -174,34 +174,39 @@ export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelec
       {/* Service Title and Stats */}
       <FadeInOnScroll delay={0.2}>
         <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{service.name}</h1>
-            <div className="flex items-center space-x-4 text-sm text-gray-600">
-              <div className="flex items-center">
+          <div className="flex-1">
+            <div className="mb-4">
+              <span className="text-blue-600 text-sm font-medium tracking-wider uppercase">{service.category}</span>
+              <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 leading-tight mt-1">
+                {service.name}
+              </h1>
+            </div>
+            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+              <div className="flex items-center bg-yellow-50 px-3 py-1 rounded-full">
                 <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                <span>{provider.rating} ({provider.reviews.length} reviews)</span>
+                <span className="font-medium">{provider.rating}</span>
+                <span className="text-gray-500 ml-1">({provider.reviews.length} reviews)</span>
               </div>
-              <span>•</span>
               <div className="flex items-center">
                 <Clock className="w-4 h-4 text-gray-400 mr-1" />
                 <span>{service.duration} min</span>
               </div>
-              <span>•</span>
               <div className="flex items-center">
                 <MapPin className="w-4 h-4 text-gray-400 mr-1" />
                 <span>{service.location.city}</span>
               </div>
+              <div className="flex items-center">
+                <Eye className="w-4 h-4 text-gray-400 mr-1" />
+                <span>{service.views} views</span>
+              </div>
+              <div className="flex items-center">
+                <Bookmark className="w-4 h-4 text-gray-400 mr-1" />
+                <span>{service.saves} saves</span>
+              </div>
             </div>
           </div>
           <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-1">
-              <Eye className="w-4 h-4 text-gray-400" />
-              <span className="text-sm text-gray-500">{service.views} views</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <Bookmark className="w-4 h-4 text-gray-400" />
-              <span className="text-sm text-gray-500">{service.saves} saves</span>
-            </div>
+            {/* Empty div for layout */}
           </div>
         </div>
       </FadeInOnScroll>
@@ -212,7 +217,11 @@ export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelec
           {/* Service Gallery */}
           <ParallaxSection offset={20}>
             <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
-              <ServiceGallery images={service.images} />
+              <ServiceGallery 
+                images={service.images} 
+                responseTime={service.provider.responseTime || "Within 2h"}
+                responseRate={service.provider.responseRate || "98%"}
+              />
             </div>
           </ParallaxSection>
 
@@ -347,21 +356,33 @@ export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelec
                   </div>
                 </div>
                 
-                <div className="flex space-x-4">
-                  <button className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                <div className="space-y-4">
+                  <button 
+                    onClick={onBookNow}
+                    className="w-full bg-blue-600 text-white px-6 py-4 rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md"
+                  >
                     Book Now
                   </button>
-                  <HeartAnimation
-                    isActive={isWishListed}
-                    onClick={() => setIsWishListed(!isWishListed)}
-                    className="p-3 rounded-lg border border-gray-300"
-                  />
-                  <button className="p-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">
-                    <Share2 className="w-6 h-6" />
-                  </button>
-                  <button className="p-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">
-                    <MessageCircle className="w-6 h-6" />
-                  </button>
+                  
+                  <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
+                    <button 
+                      onClick={() => setIsWishListed(!isWishListed)}
+                      className="flex items-center hover:text-blue-600 transition-colors"
+                    >
+                      <Heart className={`w-4 h-4 mr-1 ${isWishListed ? 'fill-current text-red-500' : ''}`} />
+                      <span>Save</span>
+                    </button>
+                    <span>•</span>
+                    <button className="flex items-center hover:text-blue-600 transition-colors">
+                      <Share2 className="w-4 h-4 mr-1" />
+                      <span>Share</span>
+                    </button>
+                    <span>•</span>
+                    <button className="flex items-center hover:text-blue-600 transition-colors">
+                      <Mail className="w-4 h-4 mr-1" />
+                      <span>Contact</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg">

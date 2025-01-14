@@ -38,41 +38,35 @@ export function BannerSlider({ banners, autoSlideInterval = 5000 }: BannerSlider
   };
 
   return (
-    <div className="relative h-[240px] overflow-hidden rounded-lg shadow-md">
+    <div className="relative h-[300px] md:h-[400px] overflow-hidden">
       <div 
-        className="flex transition-transform duration-500 ease-out h-full"
+        className="flex transition-transform duration-500 h-full"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
-        {banners.map((banner) => (
+        {banners.map((banner, index) => (
           <div
             key={banner.id}
-            className="w-full h-full flex-shrink-0 relative"
+            className="min-w-full h-full relative"
             style={{ backgroundColor: banner.backgroundColor }}
           >
-            {/* Background Image with Overlay */}
-            <div 
-              className="absolute inset-0 bg-cover bg-center opacity-20"
-              style={{ backgroundImage: `url(${banner.imageUrl})` }}
-            />
-            
             <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
 
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
-              <div className="flex items-center justify-between h-full">
-                <div className="flex items-center space-x-12">
+              <div className="flex flex-col md:flex-row items-center justify-between h-full py-8 md:py-0">
+                <div className="text-center md:text-left md:flex md:items-center md:space-x-12 z-10">
                   <div>
-                    <h3 className="text-white font-semibold text-3xl mb-4">{banner.title}</h3>
-                    <p className="text-white/90 text-xl">{banner.subtitle}</p>
+                    <h3 className="text-white font-semibold text-2xl md:text-3xl mb-2 md:mb-4">{banner.title}</h3>
+                    <p className="text-white/90 text-lg md:text-xl mb-4 md:mb-0">{banner.subtitle}</p>
                   </div>
                   <a
                     href={banner.actionUrl}
-                    className="px-8 py-3 bg-white rounded-full text-lg font-medium hover:bg-opacity-90 transition-all duration-200 hover:scale-105 shadow-sm"
+                    className="inline-block px-6 md:px-8 py-2 md:py-3 bg-white rounded-full text-base md:text-lg font-medium hover:bg-opacity-90 transition-all duration-200 hover:scale-105 shadow-sm"
                     style={{ color: banner.backgroundColor }}
                   >
                     {banner.actionLabel}
                   </a>
                 </div>
-                <div className="h-full w-[400px] relative overflow-hidden">
+                <div className="hidden md:block h-full w-[400px] relative overflow-hidden">
                   <img
                     src={banner.imageUrl}
                     alt={banner.title}
@@ -99,16 +93,17 @@ export function BannerSlider({ banners, autoSlideInterval = 5000 }: BannerSlider
           >
             <ChevronRight className="w-6 h-6 text-white" />
           </button>
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
             {banners.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
-                className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                  index === currentIndex 
-                    ? 'bg-white w-8' 
-                    : 'bg-white/40 hover:bg-white/60'
+                className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                  currentIndex === index 
+                    ? 'bg-white w-6' 
+                    : 'bg-white/50 hover:bg-white/75'
                 }`}
+                aria-label={`Go to slide ${index + 1}`}
               />
             ))}
           </div>

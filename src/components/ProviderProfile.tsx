@@ -1,6 +1,6 @@
 import React from 'react';
 import { ServiceProvider, ListingItem } from '../types';
-import { Star, MapPin, Calendar } from 'lucide-react';
+import { Star, MapPin, Calendar, Clock, MessageSquare } from 'lucide-react';
 
 interface ProviderProfileProps {
   provider: ServiceProvider;
@@ -51,6 +51,23 @@ export function ProviderProfile({ provider, otherListings, onProviderSelect, onL
           <div className="flex items-center text-sm text-gray-500">
             <Calendar className="w-4 h-4 mr-2" />
             <span>Member since {provider.joinedDate.toLocaleDateString()}</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center text-gray-600 mb-1">
+              <Clock className="w-4 h-4 mr-1" />
+              <span className="text-sm">Response Time</span>
+            </div>
+            <p className="text-sm font-medium text-gray-900">Within 2 hours</p>
+          </div>
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center text-gray-600 mb-1">
+              <MessageSquare className="w-4 h-4 mr-1" />
+              <span className="text-sm">Response Rate</span>
+            </div>
+            <p className="text-sm font-medium text-gray-900">98%</p>
           </div>
         </div>
 

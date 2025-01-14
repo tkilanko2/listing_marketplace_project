@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Clock, MessageSquare } from 'lucide-react';
 
 interface ServiceGalleryProps {
   images: string[];
+  responseTime?: string;
+  responseRate?: string;
 }
 
-export function ServiceGallery({ images }: ServiceGalleryProps) {
+export function ServiceGallery({ images, responseTime = "Within 2h", responseRate = "98%" }: ServiceGalleryProps) {
   const [currentImage, setCurrentImage] = useState(0);
   const [showLightbox, setShowLightbox] = useState(false);
 
@@ -26,6 +28,18 @@ export function ServiceGallery({ images }: ServiceGalleryProps) {
           className="w-full h-full object-contain"
           onClick={() => setShowLightbox(true)}
         />
+        
+        {/* Response Metrics Overlay */}
+        <div className="absolute bottom-4 left-4 flex space-x-3">
+          <div className="flex items-center backdrop-blur-md bg-black/30 text-white px-3 py-1.5 rounded-full text-sm">
+            <Clock className="w-4 h-4 mr-2" />
+            {responseTime}
+          </div>
+          <div className="flex items-center backdrop-blur-md bg-black/30 text-white px-3 py-1.5 rounded-full text-sm">
+            <MessageSquare className="w-4 h-4 mr-2" />
+            {responseRate}
+          </div>
+        </div>
         
         {images.length > 1 && (
           <>

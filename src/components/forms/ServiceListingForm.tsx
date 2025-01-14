@@ -17,12 +17,17 @@ import {
   IconButton,
   Divider,
   Stack,
-  FormHelperText,
+  styled,
 } from '@mui/material';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import HandymanIcon from '@mui/icons-material/Handyman';
+import ListingPreview from '../ListingPreview';
+import InventoryIcon from '@mui/icons-material/Inventory';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import CheckIcon from '@mui/icons-material/Check';
 
 const serviceCategories = [
   'Professional Services',
@@ -37,10 +42,21 @@ const serviceCategories = [
   'Other'
 ];
 
+interface FormValues extends Record<string, any> {
+  title: string;
+  shortDescription: string;
+  detailedDescription: string;
+  price: string;
+  location: string;
+  images: File[];
+  category: string;
+  serviceType: string;
+}
+
 interface FieldConfig {
   name: string;
   label: string;
-  type: 'text' | 'number' | 'select' | 'multiselect' | 'boolean' | 'datetime' | 'currency' | 'textarea' | 'time';
+  type: 'text' | 'number' | 'select' | 'multiselect' | 'boolean' | 'datetime' | 'currency' | 'textarea';
   options?: string[];
   placeholder?: string;
   required?: boolean;
@@ -127,61 +143,146 @@ const categorySpecificFields: Record<string, FieldConfig[]> = {
   ]
 };
 
-interface ServiceFormValues {
-  // Universal fields
-  title: string;
-  shortDescription: string;
-  detailedDescription: string;
-  price: string;
-  location: string;
-  images: File[];
-  
-  // Service category and type
-  category: string;
-  serviceType: string;
-  
-  // Dynamic fields - these will be populated based on category
-  [key: string]: any;
-}
+const FormContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  gap: theme.spacing(4),
+  maxWidth: '1400px',
+  margin: '0 auto',
+  padding: theme.spacing(3),
+}));
 
-const initialValues: ServiceFormValues = {
-  // Universal fields
-  title: '',
-  shortDescription: '',
-  detailedDescription: '',
-  price: '',
-  location: '',
-  images: [],
-  
-  // Service category and type
-  category: '',
-  serviceType: '',
-};
+const FormSection = styled(Paper)(({ theme }) => ({
+  flex: '1 1 60%',
+  padding: theme.spacing(3),
+  borderRadius: theme.shape.borderRadius,
+  boxShadow: theme.shadows[1],
+}));
 
-const validationSchema = Yup.object().shape({
-  // Step 1: Basic Information
-  title: Yup.string().required('Title is required'),
-  shortDescription: Yup.string()
-    .required('Short description is required')
-    .max(200, 'Short description must be at most 200 characters'),
-  detailedDescription: Yup.string()
-    .required('Detailed description is required')
-    .min(100, 'Detailed description must be at least 100 characters'),
-  price: Yup.string().required('Price is required'),
-  location: Yup.string().required('Location is required'),
-  
-  // Step 2: Service Category
-  category: Yup.string().required('Service category is required'),
-  
-  // Step 3: Category-specific fields will be validated dynamically
-  serviceType: Yup.string().when('category', {
-    is: (category: string) => !!category,
-    then: () => Yup.string().required('Service type is required'),
-  }),
-});
+const PreviewSection = styled(Box)(({ theme }) => ({
+  flex: '1 1 40%',
+  position: 'relative',
+  [theme.breakpoints.down('md')]: {
+    display: 'none',
+  },
+}));
+
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  marginBottom: theme.spacing(2),
+  '& .MuiOutlinedInput-root': {
+    transition: 'all 0.2s ease-in-out',
+    '&:hover': {
+      borderColor: theme.palette.primary.main,
+    },
+    '&.Mui-focused': {
+      boxShadow: `0 0 0 2px ${theme.palette.primary.main}25`,
+    },
+  },
+}));
+
+const StyledFormControl = styled(FormControl)(({ theme }) => ({
+  marginBottom: theme.spacing(2),
+  '& .MuiOutlinedInput-root': {
+    transition: 'all 0.2s ease-in-out',
+    '&:hover': {
+      borderColor: theme.palette.primary.main,
+    },
+    '&.Mui-focused': {
+      boxShadow: `0 0 0 2px ${theme.palette.primary.main}25`,
+    },
+  },
+}));
+
+const ImagePreviewContainer = styled(Box)(({ theme }) => ({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
+  gap: theme.spacing(1),
+  marginTop: theme.spacing(1),
+}));
+
+const ImagePreview = styled(Box)(({ theme }) => ({
+  position: 'relative',
+  width: '100%',
+  paddingTop: '100%',
+  borderRadius: theme.shape.borderRadius,
+  overflow: 'hidden',
+  backgroundColor: theme.palette.grey[100],
+  '&:hover .image-overlay': {
+    opacity: 1,
+  },
+}));
+
+const ImageOverlay = styled(Box)(({ theme }) => ({
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  opacity: 0,
+  transition: 'opacity 0.2s ease-in-out',
+}));
+
+const StyledUploadButton = styled('label')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: theme.spacing(3),
+  borderRadius: theme.shape.borderRadius,
+  border: `2px dashed ${theme.palette.divider}`,
+  backgroundColor: theme.palette.background.paper,
+  cursor: 'pointer',
+  transition: 'all 0.2s ease-in-out',
+  '&:hover': {
+    borderColor: theme.palette.primary.main,
+    backgroundColor: theme.palette.action.hover,
+  },
+}));
+
+const StepIndicator = styled(Box)(({ theme }) => ({
+  position: 'absolute',
+  top: theme.spacing(2),
+  right: theme.spacing(2),
+  backgroundColor: theme.palette.background.paper,
+  padding: theme.spacing(1, 2),
+  borderRadius: theme.shape.borderRadius,
+  boxShadow: theme.shadows[1],
+}));
 
 const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [activeStep, setActiveStep] = useState(0);
+  const steps = ['Basic Information', 'Service Category', 'Category Details'];
+
+  const formik = useFormik<FormValues>({
+    initialValues: {
+      title: '',
+      shortDescription: '',
+      detailedDescription: '',
+      price: '',
+      location: '',
+      images: [],
+      category: '',
+      serviceType: '',
+    },
+    validationSchema: Yup.object({
+      title: Yup.string().required('Title is required'),
+      shortDescription: Yup.string().required('Short description is required'),
+      detailedDescription: Yup.string().required('Detailed description is required'),
+      price: Yup.string().required('Price is required'),
+      location: Yup.string().required('Location is required'),
+      category: Yup.string().required('Category is required'),
+    }),
+    onSubmit: (values) => {
+      if (activeStep < 2) {
+        handleNext();
+      } else {
+        console.log('Final form submission:', values);
+      }
+    },
+  });
 
   const handleNext = () => {
     setActiveStep((prevStep) => prevStep + 1);
@@ -195,28 +296,25 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     }
   };
 
-  const steps = ['Basic Information', 'Service Category', 'Category Details'];
-
-  const formik = useFormik({
-    initialValues,
-    validationSchema,
-    onSubmit: (values) => {
-      console.log('Form submitted:', values);
-      // Handle form submission
-    },
-  });
-
   const renderField = (field: FieldConfig) => {
+    const fieldValue = formik.values[field.name];
+
+    const commonProps = {
+      name: field.name as string,
+      label: field.label,
+      required: field.required,
+      placeholder: field.placeholder,
+    };
+
     switch (field.type) {
       case 'select':
         return (
-          <FormControl fullWidth>
+          <StyledFormControl fullWidth>
             <InputLabel>{field.label}</InputLabel>
             <Select
-              name={field.name}
-              value={formik.values[field.name as keyof typeof formik.values] || ''}
+              {...commonProps}
+              value={fieldValue || ''}
               onChange={formik.handleChange}
-              label={field.label}
             >
               {field.options?.map((option) => (
                 <MenuItem key={option} value={option}>
@@ -224,19 +322,18 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 </MenuItem>
               ))}
             </Select>
-          </FormControl>
+          </StyledFormControl>
         );
       case 'multiselect':
         return (
-          <FormControl fullWidth>
+          <StyledFormControl fullWidth>
             <InputLabel>{field.label}</InputLabel>
             <Select
+              {...commonProps}
               multiple
-              name={field.name}
-              value={formik.values[field.name as keyof typeof formik.values] || []}
+              value={Array.isArray(fieldValue) ? fieldValue : []}
               onChange={formik.handleChange}
-              label={field.label}
-              renderValue={(selected) => (Array.isArray(selected) ? selected.join(', ') : selected)}
+              renderValue={(selected) => (Array.isArray(selected) ? selected.join(', ') : '')}
             >
               {field.options?.map((option) => (
                 <MenuItem key={option} value={option}>
@@ -244,184 +341,191 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 </MenuItem>
               ))}
             </Select>
-          </FormControl>
-        );
-      case 'boolean':
-        return (
-          <FormControl fullWidth>
-            <InputLabel>{field.label}</InputLabel>
-            <Select
-              name={field.name}
-              value={formik.values[field.name as keyof typeof formik.values] || ''}
-              onChange={formik.handleChange}
-              label={field.label}
-            >
-              <MenuItem value="true">Yes</MenuItem>
-              <MenuItem value="false">No</MenuItem>
-            </Select>
-          </FormControl>
+          </StyledFormControl>
         );
       case 'textarea':
         return (
-          <TextField
+          <StyledTextField
+            {...commonProps}
             fullWidth
             multiline
             rows={4}
-            name={field.name}
-            label={field.label}
-            placeholder={field.placeholder}
-            value={formik.values[field.name as keyof typeof formik.values] || ''}
+            value={fieldValue || ''}
             onChange={formik.handleChange}
-            helperText={field.helperText}
-          />
-        );
-      case 'time':
-        return (
-          <TextField
-            fullWidth
-            type="time"
-            name={field.name}
-            label={field.label}
-            value={formik.values[field.name as keyof typeof formik.values] || ''}
-            onChange={formik.handleChange}
-            InputLabelProps={{ shrink: true }}
           />
         );
       default:
         return (
-          <TextField
+          <StyledTextField
+            {...commonProps}
             fullWidth
-            type={field.type === 'number' ? 'number' : 'text'}
-            name={field.name}
-            label={field.label}
-            placeholder={field.placeholder}
-            value={formik.values[field.name as keyof typeof formik.values] || ''}
+            type={field.type}
+            value={fieldValue || ''}
             onChange={formik.handleChange}
             InputProps={field.unit ? {
               endAdornment: <InputAdornment position="end">{field.unit}</InputAdornment>,
             } : undefined}
-            helperText={field.helperText}
           />
         );
     }
   };
 
+  const renderImageUpload = () => (
+    <Box>
+      <input
+        type="file"
+        multiple
+        accept="image/*"
+        id="image-upload"
+        style={{ display: 'none' }}
+        onChange={(event) => {
+          const files = Array.from(event.target.files || []);
+          formik.setFieldValue('images', files);
+        }}
+      />
+      <StyledUploadButton htmlFor="image-upload">
+        <InventoryIcon sx={{ fontSize: 40, color: 'text.secondary', mb: 1 }} />
+        <Typography variant="subtitle1" gutterBottom>
+          Upload Images
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Drag and drop your images here, or click to select files
+        </Typography>
+      </StyledUploadButton>
+      {formik.values.images.length > 0 && (
+        <ImagePreviewContainer>
+          {Array.from(formik.values.images).map((file, index) => (
+            <ImagePreview key={index}>
+              <Box
+                component="img"
+                src={URL.createObjectURL(file)}
+                alt={`Preview ${index + 1}`}
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                }}
+              />
+              <ImageOverlay className="image-overlay">
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    const newImages = Array.from(formik.values.images);
+                    newImages.splice(index, 1);
+                    formik.setFieldValue('images', newImages);
+                  }}
+                  sx={{ color: 'white' }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </ImageOverlay>
+            </ImagePreview>
+          ))}
+        </ImagePreviewContainer>
+      )}
+    </Box>
+  );
+
   const renderStepContent = (step: number) => {
     switch (step) {
       case 0:
         return (
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>
-                Basic Information
-              </Typography>
+          <Stack spacing={3}>
+            {renderImageUpload()}
+            <StyledTextField
+              fullWidth
+              name="title"
+              label="Title"
+              value={formik.values.title}
+              onChange={formik.handleChange}
+              error={formik.touched.title && Boolean(formik.errors.title)}
+              helperText={formik.touched.title && formik.errors.title}
+            />
+            <StyledTextField
+              fullWidth
+              name="shortDescription"
+              label="Short Description"
+              value={formik.values.shortDescription}
+              onChange={formik.handleChange}
+              error={formik.touched.shortDescription && Boolean(formik.errors.shortDescription)}
+              helperText={formik.touched.shortDescription && formik.errors.shortDescription}
+              multiline
+              rows={2}
+            />
+            <StyledTextField
+              fullWidth
+              name="detailedDescription"
+              label="Detailed Description"
+              value={formik.values.detailedDescription}
+              onChange={formik.handleChange}
+              error={formik.touched.detailedDescription && Boolean(formik.errors.detailedDescription)}
+              helperText={formik.touched.detailedDescription && formik.errors.detailedDescription}
+              multiline
+              rows={4}
+            />
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <StyledTextField
+                  fullWidth
+                  name="price"
+                  label="Price"
+                  type="number"
+                  value={formik.values.price}
+                  onChange={formik.handleChange}
+                  error={formik.touched.price && Boolean(formik.errors.price)}
+                  helperText={formik.touched.price && formik.errors.price}
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                  }}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <StyledTextField
+                  fullWidth
+                  name="location"
+                  label="Location"
+                  value={formik.values.location}
+                  onChange={formik.handleChange}
+                  error={formik.touched.location && Boolean(formik.errors.location)}
+                  helperText={formik.touched.location && formik.errors.location}
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                name="title"
-                label="Title"
-                value={formik.values.title}
-                onChange={formik.handleChange}
-                error={formik.touched.title && Boolean(formik.errors.title)}
-                helperText={formik.touched.title && formik.errors.title}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                name="shortDescription"
-                label="Short Description"
-                multiline
-                rows={2}
-                value={formik.values.shortDescription}
-                onChange={formik.handleChange}
-                error={formik.touched.shortDescription && Boolean(formik.errors.shortDescription)}
-                helperText={formik.touched.shortDescription && formik.errors.shortDescription}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                name="detailedDescription"
-                label="Detailed Description"
-                multiline
-                rows={4}
-                value={formik.values.detailedDescription}
-                onChange={formik.handleChange}
-                error={formik.touched.detailedDescription && Boolean(formik.errors.detailedDescription)}
-                helperText={formik.touched.detailedDescription && formik.errors.detailedDescription}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                name="price"
-                label="Price"
-                value={formik.values.price}
-                onChange={formik.handleChange}
-                error={formik.touched.price && Boolean(formik.errors.price)}
-                helperText={formik.touched.price && formik.errors.price}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                name="location"
-                label="Location"
-                value={formik.values.location}
-                onChange={formik.handleChange}
-                error={formik.touched.location && Boolean(formik.errors.location)}
-                helperText={formik.touched.location && formik.errors.location}
-              />
-            </Grid>
-          </Grid>
+          </Stack>
         );
       case 1:
         return (
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>
-                Service Category
-              </Typography>
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth error={formik.touched.category && Boolean(formik.errors.category)}>
-                <InputLabel>Category</InputLabel>
-                <Select
-                  name="category"
-                  value={formik.values.category}
-                  onChange={formik.handleChange}
-                  label="Category"
-                >
-                  {serviceCategories.map((category) => (
-                    <MenuItem key={category} value={category}>
-                      {category}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {formik.touched.category && formik.errors.category && (
-                  <FormHelperText>{formik.errors.category}</FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-          </Grid>
+          <Stack spacing={3}>
+            <StyledFormControl fullWidth>
+              <InputLabel>Category</InputLabel>
+              <Select
+                name="category"
+                value={formik.values.category}
+                onChange={formik.handleChange}
+                error={formik.touched.category && Boolean(formik.errors.category)}
+              >
+                {serviceCategories.map((category) => (
+                  <MenuItem key={category} value={category}>
+                    {category}
+                  </MenuItem>
+                ))}
+              </Select>
+            </StyledFormControl>
+          </Stack>
         );
       case 2:
-        const fields = categorySpecificFields[formik.values.category] || [];
+        const categoryFields = categorySpecificFields[formik.values.category as keyof typeof categorySpecificFields] || [];
         return (
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>
-                {formik.values.category} Specific Details
-              </Typography>
-            </Grid>
-            {fields.map((field) => (
-              <Grid item xs={12} sm={6} key={field.name}>
+          <Stack spacing={3}>
+            {categoryFields.map((field) => (
+              <Box key={field.name}>
                 {renderField(field)}
-              </Grid>
+              </Box>
             ))}
-          </Grid>
+          </Stack>
         );
       default:
         return null;
@@ -429,118 +533,133 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   };
 
   return (
-    <Box sx={{ mt: 4, maxWidth: 1200, mx: 'auto' }}>
-      {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Stack
-          direction="row"
-          alignItems="center"
-          spacing={2}
-          sx={{ mb: 2 }}
-        >
-          <IconButton 
-            onClick={onBack}
-            sx={{ 
-              bgcolor: 'background.paper',
-              boxShadow: 1,
-              '&:hover': { bgcolor: 'background.paper' }
-            }}
-          >
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h4" component="h1" fontWeight="bold">
-            Create Service Listing
-          </Typography>
-        </Stack>
-        <Divider />
-      </Box>
-
-      {/* Main Content */}
-      <Paper 
-        elevation={0} 
-        sx={{ 
-          p: 4,
-          borderRadius: 3,
-          bgcolor: 'background.paper',
-          border: '1px solid',
-          borderColor: 'divider',
-        }}
-      >
-        {/* Progress Indicator */}
-        <Box sx={{ mb: 5 }}>
-          <Stepper 
-            activeStep={activeStep} 
-            alternativeLabel
-            sx={{
-              '& .MuiStepLabel-root .Mui-completed': {
-                color: 'primary.main',
-              },
-              '& .MuiStepLabel-root .Mui-active': {
-                color: 'primary.main',
-              },
-            }}
-          >
-            {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
+    <FormContainer>
+      <FormSection>
+        <Box sx={{ mb: 3, position: 'relative' }}>
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <IconButton onClick={handleBack}>
+              <ArrowBackIcon />
+            </IconButton>
+            <Typography variant="h5" component="h1">
+              Create Service Listing
+            </Typography>
+          </Stack>
+          <StepIndicator>
+            <Typography variant="body2" color="text.secondary">
+              Step {activeStep + 1} of {steps.length}
+            </Typography>
+          </StepIndicator>
         </Box>
 
-        {/* Form Content */}
-        <Box sx={{ minHeight: 400 }}>
-          <form onSubmit={formik.handleSubmit}>
+        <Stepper 
+          activeStep={activeStep} 
+          sx={{ 
+            mb: 4,
+            '& .MuiStepLabel-root .Mui-completed': {
+              color: 'primary.main',
+            },
+            '& .MuiStepLabel-root .Mui-active': {
+              color: 'primary.main',
+            },
+          }}
+        >
+          {steps.map((label) => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+
+        <form onSubmit={formik.handleSubmit}>
+          <Box sx={{ position: 'relative', minHeight: 400 }}>
             {renderStepContent(activeStep)}
-            
-            {/* Navigation Buttons */}
-            <Box 
-              sx={{ 
-                display: 'flex', 
-                justifyContent: 'space-between',
-                mt: 4,
-                pt: 3,
-                borderTop: '1px solid',
-                borderColor: 'divider'
-              }}
-            >
-              <Button
-                startIcon={<ArrowBackIcon />}
+          </Box>
+          
+          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+            {activeStep > 0 && (
+              <Button 
                 onClick={handleBack}
-                sx={{ visibility: activeStep === 0 ? 'hidden' : 'visible' }}
+                startIcon={<ArrowBackIcon />}
+                sx={{ 
+                  px: 3,
+                  '&:hover': {
+                    backgroundColor: 'action.hover',
+                  },
+                }}
               >
                 Back
               </Button>
-              <Button
-                variant="contained"
-                type="submit"
-                size="large"
-                sx={{
-                  px: 4,
-                  py: 1,
-                  borderRadius: 2,
-                  boxShadow: 2,
-                  '&:hover': {
-                    boxShadow: 4,
-                  }
-                }}
-              >
-                {activeStep === steps.length - 1 ? 'Create Listing' : 'Continue'}
-              </Button>
-            </Box>
-          </form>
-        </Box>
-      </Paper>
+            )}
+            <Button
+              variant="contained"
+              type={activeStep === steps.length - 1 ? 'submit' : 'button'}
+              onClick={activeStep === steps.length - 1 ? undefined : handleNext}
+              endIcon={activeStep === steps.length - 1 ? <CheckIcon /> : <ArrowForwardIcon />}
+              sx={{ 
+                px: 4,
+                py: 1,
+                borderRadius: 2,
+                boxShadow: 2,
+                '&:hover': {
+                  boxShadow: 4,
+                },
+              }}
+            >
+              {activeStep === steps.length - 1 ? 'Submit' : 'Next'}
+            </Button>
+          </Box>
+        </form>
+      </FormSection>
 
-      {/* Helper Text */}
-      <Box sx={{ mt: 3, textAlign: 'center' }}>
-        <Typography variant="body2" color="text.secondary">
-          {activeStep === 0 && "Start with the basic information about your service"}
-          {activeStep === 1 && "Choose the type of service you'll be offering"}
-          {activeStep === 2 && "Add specific details to help clients understand your service better"}
-        </Typography>
-      </Box>
-    </Box>
+      <PreviewSection>
+        <ListingPreview
+          formData={{
+            id: 'preview',
+            name: formik.values.title,
+            price: Number(formik.values.price) || 0,
+            shortDescription: formik.values.shortDescription,
+            category: formik.values.category,
+            location: {
+              city: formik.values.location,
+              country: 'Country',
+            },
+            images: formik.values.images,
+            type: 'service',
+            views: 0,
+            saves: 0,
+            provider: {
+              id: 'preview-provider',
+              username: 'Your Name',
+              avatar: '',
+              rating: 0,
+              totalBookings: 0,
+              joinedDate: new Date(),
+              isOnline: true,
+              location: {
+                city: '',
+                country: '',
+              },
+              reviews: [],
+              responseTime: '1 hour',
+              responseRate: '100%',
+            },
+            description: formik.values.detailedDescription,
+            longDescription: formik.values.detailedDescription,
+            createdAt: new Date(),
+            trending: false,
+            recommended: false,
+            duration: 60,
+            serviceType: formik.values.serviceType,
+            serviceArea: '',
+            availability: '',
+            pricingStructure: 'fixed',
+            languagesSpoken: ['English'],
+            serviceMode: 'both',
+          }}
+          type="service"
+        />
+      </PreviewSection>
+    </FormContainer>
   );
 };
 

@@ -57,7 +57,9 @@ const providers = Array.from({ length: 15 }, (_, index) => ({
     city: ['New York', 'London', 'Paris', 'Tokyo', 'Sydney'][Math.floor(Math.random() * 5)],
     country: ['USA', 'UK', 'France', 'Japan', 'Australia'][Math.floor(Math.random() * 5)]
   },
-  reviews: generateReviews()
+  reviews: generateReviews(),
+  responseTime: 'Within 2h',
+  responseRate: '98%'
 }));
 
 // Service categories with their respective curated image IDs

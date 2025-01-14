@@ -11,6 +11,8 @@ export interface ServiceProvider {
     country: string;
   };
   reviews: Review[];
+  responseTime?: string;
+  responseRate?: string;
 }
 
 export interface BaseItem {

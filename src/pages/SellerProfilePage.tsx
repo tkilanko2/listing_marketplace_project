@@ -1,6 +1,6 @@
 import React from 'react';
 import { ServiceProvider, ListingItem } from '../types';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Clock, MessageSquare } from 'lucide-react';
 
 interface SellerProfilePageProps {
   provider: ServiceProvider;
@@ -23,7 +23,7 @@ export function SellerProfilePage({ provider, listings, onListingSelect, onBack 
 
       {/* Provider Profile Header */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <div className="flex items-center mb-6">
+        <div className="flex items-center mb-4">
           <div className="relative">
             <img
               src={provider.avatar}
@@ -48,9 +48,17 @@ export function SellerProfilePage({ provider, listings, onListingSelect, onBack 
               <span className="mr-4">📦 {provider.totalBookings} sales</span>
               <span>📍 {provider.location.city}, {provider.location.country}</span>
             </div>
-            <p className="text-gray-500 mt-2">
-              Member since {provider.joinedDate.toLocaleDateString()}
-            </p>
+            <div className="flex items-center mt-2 space-x-4 text-sm text-gray-500">
+              <span>Member since {provider.joinedDate.toLocaleDateString()}</span>
+              <div className="flex items-center">
+                <Clock className="w-4 h-4 mr-1" />
+                <span>Within 2h</span>
+              </div>
+              <div className="flex items-center">
+                <MessageSquare className="w-4 h-4 mr-1" />
+                <span>98%</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

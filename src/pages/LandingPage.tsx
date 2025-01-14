@@ -6,6 +6,8 @@ import { CountrySelector } from '../components/CountrySelector';
 import { LanguageSelector } from '../components/LanguageSelector';
 import { getTranslation } from '../translations';
 import { BannerSlider } from '../components/BannerSlider';
+import { ListingCard } from '../components/ListingCard';
+import { SkeletonLoader } from '../components/loading/SkeletonLoader';
 
 interface LandingPageProps {
   listings: ListingItem[];
@@ -19,6 +21,15 @@ interface LandingPageProps {
   onLanguageChange: (language: string) => void;
   isLoading?: boolean;
   error?: string;
+}
+
+interface SearchFiltersState {
+  query: string;
+  category: string;
+  cities: string[];
+  priceRange: { min: number; max: number } | null;
+  condition?: 'new' | 'used' | 'refurbished' | null;
+  duration?: number | null;
 }
 
 export function LandingPage({ 
@@ -36,15 +47,8 @@ export function LandingPage({
 }: LandingPageProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCountry, setSelectedCountry] = useState('Global');
-  const [listingType, setListingType] = useState<'all' | 'services' | 'products'>('all');
-  const [searchFilters, setSearchFilters] = useState<{
-    query: string;
-    category: string;
-    cities: string[];
-    priceRange: { min: number; max: number } | null;
-    condition?: 'new' | 'used' | 'refurbished' | null;
-    duration?: number | null;
-  }>({
+  const [listingType, setListingType] = useState<'all' | 'products' | 'services'>('all');
+  const [searchFilters, setSearchFilters] = useState<SearchFiltersState>({
     query: '',
     category: '',
     cities: [],
@@ -52,82 +56,69 @@ export function LandingPage({
     condition: null,
     duration: null
   });
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const itemsPerPage = 15;
   
-  // Filter listings by search criteria and type
-  const filteredListings = listings.filter(listing => {
-    // Filter by listing type
-    if (listingType === 'services' && listing.type !== 'service') return false;
-    if (listingType === 'products' && listing.type !== 'product') return false;
+  const categories = [
+    'Electronics',
+    'Fashion',
+    'Home & Garden',
+    'Sports',
+    'Beauty',
+    'Automotive',
+    'Services',
+    'Real Estate',
+    'Others'
+  ];
 
-    // Filter by search query with related items
-    if (searchFilters.query) {
-      const searchLower = searchFilters.query.toLowerCase();
-      const relatedTerms: Record<string, string[]> = {
-        'iphone': ['phone', 'mobile', 'smartphone', 'apple', 'android', 'samsung', 'pixel'],
-        'phone': ['iphone', 'mobile', 'smartphone', 'apple', 'android', 'samsung', 'pixel'],
-        'apartment': ['condo', 'flat', 'house', 'studio', 'rental', 'property'],
-        'house': ['apartment', 'condo', 'property', 'rental', 'home'],
-        'party': ['event', 'celebration', 'venue', 'entertainment'],
-        'event': ['party', 'venue', 'celebration', 'entertainment'],
-      };
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(selectedCategory === category ? null : category);
+  };
 
-      // Get related search terms
-      const searchTerms = searchLower.split(' ');
-      const relatedSearchTerms = searchTerms.flatMap(term => 
-        relatedTerms[term] || [term]
-      );
+  const handleListingClick = (item: ListingItem) => {
+    onListingSelect(item);
+  };
 
-      // Check if any of the related terms match
-      const matchesQuery = 
-        listing.name.toLowerCase().includes(searchLower) ||
-        listing.description.toLowerCase().includes(searchLower) ||
-        listing.shortDescription.toLowerCase().includes(searchLower) ||
-        relatedSearchTerms.some(term => 
-          listing.name.toLowerCase().includes(term) ||
-          listing.description.toLowerCase().includes(term) ||
-          listing.shortDescription.toLowerCase().includes(term) ||
-          listing.category.toLowerCase().includes(term)
-        );
-
-      if (!matchesQuery) return false;
-    }
-
-    // Filter by category
-    if (searchFilters.category && listing.category !== searchFilters.category) {
+  const filteredListings = listings.filter(item => {
+    if (listingType === 'products' && item.type !== 'product') {
       return false;
     }
-
-    // Filter by cities
-    if (searchFilters.cities.length > 0) {
-      const listingCity = listing.location.city;
-      if (!searchFilters.cities.some(city => city.includes(listingCity))) {
+    if (listingType === 'services' && item.type !== 'service') {
+      return false;
+    }
+    
+    if (selectedCategory && item.category !== selectedCategory) {
+      return false;
+    }
+    if (searchFilters.query) {
+      const searchTerm = searchFilters.query.toLowerCase();
+      if (!item.name.toLowerCase().includes(searchTerm) &&
+          !item.description.toLowerCase().includes(searchTerm)) {
         return false;
       }
     }
-
-    // Filter by price range
+    if (searchFilters.category && item.category !== searchFilters.category) {
+      return false;
+    }
+    if (searchFilters.cities.length > 0 && !searchFilters.cities.includes(item.location.city)) {
+      return false;
+    }
     if (searchFilters.priceRange) {
       const { min, max } = searchFilters.priceRange;
-      if (listing.price < min || listing.price > max) {
+      if (item.price < min || item.price > max) {
         return false;
       }
     }
-
-    // Filter by condition (products only)
-    if (listing.type === 'product' && searchFilters.condition) {
-      if ((listing as Product).condition !== searchFilters.condition) {
+    if (searchFilters.condition && item.type === 'product') {
+      if (item.condition !== searchFilters.condition) {
         return false;
       }
     }
-
-    // Filter by duration (services only)
-    if (listing.type === 'service' && searchFilters.duration) {
-      if ((listing as Service).duration !== searchFilters.duration) {
+    if (searchFilters.duration && item.type === 'service') {
+      if (item.duration !== searchFilters.duration) {
         return false;
       }
     }
-
     return true;
   });
 
@@ -315,55 +306,55 @@ export function LandingPage({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Search Section with Gradient Background */}
-      <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 -mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 pb-4">
+      <div className="relative">
+        {/* Hero Section */}
+        <div className="relative">
           {/* Banner Slider */}
-          <div className="-mx-8 -mt-16">
+          <div className="-mx-4 md:-mx-8 -mt-16">
             <BannerSlider banners={banners} />
           </div>
 
-          <div className="max-w-3xl mx-auto mt-2">
+          <div className="max-w-3xl mx-auto mt-2 px-4 md:px-0">
             {/* Listing Type Tabs */}
             <div className="flex justify-end mb-3">
               <div className="inline-flex rounded-xl p-0.5 bg-white shadow-sm border border-gray-100">
                 <button
                   onClick={() => setListingType('all')}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`flex items-center space-x-2 px-2 md:px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                     listingType === 'all'
                       ? 'bg-blue-50 text-blue-600 shadow-sm'
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
                   <LayoutGrid className="w-4 h-4" />
-                  <span>All</span>
+                  <span className="hidden md:inline">All</span>
                 </button>
                 <button
                   onClick={() => setListingType('products')}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`flex items-center space-x-2 px-2 md:px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                     listingType === 'products'
                       ? 'bg-blue-50 text-blue-600 shadow-sm'
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
                   <Package2 className="w-4 h-4" />
-                  <span>Products</span>
+                  <span className="hidden md:inline">Products</span>
                 </button>
                 <button
                   onClick={() => setListingType('services')}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`flex items-center space-x-2 px-2 md:px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                     listingType === 'services'
                       ? 'bg-blue-50 text-blue-600 shadow-sm'
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
                   <Wrench className="w-4 h-4" />
-                  <span>Services</span>
+                  <span className="hidden md:inline">Services</span>
                 </button>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm p-2">
+            <div className="bg-white rounded-2xl shadow-sm p-2 md:p-4">
               <SearchFilters
                 selectedLanguage={selectedLanguage}
                 listingType={listingType}
@@ -371,7 +362,8 @@ export function LandingPage({
                 listings={listings}
               />
             </div>
-            {/* Country selector positioned outside the search box */}
+            
+            {/* Country selector */}
             <div className="flex justify-end mt-2 space-x-2">
               <div className="flex items-center space-x-2 text-gray-600">
                 <CountrySelector
@@ -381,73 +373,51 @@ export function LandingPage({
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-        <div className="flex flex-col space-y-6">
-          {/* Trending Items Section */}
-          <ListingGrid 
-            items={trendingItems} 
-            title={getTranslation(selectedLanguage, 'trending_services')} 
-          />
-
-          {/* Recommended Items Section */}
-          <ListingGrid 
-            items={recommendedItems} 
-            title={getTranslation(selectedLanguage, 'recommended_for_you')} 
-          />
-
-          {/* Recently Listed Section */}
-          <ListingGrid 
-            items={recentlyListed.slice(0, 5)} 
-            title={getTranslation(selectedLanguage, 'recently_listed')} 
-          />
-
-          {/* All Listings Section */}
-          <div className="mt-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              {getTranslation(selectedLanguage, 'all_services')}
-            </h2>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {currentItems.map((item) => (
-                <ListingCard key={item.id} item={item} />
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Categories */}
+          {/* <div className="mb-8">
+            <h2 className="text-xl md:text-2xl font-semibold text-gray-900 mb-4">Popular Categories</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => handleCategorySelect(category)}
+                  className={`p-3 md:p-4 rounded-xl border text-sm md:text-base font-medium transition-all duration-200 ${
+                    selectedCategory === category
+                      ? 'border-blue-200 bg-blue-50 text-blue-700'
+                      : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50 text-gray-600 hover:text-blue-700'
+                  }`}
+                >
+                  {category}
+                </button>
               ))}
             </div>
+          </div> */}
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-8 flex justify-center space-x-2">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="p-2 rounded-full border hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`px-4 py-2 rounded-md ${
-                      currentPage === page
-                        ? 'bg-blue-600 text-white'
-                        : 'hover:bg-gray-50'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="p-2 rounded-full border hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-            )}
-          </div>
+          {/* Listings Grid */}
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, index) => (
+                <SkeletonLoader key={index} />
+              ))}
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-red-600">{error}</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+              {filteredListings.map((item) => (
+                <ListingCard
+                  key={item.id}
+                  item={item}
+                  onClick={() => handleListingClick(item)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

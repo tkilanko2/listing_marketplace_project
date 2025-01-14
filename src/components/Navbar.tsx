@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { UserCircle, LogOut, User, ShoppingBag, LayoutDashboard, UserPlus, Settings, ShoppingCart, Bell } from 'lucide-react';
+import { UserCircle, LogOut, User, ShoppingBag, LayoutDashboard, UserPlus, Settings, ShoppingCart, Bell, Menu, X } from 'lucide-react';
 import { LanguageSelector } from './LanguageSelector';
 import { Product } from '../types';
 
@@ -38,6 +38,7 @@ export function Navbar({
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,10 +128,20 @@ export function Navbar({
               className="flex-shrink-0 flex items-center cursor-pointer hover:opacity-80 transition-opacity"
               onClick={onHomeClick}
             >
-              <h1 className="text-2xl font-bold text-blue-600">Connect Market</h1>
+              <h1 className="text-xl md:text-2xl font-bold text-blue-600">Connect Market</h1>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
+
+          <div className="flex items-center md:hidden">
+            <button
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            >
+              {showMobileMenu ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
+
+          <div className="hidden md:flex items-center space-x-4">
             <button
               onClick={onSellNowClick}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
@@ -256,6 +267,93 @@ export function Navbar({
 
             <LanguageSelector onLanguageChange={onLanguageChange} />
           </div>
+        </div>
+      </div>
+
+      <div className={`md:hidden ${showMobileMenu ? 'block' : 'hidden'}`}>
+        <div className="px-2 pt-2 pb-3 space-y-1 border-t">
+          <button
+            onClick={onSellNowClick}
+            className="w-full text-left px-3 py-2 text-base font-medium text-blue-600 hover:bg-blue-50 rounded-md"
+          >
+            Sell Now
+          </button>
+
+          {!isAuthenticated && (
+            <button
+              onClick={() => {
+                setShowLoginModal(true);
+                setShowMobileMenu(false);
+              }}
+              className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md"
+            >
+              Sign in
+            </button>
+          )}
+
+          <div className="px-3 py-2 flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <button className="relative p-2 hover:bg-gray-100 rounded-full">
+                <Bell className="w-6 h-6 text-gray-700" />
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                  3
+                </span>
+              </button>
+
+              <button className="relative p-2 hover:bg-gray-100 rounded-full">
+                <ShoppingCart className="w-6 h-6 text-gray-700" />
+                <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                  0
+                </span>
+              </button>
+            </div>
+
+            <LanguageSelector onLanguageChange={onLanguageChange} />
+          </div>
+
+          {isAuthenticated && (
+            <div className="border-t pt-4 pb-3">
+              <div className="px-3 flex items-center">
+                {user?.imageUrl ? (
+                  <img 
+                    src={user.imageUrl} 
+                    alt={user.name} 
+                    className="w-10 h-10 rounded-full"
+                  />
+                ) : (
+                  <UserCircle className="w-10 h-10 text-blue-600" />
+                )}
+                <div className="ml-3">
+                  <div className="text-base font-medium text-gray-800">{user?.userId}</div>
+                  <div className="text-sm font-medium text-gray-500">{user?.email}</div>
+                </div>
+              </div>
+              <div className="mt-3 px-2 space-y-1">
+                <button className="w-full flex items-center px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md">
+                  <User className="w-5 h-5 mr-3 text-gray-400" />
+                  Profile
+                </button>
+                <button className="w-full flex items-center px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md">
+                  <ShoppingBag className="w-5 h-5 mr-3 text-gray-400" />
+                  Orders
+                </button>
+                <button className="w-full flex items-center px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md">
+                  <Settings className="w-5 h-5 mr-3 text-gray-400" />
+                  Settings
+                </button>
+                <button 
+                  onClick={() => {
+                    onLogout();
+                    setShowMobileMenu(false);
+                  }}
+                  className="w-full flex items-center px-3 py-2 text-base font-medium text-red-600 hover:bg-red-50 rounded-md"
+                >
+                  <LogOut className="w-5 h-5 mr-3 text-red-500" />
+                  Sign out
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
