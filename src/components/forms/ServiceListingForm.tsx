@@ -51,6 +51,10 @@ interface FormValues extends Record<string, any> {
   images: File[];
   category: string;
   serviceType: string;
+  paymentOptions: {
+    onlinePayment: boolean;
+    payAtService: boolean;
+  };
 }
 
 interface FieldConfig {
@@ -72,7 +76,9 @@ const categorySpecificFields: Record<string, FieldConfig[]> = {
     { name: 'experience', label: 'Years of Experience', type: 'number', required: true },
     { name: 'certifications', label: 'Professional Certifications', type: 'textarea' },
     { name: 'availability', label: 'Availability', type: 'multiselect', options: ['Weekdays', 'Weekends', 'Evenings', 'Remote', 'On-site'] },
-    { name: 'rateType', label: 'Rate Type', type: 'select', options: ['Hourly', 'Project-based', 'Retainer'], required: true }
+    { name: 'rateType', label: 'Rate Type', type: 'select', options: ['Hourly', 'Project-based', 'Retainer'], required: true },
+    { name: 'paymentOptions.payAtService', label: 'Accept Pay at Service', type: 'boolean' },
+    { name: 'paymentOptions.onlinePayment', label: 'Accept Online Payment', type: 'boolean' }
   ],
   'Home Services': [
     { name: 'serviceType', label: 'Service Type', type: 'select', options: ['Cleaning', 'Repairs', 'Landscaping', 'Moving', 'Interior Design'], required: true },
@@ -80,14 +86,18 @@ const categorySpecificFields: Record<string, FieldConfig[]> = {
     { name: 'equipment', label: 'Equipment Provided', type: 'boolean' },
     { name: 'insurance', label: 'Insurance Coverage', type: 'textarea', placeholder: 'Describe your insurance coverage' },
     { name: 'minimumBooking', label: 'Minimum Booking Duration', type: 'text', placeholder: 'e.g., 2 hours' },
-    { name: 'teamSize', label: 'Team Size', type: 'number', helperText: 'Number of workers for the service' }
+    { name: 'teamSize', label: 'Team Size', type: 'number', helperText: 'Number of workers for the service' },
+    { name: 'paymentOptions.payAtService', label: 'Accept Pay at Service', type: 'boolean' },
+    { name: 'paymentOptions.onlinePayment', label: 'Accept Online Payment', type: 'boolean' }
   ],
   'Personal Care': [
     { name: 'serviceType', label: 'Service Type', type: 'select', options: ['Hair Styling', 'Makeup', 'Massage', 'Nail Care', 'Personal Training'], required: true },
     { name: 'specializations', label: 'Specializations', type: 'multiselect', options: ['Wedding', 'Special Events', 'Sports Massage', 'Therapeutic', 'Wellness'] },
     { name: 'location', label: 'Service Location', type: 'select', options: ['At Home', 'At Studio', 'Mobile Service'], required: true },
     { name: 'duration', label: 'Session Duration', type: 'text', placeholder: 'e.g., 60 minutes', required: true },
-    { name: 'products', label: 'Products Used', type: 'textarea', placeholder: 'List the products/brands you use' }
+    { name: 'products', label: 'Products Used', type: 'textarea', placeholder: 'List the products/brands you use' },
+    { name: 'paymentOptions.payAtService', label: 'Accept Pay at Service', type: 'boolean' },
+    { name: 'paymentOptions.onlinePayment', label: 'Accept Online Payment', type: 'boolean' }
   ],
   'Education & Training': [
     { name: 'subject', label: 'Subject Area', type: 'select', options: ['Languages', 'Mathematics', 'Science', 'Arts', 'Technology'], required: true },
@@ -95,14 +105,18 @@ const categorySpecificFields: Record<string, FieldConfig[]> = {
     { name: 'format', label: 'Class Format', type: 'select', options: ['One-on-One', 'Group', 'Online', 'In-Person'], required: true },
     { name: 'materials', label: 'Learning Materials', type: 'textarea', placeholder: 'Describe the materials provided' },
     { name: 'prerequisites', label: 'Prerequisites', type: 'textarea' },
-    { name: 'classSize', label: 'Maximum Class Size', type: 'number', helperText: 'For group sessions' }
+    { name: 'classSize', label: 'Maximum Class Size', type: 'number', helperText: 'For group sessions' },
+    { name: 'paymentOptions.payAtService', label: 'Accept Pay at Service', type: 'boolean' },
+    { name: 'paymentOptions.onlinePayment', label: 'Accept Online Payment', type: 'boolean' }
   ],
   'Creative & Digital': [
     { name: 'serviceType', label: 'Service Type', type: 'select', options: ['Graphic Design', 'Web Development', 'Video Production', 'Content Writing'], required: true },
     { name: 'skills', label: 'Technical Skills', type: 'multiselect', options: ['Adobe Suite', 'WordPress', 'React', 'SEO', 'Video Editing'] },
     { name: 'deliverables', label: 'Deliverables', type: 'textarea', required: true },
     { name: 'revisions', label: 'Revision Policy', type: 'text', placeholder: 'e.g., 2 rounds of revisions included' },
-    { name: 'turnaround', label: 'Typical Turnaround Time', type: 'text', required: true }
+    { name: 'turnaround', label: 'Typical Turnaround Time', type: 'text', required: true },
+    { name: 'paymentOptions.payAtService', label: 'Accept Pay at Service', type: 'boolean' },
+    { name: 'paymentOptions.onlinePayment', label: 'Accept Online Payment', type: 'boolean' }
   ],
   'Events & Entertainment': [
     { name: 'serviceType', label: 'Service Type', type: 'select', options: ['DJ', 'Live Band', 'Photography', 'Catering', 'Event Planning'], required: true },
@@ -110,14 +124,18 @@ const categorySpecificFields: Record<string, FieldConfig[]> = {
     { name: 'equipment', label: 'Equipment Provided', type: 'textarea', required: true },
     { name: 'duration', label: 'Performance Duration', type: 'text', required: true },
     { name: 'setup', label: 'Setup Requirements', type: 'textarea' },
-    { name: 'travel', label: 'Travel Distance', type: 'text', placeholder: 'Maximum distance willing to travel' }
+    { name: 'travel', label: 'Travel Distance', type: 'text', placeholder: 'Maximum distance willing to travel' },
+    { name: 'paymentOptions.payAtService', label: 'Accept Pay at Service', type: 'boolean' },
+    { name: 'paymentOptions.onlinePayment', label: 'Accept Online Payment', type: 'boolean' }
   ],
   'Health & Wellness': [
     { name: 'serviceType', label: 'Service Type', type: 'select', options: ['Yoga', 'Nutrition', 'Counseling', 'Physical Therapy'], required: true },
     { name: 'specialization', label: 'Specialization', type: 'multiselect', options: ['Prenatal', 'Sports', 'Mental Health', 'Weight Management'] },
     { name: 'sessionType', label: 'Session Type', type: 'select', options: ['Individual', 'Group', 'Online', 'In-Person'], required: true },
     { name: 'duration', label: 'Session Duration', type: 'text', required: true },
-    { name: 'certification', label: 'Professional Certifications', type: 'textarea', required: true }
+    { name: 'certification', label: 'Professional Certifications', type: 'textarea', required: true },
+    { name: 'paymentOptions.payAtService', label: 'Accept Pay at Service', type: 'boolean' },
+    { name: 'paymentOptions.onlinePayment', label: 'Accept Online Payment', type: 'boolean' }
   ],
   'Transportation': [
     { name: 'serviceType', label: 'Service Type', type: 'select', options: ['Rideshare', 'Moving', 'Delivery', 'Chauffeur'], required: true },
@@ -125,21 +143,27 @@ const categorySpecificFields: Record<string, FieldConfig[]> = {
     { name: 'capacity', label: 'Vehicle Capacity', type: 'text', required: true },
     { name: 'coverage', label: 'Service Area', type: 'textarea', required: true },
     { name: 'availability', label: 'Availability', type: 'multiselect', options: ['Weekdays', 'Weekends', '24/7', 'By Appointment'] },
-    { name: 'insurance', label: 'Insurance Details', type: 'textarea' }
+    { name: 'insurance', label: 'Insurance Details', type: 'textarea' },
+    { name: 'paymentOptions.payAtService', label: 'Accept Pay at Service', type: 'boolean' },
+    { name: 'paymentOptions.onlinePayment', label: 'Accept Online Payment', type: 'boolean' }
   ],
   'Business Services': [
     { name: 'serviceType', label: 'Service Type', type: 'select', options: ['Consulting', 'Bookkeeping', 'Virtual Assistant', 'HR Services'], required: true },
     { name: 'expertise', label: 'Areas of Expertise', type: 'multiselect', options: ['Strategy', 'Finance', 'Operations', 'Marketing'] },
     { name: 'availability', label: 'Availability', type: 'multiselect', options: ['Full-time', 'Part-time', 'Project-based', 'On-call'] },
     { name: 'tools', label: 'Tools & Software', type: 'textarea', placeholder: 'List the tools and software you use' },
-    { name: 'languages', label: 'Languages', type: 'multiselect', options: ['English', 'Spanish', 'French', 'Mandarin', 'Other'] }
+    { name: 'languages', label: 'Languages', type: 'multiselect', options: ['English', 'Spanish', 'French', 'Mandarin', 'Other'] },
+    { name: 'paymentOptions.payAtService', label: 'Accept Pay at Service', type: 'boolean' },
+    { name: 'paymentOptions.onlinePayment', label: 'Accept Online Payment', type: 'boolean' }
   ],
   Other: [
     { name: 'serviceType', label: 'Service Type', type: 'text', required: true },
     { name: 'description', label: 'Detailed Description', type: 'textarea', required: true },
     { name: 'requirements', label: 'Special Requirements', type: 'textarea' },
     { name: 'availability', label: 'Availability', type: 'text' },
-    { name: 'additionalInfo', label: 'Additional Information', type: 'textarea' }
+    { name: 'additionalInfo', label: 'Additional Information', type: 'textarea' },
+    { name: 'paymentOptions.payAtService', label: 'Accept Pay at Service', type: 'boolean' },
+    { name: 'paymentOptions.onlinePayment', label: 'Accept Online Payment', type: 'boolean' }
   ]
 };
 
@@ -266,6 +290,10 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       images: [],
       category: '',
       serviceType: '',
+      paymentOptions: {
+        onlinePayment: false,
+        payAtService: true
+      }
     },
     validationSchema: Yup.object({
       title: Yup.string().required('Title is required'),
@@ -655,6 +683,10 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             pricingStructure: 'fixed',
             languagesSpoken: ['English'],
             serviceMode: 'both',
+            paymentOptions: {
+              onlinePayment: formik.values.paymentOptions?.onlinePayment || false,
+              payAtService: formik.values.paymentOptions?.payAtService || true
+            },
           }}
           type="service"
         />

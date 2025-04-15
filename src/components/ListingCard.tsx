@@ -1,6 +1,6 @@
 import React from 'react';
-import { Bookmark } from 'lucide-react';
-import { ListingItem } from '../types';
+import { Bookmark, Clock, DollarSign, Star, MapPin, Eye, Package2, Wrench, CreditCard } from 'lucide-react';
+import { Service, Product, ListingItem } from '../types';
 
 interface ListingCardProps {
   item: ListingItem;
@@ -77,6 +77,22 @@ export function ListingCard({ item, onClick }: ListingCardProps) {
               ))}
             </div>
             <span className="text-xs text-gray-600">({item.provider.reviews.length})</span>
+          </div>
+        )}
+        {item.type === 'service' && (
+          <div className="flex space-x-1 mt-1">
+            {item.paymentOptions.onlinePayment && (
+              <div className="inline-flex items-center px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs">
+                <CreditCard className="w-3 h-3 mr-1" />
+                Online Pay
+              </div>
+            )}
+            {item.paymentOptions.payAtService && (
+              <div className="inline-flex items-center px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-xs">
+                <DollarSign className="w-3 h-3 mr-1" />
+                Pay Later
+              </div>
+            )}
           </div>
         )}
       </div>

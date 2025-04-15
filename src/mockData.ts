@@ -73,7 +73,8 @@ const serviceCategories = [
           'https://images.unsplash.com/photo-1560066984-138dadb4c035',
           'https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1',
           'https://images.unsplash.com/photo-1562322140-8baeececf3df'
-        ]
+        ],
+        onlinePayment: false
       },
       { 
         name: 'Spa Massage Therapy',
@@ -81,7 +82,17 @@ const serviceCategories = [
           'https://images.unsplash.com/photo-1544161515-4ab6ce6db874',
           'https://images.unsplash.com/photo-1600334129128-685c5582fd35',
           'https://images.unsplash.com/photo-1519823551278-64ac92734fb1'
-        ]
+        ],
+        onlinePayment: true
+      },
+      { 
+        name: 'Professional Makeup Service',
+        images: [
+          'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9',
+          'https://images.unsplash.com/photo-1549236177-f9b0031756eb',
+          'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2'
+        ],
+        onlinePayment: true
       }
     ]
   },
@@ -94,7 +105,8 @@ const serviceCategories = [
           'https://images.unsplash.com/photo-1600585152220-90363fe7e115',
           'https://images.unsplash.com/photo-1603796846097-bee99e4a601f',
           'https://images.unsplash.com/photo-1527554677374-236d3bc88a34'
-        ]
+        ],
+        onlinePayment: false
       },
       { 
         name: 'Interior Painting',
@@ -102,7 +114,17 @@ const serviceCategories = [
           'https://images.unsplash.com/photo-1589939705384-5185137a7f0f',
           'https://images.unsplash.com/photo-1562259949-e8e7689d7828',
           'https://images.unsplash.com/photo-1595428774223-ef52624120d2'
-        ]
+        ],
+        onlinePayment: false
+      },
+      { 
+        name: 'Home Cleaning Service',
+        images: [
+          'https://images.unsplash.com/photo-1581578731548-c64695cc6952',
+          'https://images.unsplash.com/photo-1527515637462-cff94eecc1ac',
+          'https://images.unsplash.com/photo-1556911220-bda9f33a8b1f'
+        ],
+        onlinePayment: true
       }
     ]
   },
@@ -115,7 +137,8 @@ const serviceCategories = [
           'https://images.unsplash.com/photo-1499892477393-f675706cbe6e',
           'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b',
           'https://images.unsplash.com/photo-1513364776144-60967b0f800f'
-        ]
+        ],
+        onlinePayment: false
       },
       { 
         name: 'Coding Bootcamp',
@@ -123,7 +146,17 @@ const serviceCategories = [
           'https://images.unsplash.com/photo-1516321318423-f06f85e504b3',
           'https://images.unsplash.com/photo-1461749280684-dccba630e2f6',
           'https://images.unsplash.com/photo-1498050108023-c5249f4df085'
-        ]
+        ],
+        onlinePayment: true
+      },
+      { 
+        name: 'Language Tutoring',
+        images: [
+          'https://images.unsplash.com/photo-1544654803-b69140b285a1',
+          'https://images.unsplash.com/photo-1561089489-f13d5e730d72',
+          'https://images.unsplash.com/photo-1587918536598-d1c4a600a6d6'
+        ],
+        onlinePayment: true
       }
     ]
   },
@@ -136,7 +169,17 @@ const serviceCategories = [
           'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b',
           'https://images.unsplash.com/photo-1515343480029-43cdfe6b6aae',
           'https://images.unsplash.com/photo-1563770660941-20978e870e26'
-        ]
+        ],
+        onlinePayment: false
+      },
+      { 
+        name: 'Website Development',
+        images: [
+          'https://images.unsplash.com/photo-1547658719-da2b51169166',
+          'https://images.unsplash.com/photo-1494599948593-3dafe8338d71',
+          'https://images.unsplash.com/photo-1559028012-481c04fa702d'
+        ],
+        onlinePayment: true
       }
     ]
   },
@@ -149,7 +192,17 @@ const serviceCategories = [
           'https://images.unsplash.com/photo-1511919884226-fd3cad34687c',
           'https://images.unsplash.com/photo-1552519507-da3b142c6e3d',
           'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2'
-        ]
+        ],
+        onlinePayment: false
+      },
+      { 
+        name: 'Airport Transfer',
+        images: [
+          'https://images.unsplash.com/photo-1570125909232-eb263c188f7e',
+          'https://images.unsplash.com/photo-1436491865332-7a61a109cc05',
+          'https://images.unsplash.com/photo-1566121933407-3c7ccdd26763'
+        ],
+        onlinePayment: true
       }
     ]
   }
@@ -1000,7 +1053,11 @@ const mockServices: Service[] = serviceCategories.flatMap(category =>
       availability: 'Monday to Friday, 9 AM - 6 PM',
       pricingStructure: 'per service',
       languagesSpoken: ['English'],
-      serviceMode: 'both' as const
+      serviceMode: 'both' as const,
+      paymentOptions: {
+        payAtService: true,
+        onlinePayment: 'onlinePayment' in service ? service.onlinePayment : false
+      }
     };
   })
 );

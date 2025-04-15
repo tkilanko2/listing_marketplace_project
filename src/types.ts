@@ -51,6 +51,10 @@ export interface Service extends BaseItem {
   specialRequirements?: string[];
   languagesSpoken: string[];
   serviceMode: 'onsite' | 'remote' | 'both';
+  paymentOptions: {
+    onlinePayment: boolean;
+    payAtService: boolean;
+  };
 }
 
 export interface Product extends BaseItem {
@@ -76,6 +80,7 @@ export interface Product extends BaseItem {
   availableQuantity: number;
   features?: string[];
   specifications?: Record<string, string>;
+  dateSaved?: string;
 }
 
 export type ListingItem = Service | Product;
