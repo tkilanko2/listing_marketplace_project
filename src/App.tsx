@@ -7,7 +7,7 @@ import { PaymentPage } from './pages/PaymentPage';
 import { SellerProfilePage } from './pages/SellerProfilePage';
 import CreateListingPage from './pages/CreateListingPage';
 import { Service, Product, ListingItem, ServiceProvider } from './types';
-import { mockServices, mockProducts, mockListings } from './mockData';
+import { mockServices, mockProducts, mockListings, mockOrders } from './mockData';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { 
@@ -16,6 +16,14 @@ import {
   Edit, Trash, Eye, PlusCircle, Zap, BarChart2, Settings, 
   Users, Star, CheckCircle, MoreVertical, Film, X, Bookmark, ChevronUp 
 } from 'lucide-react';
+import { MyOrdersPage } from './pages/MyOrdersPage';
+import { 
+  OrderDetailsPage, 
+  OrderTrackingPage, 
+  OrderCancellationPage,
+  OrderReturnPage,
+  OrderReviewPage
+} from './pages/PlaceholderPages';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<
@@ -35,7 +43,9 @@ function App() {
     'sellerDashboard_orders' |
     'sellerDashboard_appointments' |
     'sellerDashboard_finance' |
-    'editListing'
+    'editListing' |
+    'bookings' |
+    'home'
   >('landing');
   const [selectedListing, setSelectedListing] = useState<ListingItem | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<ServiceProvider | null>(null);
@@ -55,6 +65,8 @@ function App() {
     notes: string;
     timeSlot: any;
   } | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
+  const [orderAction, setOrderAction] = useState<string | null>(null);
 
   // Determine if sidebar should be shown
   const shouldShowSidebar = () => {
@@ -136,6 +148,10 @@ function App() {
   const handleNavigate = (page: string) => {
     // If navigating to sellerDashboard_overview, just use sellerDashboard for consistency
     setCurrentPage(page as any);
+    // Ensure orderAction is null when navigating to myOrders to meet rendering condition
+    if (page === 'myOrders') {
+      setOrderAction(null);
+    }
   };
 
   // Simple placeholder component for sidebar pages
@@ -1024,7 +1040,12 @@ function App() {
             <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
               <h3 className="text-2xl font-semibold text-gray-900 mb-4">Ongoing Orders</h3>
               <p className="text-base text-gray-600 mb-6">Manage your current orders.</p>
-              <button className="text-lg text-blue-600 hover:text-blue-800 font-medium">View Details</button>
+              <button 
+                onClick={() => handleNavigate('myOrders')}
+                className="text-lg text-blue-600 hover:text-blue-800 font-medium flex items-center"
+              >
+                View Orders <ChevronRight className="ml-1 h-5 w-5" />
+              </button>
             </div>
             
             {/* Appointments Card */}
@@ -1514,7 +1535,12 @@ function App() {
             <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
               <h3 className="text-2xl font-semibold text-gray-900 mb-4">Ongoing Orders</h3>
               <p className="text-base text-gray-600 mb-6">Manage your current orders.</p>
-              <button className="text-lg text-blue-600 hover:text-blue-800 font-medium">View Details</button>
+              <button 
+                onClick={() => handleNavigate('myOrders')}
+                className="text-lg text-blue-600 hover:text-blue-800 font-medium flex items-center"
+              >
+                View Orders <ChevronRight className="ml-1 h-5 w-5" />
+              </button>
             </div>
             
             {/* Appointments Card */}
@@ -3169,6 +3195,20 @@ function App() {
     setCurrentPage('booking');
   };
 
+  // Add handler functions for order actions
+  const handleOrderSelect = (orderId: string) => {
+    setSelectedOrder(orderId);
+    setOrderAction('details');
+  };
+
+  const handleOrderAction = (action: string) => {
+    setOrderAction(action);
+  };
+
+  const handleBackToOrders = () => {
+    setOrderAction(null);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar
@@ -3264,8 +3304,66 @@ function App() {
           <ProfilePage />
         )}
 
-        {currentPage === 'myOrders' && (
-          <PlaceholderPage title="My Orders" />
+        {currentPage === 'myOrders' && orderAction === null && (
+          <MyOrdersPage 
+            onBack={handleBackToLanding}
+            onViewOrderDetails={handleOrderSelect}
+            onTrackOrder={(orderId) => {
+              setSelectedOrder(orderId);
+              setOrderAction('track');
+            }}
+            onCancelOrder={(orderId) => {
+              setSelectedOrder(orderId);
+              setOrderAction('cancel');
+            }}
+            onReturnOrder={(orderId) => {
+              setSelectedOrder(orderId);
+              setOrderAction('return');
+            }}
+            onReviewOrder={(orderId) => {
+              setSelectedOrder(orderId);
+              setOrderAction('review');
+            }}
+            onReorderItems={(orderId) => {
+              // For demo purposes, we'll just show an alert
+              alert(`Reordering items from order ${orderId}`);
+            }}
+          />
+        )}
+
+        {currentPage === 'myOrders' && selectedOrder && orderAction === 'details' && (
+          <OrderDetailsPage 
+            order={mockOrders.find(o => o.id === selectedOrder)!}
+            onBack={handleBackToOrders}
+          />
+        )}
+
+        {currentPage === 'myOrders' && selectedOrder && orderAction === 'track' && (
+          <OrderTrackingPage 
+            order={mockOrders.find(o => o.id === selectedOrder)!}
+            onBack={handleBackToOrders}
+          />
+        )}
+
+        {currentPage === 'myOrders' && selectedOrder && orderAction === 'cancel' && (
+          <OrderCancellationPage 
+            order={mockOrders.find(o => o.id === selectedOrder)!}
+            onBack={handleBackToOrders}
+          />
+        )}
+
+        {currentPage === 'myOrders' && selectedOrder && orderAction === 'return' && (
+          <OrderReturnPage 
+            order={mockOrders.find(o => o.id === selectedOrder)!}
+            onBack={handleBackToOrders}
+          />
+        )}
+
+        {currentPage === 'myOrders' && selectedOrder && orderAction === 'review' && (
+          <OrderReviewPage 
+            order={mockOrders.find(o => o.id === selectedOrder)!}
+            onBack={handleBackToOrders}
+          />
         )}
 
         {currentPage === 'sellerDashboard' && (
@@ -3298,6 +3396,14 @@ function App() {
 
         {currentPage === 'editListing' && (
           <EditListingPage />
+        )}
+
+        {currentPage === 'bookings' && (
+          <PlaceholderPage title="My Bookings" />
+        )}
+        
+        {currentPage === 'home' && (
+          <PlaceholderPage title="Home" />
         )}
       </div>
     </div>
