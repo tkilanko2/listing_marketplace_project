@@ -20,6 +20,7 @@ interface NavbarProps {
   selectedLanguage: string;
   onListingSelect: (listing: Product) => void;
   onSellNowClick: () => void;
+  onNavigateTo: (page: string) => void;
 }
 
 export function Navbar({ 
@@ -32,7 +33,8 @@ export function Navbar({
   onLanguageChange,
   selectedLanguage,
   onListingSelect,
-  onSellNowClick
+  onSellNowClick,
+  onNavigateTo
 }: NavbarProps) {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
@@ -205,19 +207,28 @@ export function Navbar({
                     </div>
                   </div>
                   <div className="py-1">
-                    <button className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 group">
+                    <button 
+                      onClick={() => onNavigateTo('profile')}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 group"
+                    >
                       <div className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-50 group-hover:bg-blue-100 mr-3">
                         <User className="w-4 h-4 text-blue-600" />
                       </div>
                       <span>My Profile</span>
                     </button>
-                    <button className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 group">
+                    <button 
+                      onClick={() => onNavigateTo('myOrders')}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 group"
+                    >
                       <div className="w-8 h-8 flex items-center justify-center rounded-full bg-purple-50 group-hover:bg-purple-100 mr-3">
                         <ShoppingBag className="w-4 h-4 text-purple-600" />
                       </div>
                       <span>My Orders</span>
                     </button>
-                    <button className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 group">
+                    <button 
+                      onClick={() => onNavigateTo('sellerDashboard')}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 group"
+                    >
                       <div className="w-8 h-8 flex items-center justify-center rounded-full bg-green-50 group-hover:bg-green-100 mr-3">
                         <LayoutDashboard className="w-4 h-4 text-green-600" />
                       </div>
@@ -229,7 +240,10 @@ export function Navbar({
                       </div>
                       <span>Invite Friends</span>
                     </button>
-                    <button className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 group">
+                    <button 
+                      onClick={() => onNavigateTo('settings')}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 group"
+                    >
                       <div className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 group-hover:bg-gray-100 mr-3">
                         <Settings className="w-4 h-4 text-gray-600" />
                       </div>
@@ -329,15 +343,33 @@ export function Navbar({
                 </div>
               </div>
               <div className="mt-3 px-2 space-y-1">
-                <button className="w-full flex items-center px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md">
+                <button 
+                  onClick={() => {
+                    onNavigateTo('profile');
+                    setShowMobileMenu(false);
+                  }}
+                  className="w-full flex items-center px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md"
+                >
                   <User className="w-5 h-5 mr-3 text-gray-400" />
                   Profile
                 </button>
-                <button className="w-full flex items-center px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md">
+                <button 
+                  onClick={() => {
+                    onNavigateTo('myOrders');
+                    setShowMobileMenu(false);
+                  }}
+                  className="w-full flex items-center px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md"
+                >
                   <ShoppingBag className="w-5 h-5 mr-3 text-gray-400" />
                   Orders
                 </button>
-                <button className="w-full flex items-center px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md">
+                <button 
+                  onClick={() => {
+                    onNavigateTo('settings');
+                    setShowMobileMenu(false);
+                  }}
+                  className="w-full flex items-center px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md"
+                >
                   <Settings className="w-5 h-5 mr-3 text-gray-400" />
                   Settings
                 </button>

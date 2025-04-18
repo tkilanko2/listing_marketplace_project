@@ -1,4 +1,4 @@
-import { Service, Product, ListingItem } from './types';
+import { Service, Product, ListingItem, Order, OrderActionType, PaymentStatus } from './types';
 
 // Helper function to generate provider usernames
 function generateProviderUsername(): string {
@@ -1064,3 +1064,94 @@ const mockServices: Service[] = serviceCategories.flatMap(category =>
 
 export const mockListings: ListingItem[] = [...mockProducts, ...mockServices];
 export { mockServices, mockProducts };
+
+// Mock Orders Data
+export const mockOrders: Order[] = [
+  {
+    id: 'ORD001',
+    userId: 'USER001',
+    items: [{ id: 'ITEM001', product: mockProducts[0], quantity: 1, price: 120.00 }],
+    type: 'service',
+    status: 'pending',
+    paymentStatus: 'pending' as PaymentStatus,
+    orderDate: new Date('2023-10-01'),
+    totalAmount: 120.00,
+    actions: [
+      { label: 'Cancel', handler: () => console.log('Cancel order ORD001'), type: 'cancel' },
+      { label: 'View Details', handler: () => console.log('View details of order ORD001'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'ORD002',
+    userId: 'USER001',
+    items: [{ id: 'ITEM002', product: mockProducts[0], quantity: 1, price: 45.99 }],
+    type: 'product',
+    status: 'delivered',
+    paymentStatus: 'completed' as PaymentStatus,
+    orderDate: new Date('2023-09-15'),
+    totalAmount: 45.99,
+    actions: [
+      { label: 'Review', handler: () => console.log('Review order ORD002'), type: 'review' },
+      { label: 'View Details', handler: () => console.log('View details of order ORD002'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'ORD003',
+    userId: 'USER001',
+    items: [{ id: 'ITEM003', product: mockProducts[1], quantity: 1, price: 80.00 }],
+    type: 'service',
+    status: 'processing',
+    paymentStatus: 'pending' as PaymentStatus,
+    orderDate: new Date('2023-10-05'),
+    totalAmount: 80.00,
+    actions: [
+      { label: 'Message Seller', handler: () => console.log('Message seller for order ORD003'), type: 'reschedule' },
+      { label: 'View Details', handler: () => console.log('View details of order ORD003'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'ORD004',
+    userId: 'USER001',
+    items: [{ id: 'ITEM004', product: mockProducts[1], quantity: 1, price: 25.50 }],
+    type: 'product',
+    status: 'shipped',
+    paymentStatus: 'completed' as PaymentStatus,
+    orderDate: new Date('2023-09-20'),
+    totalAmount: 25.50,
+    actions: [
+      { label: 'Track', handler: () => console.log('Track order ORD004'), type: 'track' },
+      { label: 'View Details', handler: () => console.log('View details of order ORD004'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'ORD005',
+    userId: 'USER001',
+    items: [{ id: 'ITEM005', product: mockProducts[2], quantity: 1, price: 150.00 }],
+    type: 'service',
+    status: 'pending',
+    paymentStatus: 'pending' as PaymentStatus,
+    orderDate: new Date('2023-10-10'),
+    totalAmount: 150.00,
+    actions: [
+      { label: 'Cancel', handler: () => console.log('Cancel order ORD005'), type: 'cancel' },
+      { label: 'View Details', handler: () => console.log('View details of order ORD005'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  }
+];
+
+// Mock Service Orders - Placeholder for future implementation
+export const mockServiceOrders = [
+  {
+    id: 'SORD-1234-5678',
+    userId: 'usr-123',
+    type: 'service' as const,
+    status: 'confirmed' as const,
+    paymentStatus: 'paid' as const,
+    orderDate: new Date(2024, 3, 5), // April 5, 2024
+    totalAmount: 120.00,
+    service: mockServices[0],
+    appointmentDate: new Date(2024, 3, 15, 10, 0), // April 15, 2024, 10:00 AM
+    location: 'Service Provider Location',
+    actions: ['reschedule', 'cancel']
+  }
+];

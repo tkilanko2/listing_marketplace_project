@@ -233,3 +233,49 @@ export const categorySpecificFilters: Record<string, FilterOption[]> = {
     }
   ]
 };
+
+export interface OrderItem {
+  id: string;
+  product: Product;
+  quantity: number;
+  price: number;
+}
+
+export interface ShippingAddress {
+  name: string;
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+}
+
+export interface TrackingInfo {
+  carrier: string;
+  trackingNumber: string;
+  estimatedDelivery: Date;
+}
+
+export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'returned';
+export type PaymentStatus = 'pending' | 'paid' | 'refunded' | 'failed';
+export type OrderActionType = 'track' | 'cancel' | 'return' | 'review' | 'reorder' | 'reschedule';
+
+export interface Order {
+  id: string;
+  userId: string;
+  type: 'product' | 'service';
+  status: OrderStatus;
+  paymentStatus: PaymentStatus;
+  orderDate: Date;
+  deliveryDate?: Date;
+  cancelDate?: Date;
+  totalAmount: number;
+  items?: OrderItem[];
+  service?: Service;
+  appointmentDate?: Date;
+  location?: string;
+  shippingAddress?: ShippingAddress;
+  trackingInfo?: TrackingInfo;
+  cancelReason?: string;
+  actions: OrderActionType[];
+}

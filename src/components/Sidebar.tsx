@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, User, Calendar, ArrowLeft } from 'lucide-react';
+import { Home, User, ShoppingBag, LayoutDashboard, Settings, Calendar, ArrowLeft, ChevronDown } from 'lucide-react';
 
 interface SidebarProps {
   onNavigate: (page: string) => void;
@@ -8,9 +8,16 @@ interface SidebarProps {
 
 export function Sidebar({ onNavigate, currentPage }: SidebarProps) {
   const menuItems = [
-    { id: 'home', label: 'Home', icon: Home },
     { id: 'profile', label: 'My Profile', icon: User },
-    { id: 'bookings', label: 'My Bookings', icon: Calendar },
+    { id: 'myOrders', label: 'My Orders', icon: ShoppingBag },
+    { id: 'sellerDashboard', label: 'Seller Dashboard', icon: LayoutDashboard, subItems: [
+      { id: 'sellerDashboard_overview', label: 'Overview' },
+      { id: 'sellerDashboard_myShop', label: 'My Shop' },
+      { id: 'sellerDashboard_orders', label: 'Orders' },
+      { id: 'sellerDashboard_appointments', label: 'Appointments' },
+      { id: 'sellerDashboard_finance', label: 'Finance' }
+    ]},
+    { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
   return (
@@ -27,19 +34,49 @@ export function Sidebar({ onNavigate, currentPage }: SidebarProps) {
         <nav className="space-y-1">
           {menuItems.map((item) => {
             const Icon = item.icon;
+            const isActive = currentPage === item.id || (item.subItems && item.subItems.some(sub => currentPage === sub.id));
             return (
-              <button
-                key={item.id}
-                onClick={() => onNavigate(item.id)}
-                className={`flex items-center space-x-3 w-full px-4 py-3 rounded-lg transition-colors
-                  ${currentPage === item.id 
-                    ? 'bg-blue-50 text-blue-600' 
-                    : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-              >
-                <Icon className="w-5 h-5" />
-                <span>{item.label}</span>
-              </button>
+              <div key={item.id} className="mb-2">
+                <button
+                  onClick={() => {
+                    if (item.subItems) {
+                      // If it has subitems, navigate to the first subitem or overview
+                      onNavigate(item.subItems[0].id);
+                    } else {
+                      onNavigate(item.id);
+                    }
+                  }}
+                  className={`flex items-center space-x-3 w-full px-4 py-3 rounded-lg transition-colors
+                    ${isActive 
+                      ? 'bg-blue-50 text-blue-600' 
+                      : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                >
+                  {Icon && <Icon className="w-5 h-5" />}
+                  <span>{item.label}</span>
+                  {item.subItems && <ChevronDown className="w-4 h-4 ml-auto" />}
+                </button>
+                {item.subItems && isActive && (
+                  <div className="ml-8 mt-1 space-y-1">
+                    {item.subItems.map(subItem => (
+                      <button
+                        key={subItem.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onNavigate(subItem.id);
+                        }}
+                        className={`flex items-center space-x-3 w-full px-4 py-2 rounded-lg transition-colors text-sm
+                          ${currentPage === subItem.id 
+                            ? 'bg-blue-100 text-blue-700' 
+                            : 'text-gray-500 hover:bg-gray-50'
+                          }`}
+                      >
+                        <span>{subItem.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>
