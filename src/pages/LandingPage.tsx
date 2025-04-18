@@ -249,9 +249,9 @@ export function LandingPage({
     {
       id: 1,
       title: "Free Worldwide Shipping",
-      subtitle: "For Connect Market members",
+      subtitle: "For ExpatTray members",
       imageUrl: "https://images.unsplash.com/photo-1615751072497-5f5169febe17?w=800&auto=format&fit=crop&q=60",
-      actionLabel: "Join Connect Market",
+      actionLabel: "Join ExpaTray",
       actionUrl: "#",
       backgroundColor: "#146eb4"
     },
