@@ -138,7 +138,7 @@ export function SearchFilters({
             <select
               value={categoryFilters[filter.id] || ''}
               onChange={(e) => setCategoryFilters({ ...categoryFilters, [filter.id]: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-3 py-2 border border-[#CDCED8] rounded-md focus:outline-none focus:ring-1 focus:ring-opacity-50 focus:ring-[#3D1560] focus:border-[#3D1560]"
             >
               <option value="">{getTranslation(selectedLanguage, 'any')}</option>
               {filter.options?.map((option) => (
@@ -164,7 +164,7 @@ export function SearchFilters({
                   ...categoryFilters,
                   [filter.id]: { ...categoryFilters[filter.id], min: parseInt(e.target.value) }
                 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-[#CDCED8] rounded-md focus:outline-none focus:ring-1 focus:ring-opacity-50 focus:ring-[#3D1560] focus:border-[#3D1560]"
                 placeholder={`Min ${filter.unit}`}
               />
               <span>-</span>
@@ -177,7 +177,7 @@ export function SearchFilters({
                   ...categoryFilters,
                   [filter.id]: { ...categoryFilters[filter.id], max: parseInt(e.target.value) }
                 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-[#CDCED8] rounded-md focus:outline-none focus:ring-1 focus:ring-opacity-50 focus:ring-[#3D1560] focus:border-[#3D1560]"
                 placeholder={`Max ${filter.unit}`}
               />
             </div>
@@ -233,7 +233,7 @@ export function SearchFilters({
   }, [searchQuery]);
 
   return (
-    <div className="relative bg-gradient-to-r from-blue-100/80 via-white to-purple-100/80 p-4 rounded-3xl shadow-lg">
+    <div className="relative bg-white p-4 rounded-3xl shadow-lg">
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col space-y-4">
           {/* Search Input */}
@@ -248,10 +248,10 @@ export function SearchFilters({
                 }
               }}
               placeholder={getTranslation(selectedLanguage, 'search_placeholder')}
-              className="w-full h-12 pl-10 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow duration-200"
+              className="w-full h-12 pl-10 pr-4 py-2 text-sm bg-white border border-[#CDCED8] rounded-xl focus:outline-none focus:ring-1 focus:ring-opacity-50 focus:ring-[#3D1560] focus:border-[#3D1560] transition-shadow duration-200"
             />
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4.5 w-4.5 text-gray-400" />
+              <Search className="h-4.5 w-4.5 text-[#70727F]" />
             </div>
           </div>
 
@@ -267,16 +267,16 @@ export function SearchFilters({
                 <select 
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full h-12 pl-12 pr-10 py-2 rounded-xl border border-gray-200 bg-white appearance-none focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-500 text-gray-600 cursor-pointer"
+                  className="w-full h-12 pl-12 pr-10 py-2 rounded-xl border border-[#CDCED8] bg-white appearance-none focus:outline-none focus:ring-1 focus:ring-opacity-50 focus:ring-[#3D1560] focus:border-[#3D1560] text-[#383A47] cursor-pointer"
                 >
                   <option value="">{getTranslation(selectedLanguage, 'select_category')}</option>
                   {getRelevantCategories().map((category) => (
                     <option key={category} value={category}>{category}</option>
                   ))}
                 </select>
-                <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-gray-400 pointer-events-none" />
+                <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-[#70727F] pointer-events-none" />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-                  <svg className="h-4.5 w-4.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-4.5 w-4.5 text-[#70727F]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
@@ -285,20 +285,20 @@ export function SearchFilters({
               {/* Additional Filters Button */}
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2 px-6 h-12 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-500 text-gray-600 transition-colors duration-200"
+                className="flex items-center gap-2 px-6 h-12 rounded-xl border border-[#CDCED8] bg-white hover:bg-[#E8E9ED] focus:outline-none focus:ring-1 focus:ring-opacity-50 focus:ring-[#3D1560] text-[#383A47] transition-colors duration-200"
               >
-                <Filter className="h-4.5 w-4.5 text-gray-400" />
+                <Filter className="h-4.5 w-4.5 text-[#70727F]" />
                 <span>{getTranslation(selectedLanguage, 'additional_filters')}</span>
               </button>
             </div>
 
             {/* Additional Filters */}
             {showFilters && (
-              <div className="mt-4 p-6 bg-white rounded-2xl border border-gray-100 shadow-sm animate-fadeIn">
+              <div className="mt-4 p-6 bg-white rounded-2xl border border-[#CDCED8] shadow-sm animate-fadeIn">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {/* Price Range */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-[#383A47]">
                       {getTranslation(selectedLanguage, 'price_range')}
                     </label>
                     <div className="flex items-center space-x-2">
@@ -307,16 +307,16 @@ export function SearchFilters({
                         min="0"
                         value={priceRange.min}
                         onChange={(e) => setPriceRange({ ...priceRange, min: parseInt(e.target.value) || 0 })}
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                        className="w-full px-4 py-3 border border-[#CDCED8] rounded-lg focus:outline-none focus:ring-1 focus:ring-opacity-50 focus:ring-[#3D1560] focus:border-[#3D1560] transition-all duration-300"
                         placeholder={getTranslation(selectedLanguage, 'min')}
                       />
-                      <span className="text-gray-500">-</span>
+                      <span className="text-[#70727F]">-</span>
                       <input
                         type="number"
                         min="0"
                         value={priceRange.max}
                         onChange={(e) => setPriceRange({ ...priceRange, max: parseInt(e.target.value) || 0 })}
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                        className="w-full px-4 py-3 border border-[#CDCED8] rounded-lg focus:outline-none focus:ring-1 focus:ring-opacity-50 focus:ring-[#3D1560] focus:border-[#3D1560] transition-all duration-300"
                         placeholder={getTranslation(selectedLanguage, 'max')}
                       />
                     </div>
@@ -324,7 +324,7 @@ export function SearchFilters({
 
                   {/* Location */}
                   <div className="relative space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-[#383A47]">
                       Location
                     </label>
                     <div className="relative">
@@ -333,17 +333,17 @@ export function SearchFilters({
                         placeholder={getTranslation(selectedLanguage, 'search_cities')}
                         value={cityInput}
                         onChange={(e) => setCityInput(e.target.value)}
-                        className="w-full pl-14 pr-4 py-3 rounded-lg border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                        className="w-full pl-14 pr-4 py-3 rounded-lg border border-[#CDCED8] focus:outline-none focus:ring-1 focus:ring-opacity-50 focus:ring-[#3D1560] focus:border-[#3D1560] transition-all duration-300"
                       />
-                      <MapPin className="absolute left-5 top-3.5 h-5 w-5 text-gray-400" />
+                      <MapPin className="absolute left-5 top-3.5 h-5 w-5 text-[#70727F]" />
                       
                       {cityInput && filteredCities.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-[#CDCED8] rounded-lg shadow-lg max-h-60 overflow-auto">
                           {filteredCities.map((city) => (
                             <button
                               key={city}
                               onClick={() => handleAddCity(city)}
-                              className="w-full px-4 py-3 text-left hover:bg-blue-50 disabled:opacity-50 disabled:hover:bg-white transition-colors duration-200"
+                              className="w-full px-4 py-3 text-left hover:bg-[#EDD9FF] disabled:opacity-50 disabled:hover:bg-white transition-colors duration-200"
                               disabled={selectedCities.length >= 5}
                             >
                               {city}
@@ -358,12 +358,12 @@ export function SearchFilters({
                         {selectedCities.map((city) => (
                           <span
                             key={city}
-                            className="inline-flex items-center px-3 py-1.5 rounded-full text-sm bg-blue-50 text-blue-600 border border-blue-100 transition-all duration-200 hover:bg-blue-100"
+                            className="inline-flex items-center px-3 py-1.5 rounded-full text-sm bg-[#EDD9FF] text-[#3D1560] border border-[#EDD9FF] transition-all duration-200 hover:bg-[#EDD9FF]/80"
                           >
                             {city}
                             <button
                               onClick={() => handleRemoveCity(city)}
-                              className="ml-1.5 hover:text-blue-800 focus:outline-none"
+                              className="ml-1.5 hover:text-[#6D26AB] focus:outline-none"
                             >
                               <X className="w-4 h-4" />
                             </button>

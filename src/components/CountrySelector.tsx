@@ -103,7 +103,7 @@ export function CountrySelector({ onCountryChange }: CountrySelectorProps) {
       <div className="flex items-center space-x-3">
         <span className="text-sm font-medium text-gray-700">Your Current Country:</span>
         <button 
-          className="flex items-center space-x-2 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 border border-gray-200"
+          className="flex items-center space-x-2 px-3 py-2 rounded-md text-[#383A47] hover:bg-[#E8E9ED] border border-[#CDCED8] focus:outline-none focus:ring-1 focus:ring-opacity-50 focus:ring-[#3D1560]"
           onClick={() => setIsOpen(!isOpen)}
         >
           {isLoading ? (
@@ -137,9 +137,9 @@ export function CountrySelector({ onCountryChange }: CountrySelectorProps) {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search country..."
-                className="w-full pl-9 pr-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-9 pr-3 py-1.5 text-sm border border-[#CDCED8] rounded-md focus:outline-none focus:ring-1 focus:ring-opacity-50 focus:ring-[#3D1560] focus:border-[#3D1560]"
               />
-              <Search className="absolute left-2.5 top-2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-2.5 top-2 h-4 w-4 text-[#70727F]" />
             </div>
           </div>
 
@@ -154,10 +154,10 @@ export function CountrySelector({ onCountryChange }: CountrySelectorProps) {
                   setSearchQuery('');
                   setIsOpen(false);
                 }}
-                className={`flex items-center w-full px-4 py-2 text-sm hover:bg-gray-50 ${
+                className={`flex items-center w-full px-4 py-2 text-sm hover:bg-[#E8E9ED] focus:outline-none focus:ring-1 focus:ring-opacity-50 focus:ring-[#3D1560] ${
                   selectedCountry === country.code 
-                    ? 'text-blue-600 bg-blue-50' 
-                    : 'text-gray-700'
+                    ? 'text-[#3D1560] bg-[#EDD9FF]' 
+                    : 'text-[#383A47]'
                 }`}
               >
                 {country.code === 'global' ? (

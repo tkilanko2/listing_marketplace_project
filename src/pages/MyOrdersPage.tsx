@@ -43,6 +43,10 @@ export function MyOrdersPage({
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [viewType, setViewType] = useState<'product' | 'service' | 'all'>('all');
+  const [serviceFilter, setServiceFilter] = useState<'upcoming' | 'past' | 'all'>('all');
+  const [productFilter, setProductFilter] = useState<'buyAgain' | 'notShipped' | 'all'>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
 
   // Filtered and sorted orders
   const filteredOrders = useMemo(() => {
@@ -62,7 +66,7 @@ export function MyOrdersPage({
       // Filter by view type
       const matchesType = viewType === 'all' || order.type === viewType;
 
-      // Filter by timeframe
+      // Filter by timeframe for products or regular orders
       let matchesTimeframe = true;
       const orderDate = new Date(order.orderDate);
       const now = new Date();
@@ -87,7 +91,28 @@ export function MyOrdersPage({
           matchesTimeframe = true;
       }
 
-      return matchesSearch && matchesStatus && matchesType && matchesTimeframe;
+      // Additional filter for services based on upcoming/past appointments
+      let matchesServiceFilter = true;
+      if (viewType === 'service' && order.type === 'service' && order.appointmentDate) {
+        const appointmentDate = new Date(order.appointmentDate);
+        if (serviceFilter === 'upcoming') {
+          matchesServiceFilter = appointmentDate >= now;
+        } else if (serviceFilter === 'past') {
+          matchesServiceFilter = appointmentDate < now;
+        }
+      }
+
+      // Additional filter for products based on buy again or not yet shipped
+      let matchesProductFilter = true;
+      if (viewType === 'product' && order.type === 'product') {
+        if (productFilter === 'buyAgain') {
+          matchesProductFilter = order.status === 'delivered';
+        } else if (productFilter === 'notShipped') {
+          matchesProductFilter = order.status === 'pending' || order.status === 'processing';
+        }
+      }
+
+      return matchesSearch && matchesStatus && matchesType && matchesTimeframe && matchesServiceFilter && matchesProductFilter;
     }).sort((a, b) => {
       if (sortBy === 'date') {
         return sortOrder === 'asc' 
@@ -101,7 +126,24 @@ export function MyOrdersPage({
     });
     console.log('Filtered orders:', filtered.length);
     return filtered;
-  }, [searchQuery, selectedStatus, selectedTimeframe, sortBy, sortOrder, viewType]);
+  }, [searchQuery, selectedStatus, selectedTimeframe, sortBy, sortOrder, viewType, serviceFilter, productFilter]);
+
+  // Pagination calculations
+  const totalItems = filteredOrders.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo(0, 0); // Scroll to top when changing pages
+  };
+
+  const handleItemsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1); // Reset to first page when changing items per page
+  };
 
   // Toggle sort order
   const toggleSort = (sortType: 'date' | 'amount') => {
@@ -121,82 +163,102 @@ export function MyOrdersPage({
     });
   };
 
+  const formatDateTime = (date: Date) => {
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   return (
     <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8 bg-[#F8F8FA] min-h-screen">
-      {/* Header with back button */}
-      <div className="flex items-center mb-8">
-        <button 
-          onClick={onBack}
-          className="flex items-center text-[#DF678C] hover:text-[#D84773] transition-colors duration-200"
-        >
-          <ChevronLeft className="w-6 h-6 mr-1" />
-          <span className="text-lg font-medium">Back</span>
-        </button>
-        <h1 className="text-3xl font-bold text-[#1B1C20] ml-8">My Orders</h1>
-      </div>
-
-      {/* Tabs for Order Type */}
-      <div className="flex border-b border-[#CDCED8] mb-8">
-        <button
-          onClick={() => setViewType('all')}
-          className={`px-6 py-3 text-base font-medium border-b-2 -mb-0.5 rounded-t-md transition-colors duration-200 ${
-            viewType === 'all' 
-              ? 'border-[#DF678C] text-[#DF678C]' 
-              : 'border-transparent text-[#70727F] hover:text-[#383A47] hover:bg-[#E8E9ED]'
-          }`}
-        >
-          All Orders
-        </button>
-        <button
-          onClick={() => setViewType('product')}
-          className={`px-6 py-3 text-base font-medium border-b-2 -mb-0.5 rounded-t-md transition-colors duration-200 ${
-            viewType === 'product' 
-              ? 'border-[#DF678C] text-[#DF678C]' 
-              : 'border-transparent text-[#70727F] hover:text-[#383A47] hover:bg-[#E8E9ED]'
-          }`}
-        >
-          Products
-        </button>
-        <button
-          onClick={() => setViewType('service')}
-          className={`px-6 py-3 text-base font-medium border-b-2 -mb-0.5 rounded-t-md transition-colors duration-200 ${
-            viewType === 'service' 
-              ? 'border-[#DF678C] text-[#DF678C]' 
-              : 'border-transparent text-[#70727F] hover:text-[#383A47] hover:bg-[#E8E9ED]'
-          }`}
-        >
-          Services
-        </button>
+      {/* Breadcrumb and Navigation */}
+      <div className="mb-6">
+        <div className="text-sm text-[#70727F] mb-2">
+          <span className="hover:text-[#383A47] cursor-pointer">Home</span> &gt; 
+          <span className="hover:text-[#383A47] cursor-pointer">My Account</span> &gt; 
+          <span className="text-[#383A47]">Orders</span>
+        </div>
+        <div className="flex flex-wrap gap-4 items-center mb-6">
+          <h1 className="text-3xl font-bold text-[#1B1C20] flex-1">My Orders</h1>
+          <div className="flex gap-2 flex-wrap">
+            <button className={`text-sm font-medium px-4 py-2 rounded-lg ${viewType === 'all' ? 'bg-[#EDD9FF] text-[#3D1560]' : 'text-[#383A47] hover:bg-[#E8E9ED]'} transition-colors duration-200 shadow-sm`}
+              onClick={() => setViewType('all')}
+            >
+              All Orders
+            </button>
+            <button className={`text-sm font-medium px-4 py-2 rounded-lg ${viewType === 'product' ? 'bg-[#EDD9FF] text-[#3D1560]' : 'text-[#383A47] hover:bg-[#E8E9ED]'} transition-colors duration-200 shadow-sm`}
+              onClick={() => setViewType('product')}
+            >
+              Products
+            </button>
+            <button className={`text-sm font-medium px-4 py-2 rounded-lg ${viewType === 'service' ? 'bg-[#EDD9FF] text-[#3D1560]' : 'text-[#383A47] hover:bg-[#E8E9ED]'} transition-colors duration-200 shadow-sm`}
+              onClick={() => setViewType('service')}
+            >
+              Services
+            </button>
+            {viewType === 'all' || viewType === 'product' ? (
+              <>
+                <button className={`text-sm font-medium px-4 py-2 rounded-lg ${productFilter === 'buyAgain' ? 'bg-[#EDD9FF] text-[#3D1560]' : 'text-[#383A47] hover:bg-[#E8E9ED]'} transition-colors duration-200 shadow-sm`}
+                  onClick={() => setProductFilter('buyAgain')}
+                >
+                  Buy Again
+                </button>
+                <button className={`text-sm font-medium px-4 py-2 rounded-lg ${productFilter === 'notShipped' ? 'bg-[#EDD9FF] text-[#3D1560]' : 'text-[#383A47] hover:bg-[#E8E9ED]'} transition-colors duration-200 shadow-sm`}
+                  onClick={() => setProductFilter('notShipped')}
+                >
+                  Not Yet Shipped
+                </button>
+              </>
+            ) : (
+              <>
+                <button className={`text-sm font-medium px-4 py-2 rounded-lg ${serviceFilter === 'upcoming' ? 'bg-[#EDD9FF] text-[#3D1560]' : 'text-[#383A47] hover:bg-[#E8E9ED]'} transition-colors duration-200 shadow-sm`}
+                  onClick={() => setServiceFilter('upcoming')}
+                >
+                  Upcoming Appointments
+                </button>
+                <button className={`text-sm font-medium px-4 py-2 rounded-lg ${serviceFilter === 'past' ? 'bg-[#EDD9FF] text-[#3D1560]' : 'text-[#383A47] hover:bg-[#E8E9ED]'} transition-colors duration-200 shadow-sm`}
+                  onClick={() => setServiceFilter('past')}
+                >
+                  Past Services
+                </button>
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Filters and Search Section */}
       <div className="bg-[#E8E9ED] rounded-xl shadow-md p-6 mb-8 border border-[#CDCED8]">
         <div className="flex flex-col md:flex-row justify-between gap-6">
-          <div className="flex flex-wrap items-center gap-4">
-            {/* Status Filter */}
-            <div className="relative min-w-[160px]">
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value as OrderStatus | 'all')}
-                className="appearance-none bg-[#F8F8FA] border border-[#CDCED8] rounded-lg px-5 py-3 pr-10 text-base font-medium text-[#383A47] focus:outline-none focus:ring-2 focus:ring-[#DF678C] focus:border-[#DF678C] shadow-sm"
-              >
-                <option value="all">All Statuses</option>
-                <option value="pending">Pending</option>
-                <option value="processing">Processing</option>
-                <option value="shipped">Shipped</option>
-                <option value="delivered">Delivered</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="returned">Returned</option>
-              </select>
-              <ChevronDown className="absolute right-4 top-3.5 h-5 w-5 text-[#70727F]" />
+          {/* Search and Timeframe prominent */}
+          <div className="flex flex-col sm:flex-row flex-grow gap-4 max-w-md">
+            <div className="relative flex-grow max-w-md">
+              <input
+                type="text"
+                placeholder="Search orders..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full border border-[#CDCED8] rounded-lg pl-12 pr-10 py-3 focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] shadow-sm text-base text-[#383A47] bg-[#F8F8FA]"
+              />
+              <Search className="absolute left-4 top-3.5 h-5 w-5 text-[#70727F]" />
+              {searchQuery && (
+                <button 
+                  className="absolute right-4 top-3.5"
+                  onClick={() => setSearchQuery('')}
+                >
+                  <X className="h-5 w-5 text-[#70727F] hover:text-[#383A47] transition-colors duration-200" />
+                </button>
+              )}
             </div>
-
-            {/* Timeframe Filter */}
             <div className="relative min-w-[160px]">
               <select
                 value={selectedTimeframe}
                 onChange={(e) => setSelectedTimeframe(e.target.value)}
-                className="appearance-none bg-[#F8F8FA] border border-[#CDCED8] rounded-lg px-5 py-3 pr-10 text-base font-medium text-[#383A47] focus:outline-none focus:ring-2 focus:ring-[#DF678C] focus:border-[#DF678C] shadow-sm"
+                className="appearance-none bg-[#F8F8FA] border border-[#CDCED8] rounded-lg px-5 py-3 pr-10 text-base font-medium text-[#383A47] focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] shadow-sm"
               >
                 <option value="all">All Time</option>
                 <option value="last-month">Last Month</option>
@@ -205,32 +267,35 @@ export function MyOrdersPage({
               </select>
               <ChevronDown className="absolute right-4 top-3.5 h-5 w-5 text-[#70727F]" />
             </div>
-
-            {/* Additional filters button */}
-            <button className="inline-flex items-center bg-[#E8E9ED] text-[#383A47] border border-[#CDCED8] rounded-lg px-4 py-3 text-base font-medium hover:bg-[#CDCED8] transition-colors duration-200 shadow-sm">
+          </div>
+          {/* Collapsible filters for status and more */}
+          <div className="flex items-center gap-4 md:justify-end">
+            <button 
+              className="inline-flex items-center bg-[#E8E9ED] text-[#383A47] border border-[#CDCED8] rounded-lg px-4 py-3 text-base font-medium hover:bg-[#CDCED8] transition-colors duration-200 shadow-sm"
+              onClick={() => {/* Toggle filter collapse - logic to be added if needed */}}
+            >
               <Filter className="h-5 w-5 mr-2" />
               More Filters
             </button>
-          </div>
-
-          {/* Search */}
-          <div className="relative flex-grow max-w-md">
-            <input
-              type="text"
-              placeholder="Search orders..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full border border-[#CDCED8] rounded-lg pl-12 pr-10 py-3 focus:outline-none focus:ring-2 focus:ring-[#DF678C] focus:border-[#DF678C] shadow-sm text-base text-[#383A47] bg-[#F8F8FA]"
-            />
-            <Search className="absolute left-4 top-3.5 h-5 w-5 text-[#70727F]" />
-            {searchQuery && (
-              <button 
-                className="absolute right-4 top-3.5"
-                onClick={() => setSearchQuery('')}
-              >
-                <X className="h-5 w-5 text-[#70727F] hover:text-[#383A47] transition-colors duration-200" />
-              </button>
-            )}
+            {/* Hidden by default on mobile, shown on md+ or when toggled */}
+            <div className="hidden md:block">
+              <div className="relative min-w-[160px]">
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value as OrderStatus | 'all')}
+                  className="appearance-none bg-[#F8F8FA] border border-[#CDCED8] rounded-lg px-5 py-3 pr-10 text-base font-medium text-[#383A47] focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] shadow-sm"
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="pending">Pending</option>
+                  <option value="processing">Processing</option>
+                  <option value="shipped">Shipped</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="returned">Returned</option>
+                </select>
+                <ChevronDown className="absolute right-4 top-3.5 h-5 w-5 text-[#70727F]" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -244,7 +309,7 @@ export function MyOrdersPage({
           <span className="text-base text-[#70727F] font-medium">Sort by:</span>
           <button 
             className={`inline-flex items-center text-base px-4 py-2 rounded-lg shadow-sm ${
-              sortBy === 'date' ? 'bg-[#FFE5ED] text-[#DF678C] font-medium' : 'text-[#383A47] hover:bg-[#E8E9ED]'
+              sortBy === 'date' ? 'bg-[#EDD9FF] text-[#3D1560] font-medium' : 'text-[#383A47] hover:bg-[#E8E9ED]'
             }`}
             onClick={() => toggleSort('date')}
           >
@@ -257,7 +322,7 @@ export function MyOrdersPage({
           </button>
           <button 
             className={`inline-flex items-center text-base px-4 py-2 rounded-lg shadow-sm ${
-              sortBy === 'amount' ? 'bg-[#FFE5ED] text-[#DF678C] font-medium' : 'text-[#383A47] hover:bg-[#E8E9ED]'
+              sortBy === 'amount' ? 'bg-[#EDD9FF] text-[#3D1560] font-medium' : 'text-[#383A47] hover:bg-[#E8E9ED]'
             }`}
             onClick={() => toggleSort('amount')}
           >
@@ -273,18 +338,108 @@ export function MyOrdersPage({
 
       {/* Orders Grid or Empty State */}
       {filteredOrders.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
-          {filteredOrders.map(order => (
-            <OrderCard 
-              key={order.id}
-              order={order}
-              onViewDetails={() => onViewOrderDetails(order.id)}
-              onTrack={() => onTrackOrder(order.id)}
-              onCancel={() => onCancelOrder(order.id)}
-              onReturn={() => onReturnOrder(order.id)}
-              onReview={() => onReviewOrder(order.id)}
-              onReorder={() => onReorderItems(order.id)}
-            />
+        <div className="flex flex-col gap-4 animate-fade-in">
+          {paginatedOrders.map(order => (
+            <div 
+              key={order.id} 
+              className="bg-[#E8E9ED] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-[#CDCED8] cursor-pointer hover:bg-[#E0E1E5]"
+              onClick={() => onViewOrderDetails(order.id)}
+              role="article" 
+              aria-label={`Order ${order.id} details`}
+            >
+              <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-4 flex-1">
+                  {order.type === 'product' && order.items && order.items.length > 0 && order.items[0].product.images && order.items[0].product.images.length > 0 && (
+                    <div className="w-12 h-12 bg-[#F8F8FA] rounded-lg flex items-center justify-center overflow-hidden border border-[#CDCED8]" aria-label={`${order.items[0].product.name} image`}>
+                      <img 
+                        src={order.items[0].product.images[0]} 
+                        alt={order.items[0].product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  {order.type === 'service' && order.service && order.service.images && order.service.images.length > 0 && (
+                    <div className="w-12 h-12 bg-[#F8F8FA] rounded-lg flex items-center justify-center overflow-hidden border border-[#CDCED8]" aria-label={`${order.service.name} image`}>
+                      <img 
+                        src={order.service.images[0]} 
+                        alt={order.service.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-1 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-lg font-semibold text-[#1B1C20]">Order #{order.id}</h3>
+                      <StatusBadge status={order.status} />
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
+                      <p className="text-[#70727F]">Placed on {formatDate(order.orderDate)}</p>
+                      {order.type === 'service' && order.appointmentDate && (
+                        <p className="text-[#6D26AB] font-medium">Appointment: {formatDateTime(order.appointmentDate)}</p>
+                      )}
+                    </div>
+                    {order.type === 'product' && order.items && order.items.length > 0 && (
+                      <p className="text-sm text-[#383A47]">
+                        {order.items[0].product.name}{order.items.length > 1 ? ` + ${order.items.length - 1} more` : ''}
+                        {order.items.length > 0 && ` (Qty: ${order.items.reduce((total, item) => total + (item.quantity || 1), 0)})`}
+                      </p>
+                    )}
+                    {order.type === 'service' && order.service && (
+                      <p className="text-sm text-[#383A47]">{order.service.name}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-4 pt-2 md:pt-0 border-t border-[#CDCED8] md:border-0">
+                  <p className="text-base font-medium text-[#383A47]">Total: ${order.totalAmount.toFixed(2)}</p>
+                  <div className="flex gap-2 flex-wrap justify-end">
+                    {order.actions && order.actions.some((action: any) => action.type === 'track') && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const trackAction = order.actions.find((a: any) => a.type === 'track') as unknown as { type: string; handler?: () => void };
+                          if (trackAction && typeof trackAction.handler === 'function') trackAction.handler();
+                        }}
+                        className="px-4 py-2 rounded-lg text-sm font-medium bg-[#3D1560] text-[#FFFFFF] hover:bg-[#6D26AB] transition-colors duration-200 shadow-sm"
+                      >
+                        <Truck className="inline-block h-4 w-4 mr-1" /> Track
+                      </button>
+                    )}
+                    {order.actions && order.actions.some((action: any) => action.type === 'review') && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const reviewAction = order.actions.find((a: any) => a.type === 'review') as unknown as { type: string; handler?: () => void };
+                          if (reviewAction && typeof reviewAction.handler === 'function') reviewAction.handler();
+                        }}
+                        className="px-4 py-2 rounded-lg text-sm font-medium bg-[#3D1560] text-[#FFFFFF] hover:bg-[#6D26AB] transition-colors duration-200 shadow-sm"
+                      >
+                        <Check className="inline-block h-4 w-4 mr-1" /> Review
+                      </button>
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onViewOrderDetails(order.id);
+                      }}
+                      className="px-4 py-2 rounded-lg text-sm font-medium bg-[#3D1560] text-[#FFFFFF] hover:bg-[#6D26AB] transition-colors duration-200 shadow-sm"
+                    >
+                      View Details
+                    </button>
+                    {order.actions && order.actions.some((action: any) => action.type !== 'track' && action.type !== 'review') && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Logic for dropdown can be added later if needed
+                        }}
+                        className="px-4 py-2 rounded-lg text-sm font-medium bg-[#F8F8FA] text-[#383A47] hover:bg-[#E8E9ED] border border-[#CDCED8] transition-colors duration-200 shadow-sm"
+                      >
+                        More Actions <ChevronDown className="inline-block h-4 w-4 ml-1" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       ) : (
@@ -296,12 +451,59 @@ export function MyOrdersPage({
               : 'You haven\'t placed any orders yet.'}
           </p>
           <button 
-            className="inline-flex items-center justify-center bg-[#DF678C] text-[#FFFFFF] rounded-lg px-6 py-3 font-medium hover:bg-[#D84773] transition-colors duration-200 shadow-sm"
+            className="inline-flex items-center justify-center bg-[#3D1560] text-[#FFFFFF] rounded-lg px-6 py-3 font-medium hover:bg-[#6D26AB] transition-colors duration-200 shadow-sm"
             onClick={onBack}
           >
             Browse Products & Services
             <ExternalLink className="ml-2 h-5 w-5" />
           </button>
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {filteredOrders.length > 0 && (
+        <div className="flex flex-col md:flex-row justify-between items-center mt-6 px-2">
+          <div className="text-sm text-[#70727F] mb-4 md:mb-0">
+            Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} orders
+          </div>
+          <div className="flex gap-2 flex-wrap justify-center mb-4 md:mb-0">
+            <button
+              className={`px-3 py-1 rounded-md text-sm ${currentPage === 1 ? 'bg-[#E8E9ED] text-[#CDCED8] cursor-not-allowed' : 'bg-[#E8E9ED] text-[#383A47] hover:bg-[#CDCED8]'} transition-colors duration-200`}
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+              <button
+                key={page}
+                className={`px-3 py-1 rounded-md text-sm ${currentPage === page ? 'bg-[#3D1560] text-[#FFFFFF]' : 'bg-[#E8E9ED] text-[#383A47] hover:bg-[#CDCED8]'} transition-colors duration-200`}
+                onClick={() => handlePageChange(page)}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              className={`px-3 py-1 rounded-md text-sm ${currentPage === totalPages ? 'bg-[#E8E9ED] text-[#CDCED8] cursor-not-allowed' : 'bg-[#E8E9ED] text-[#383A47] hover:bg-[#CDCED8]'} transition-colors duration-200`}
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-[#70727F]">Show:</span>
+            <select
+              value={itemsPerPage}
+              onChange={handleItemsPerPageChange}
+              className="bg-[#F8F8FA] border border-[#CDCED8] rounded-md px-2 py-1 text-sm text-[#383A47] focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560]"
+            >
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+            </select>
+            <span className="text-sm text-[#70727F]">per page</span>
+          </div>
         </div>
       )}
     </div>
@@ -313,19 +515,19 @@ function StatusBadge({ status }: { status: OrderStatus }) {
   const getStatusColor = () => {
     switch (status) {
       case 'pending':
-        return 'bg-[#FFE5ED] text-[#DF678C]';
+        return 'bg-[#EDD9FF] text-[#1B1C20]';
       case 'processing':
-        return 'bg-[#EDD9FF] text-[#3D1560]';
+        return 'bg-[#EDD9FF] text-[#1B1C20]';
       case 'shipped':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-[#EDD9FF] text-[#1B1C20]';
       case 'delivered':
-        return 'bg-green-100 text-green-800';
+        return 'bg-[#E8E9ED] text-[#383A47]';
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
+        return 'bg-[#E8E9ED] text-[#383A47]';
       case 'returned':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-[#E8E9ED] text-[#383A47]';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-[#E8E9ED] text-[#70727F]';
     }
   };
 
@@ -352,149 +554,5 @@ function StatusBadge({ status }: { status: OrderStatus }) {
     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor()}`}>
       {getStatusText()}
     </span>
-  );
-}
-
-// Order card component
-function OrderCard({ 
-  order, 
-  onViewDetails,
-  onTrack,
-  onCancel,
-  onReturn,
-  onReview,
-  onReorder
-}: { 
-  order: Order,
-  onViewDetails: () => void,
-  onTrack: () => void,
-  onCancel: () => void,
-  onReturn: () => void,
-  onReview: () => void,
-  onReorder: () => void,
-}) {
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
-  // Check if 'View Details' or similar action already exists in order.actions to avoid duplication
-  const hasViewDetailsAction = order.actions && order.actions.some((action: any) => action.label.toLowerCase().includes('view') || action.label.toLowerCase().includes('details'));
-
-  return (
-    <div className="bg-[#E8E9ED] rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 border border-[#CDCED8]" role="article" aria-label={`Order ${order.id} details`}>
-      <div className="p-6">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h3 className="text-lg font-semibold text-[#1B1C20]">Order #{order.id}</h3>
-            <p className="text-sm text-[#70727F]">Placed on {formatDate(order.orderDate)}</p>
-          </div>
-          <StatusBadge status={order.status} />
-        </div>
-
-        {order.type === 'product' && order.items && order.items.length > 0 && (
-          <div className="mb-4">
-            <div className="flex items-center text-[#383A47] mb-2">
-              <Package className="h-5 w-5 mr-2 text-[#DF678C]" />
-              <span className="text-base font-medium">Product Order</span>
-            </div>
-            <div className="flex items-center mt-2">
-              {order.items[0].product.images && order.items[0].product.images.length > 0 && (
-                <div className="w-16 h-16 bg-[#F8F8FA] rounded-lg flex items-center justify-center overflow-hidden mr-3 border border-[#CDCED8]" aria-label={`${order.items[0].product.name} image`}>
-                  <img 
-                    src={order.items[0].product.images[0]} 
-                    alt={order.items[0].product.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              <div>
-                <p className="text-sm text-[#70727F]">
-                  {order.items.length} item{order.items.length > 1 ? 's' : ''}
-                </p>
-                <p className="text-sm font-medium text-[#383A47]">
-                  {order.items[0].product.name}{order.items.length > 1 ? ` + ${order.items.length - 1} more` : ''}
-                </p>
-                {/* Placeholder for delivery info if available */}
-                <p className="text-sm text-[#70727F]">
-                  {order.status === 'shipped' || order.status === 'delivered' ? 'Shipped' : 'Delivery info unavailable'}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {order.type === 'service' && order.service && (
-          <div className="mb-4">
-            <div className="flex items-center text-[#383A47] mb-2">
-              <Calendar className="h-5 w-5 mr-2 text-[#DF678C]" />
-              <span className="text-base font-medium">Service Booking</span>
-            </div>
-            <div className="flex items-center mt-2">
-              {order.service.images && order.service.images.length > 0 && (
-                <div className="w-16 h-16 bg-[#F8F8FA] rounded-lg flex items-center justify-center overflow-hidden mr-3 border border-[#CDCED8]" aria-label={`${order.service.name} image`}>
-                  <img 
-                    src={order.service.images[0]} 
-                    alt={order.service.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              <div>
-                <p className="text-sm text-[#70727F]">{order.service.name}</p>
-                {order.appointmentDate && (
-                  <p className="text-sm font-medium text-[#DF678C]">
-                    Appointment: {formatDate(order.appointmentDate)}
-                  </p>
-                )}
-                <p className="text-sm text-[#70727F]">
-                  Provider: {order.service.provider?.username || 'N/A'}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="mb-5">
-          <p className="text-base font-medium text-[#383A47]">Total: ${order.totalAmount.toFixed(2)}</p>
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          {order.actions && order.actions.map((action: any, index: number) => {
-            const isPrimary = action.type === 'track' || action.type === 'review';
-            const isCritical = action.type === 'cancel';
-            return (
-              <button
-                key={index}
-                onClick={action.handler}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm ${
-                  isCritical
-                    ? 'bg-red-100 text-red-800 hover:bg-red-200 border border-red-300'
-                    : isPrimary 
-                      ? 'bg-[#DF678C] text-[#FFFFFF] hover:bg-[#D84773]'
-                      : 'bg-[#F8F8FA] text-[#383A47] hover:bg-[#E8E9ED] border border-[#CDCED8]'
-                }`}
-              >
-                {action.type === 'track' && <Truck className="inline-block h-4 w-4 mr-1" />}
-                {action.type === 'review' && <Check className="inline-block h-4 w-4 mr-1" />}
-                {action.type === 'reorder' && <RotateCcw className="inline-block h-4 w-4 mr-1" />}
-                {action.label}
-              </button>
-            );
-          })}
-          {!hasViewDetailsAction && (
-            <button
-              onClick={onViewDetails}
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-[#F8F8FA] text-[#383A47] hover:bg-[#E8E9ED] border border-[#CDCED8] transition-colors duration-200 shadow-sm"
-            >
-              View Details
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
   );
 }

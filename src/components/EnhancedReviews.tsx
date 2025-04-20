@@ -130,13 +130,13 @@ export function EnhancedReviews({ reviews, onVoteHelpful }: EnhancedReviewsProps
       </div>
 
       {/* Filters */}
-      <div className="p-4 border-b border-gray-100 flex gap-2 flex-wrap">
+      <div className="p-4 border-b border-[#CDCED8] flex gap-2 flex-wrap">
         <button
           onClick={() => setActiveFilters(prev => ({ ...prev, hasPhotos: !prev.hasPhotos }))}
           className={`flex items-center gap-2 px-4 py-2 rounded-full border ${
             activeFilters.hasPhotos
-              ? 'border-blue-500 bg-blue-50 text-blue-600'
-              : 'border-gray-200 hover:border-gray-300'
+              ? 'border-[#3D1560] bg-[#EDD9FF] text-[#3D1560]'
+              : 'border-[#CDCED8] hover:border-[#6D26AB]'
           }`}
         >
           <Camera className="w-4 h-4" />
@@ -146,8 +146,8 @@ export function EnhancedReviews({ reviews, onVoteHelpful }: EnhancedReviewsProps
           onClick={() => setActiveFilters(prev => ({ ...prev, isVerified: !prev.isVerified }))}
           className={`flex items-center gap-2 px-4 py-2 rounded-full border ${
             activeFilters.isVerified
-              ? 'border-blue-500 bg-blue-50 text-blue-600'
-              : 'border-gray-200 hover:border-gray-300'
+              ? 'border-[#3D1560] bg-[#EDD9FF] text-[#3D1560]'
+              : 'border-[#CDCED8] hover:border-[#6D26AB]'
           }`}
         >
           <CheckCircle className="w-4 h-4" />
@@ -158,7 +158,7 @@ export function EnhancedReviews({ reviews, onVoteHelpful }: EnhancedReviewsProps
             ...prev,
             sortBy: prev.sortBy === 'recent' ? 'helpful' : 'recent',
           }))}
-          className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 hover:border-gray-300"
+          className="flex items-center gap-2 px-4 py-2 rounded-full border border-[#CDCED8] hover:border-[#6D26AB]"
         >
           {activeFilters.sortBy === 'recent' ? (
             <>
@@ -225,29 +225,33 @@ export function EnhancedReviews({ reviews, onVoteHelpful }: EnhancedReviewsProps
               </div>
             )}
 
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => onVoteHelpful(review.id, true)}
-                className={`flex items-center gap-1 text-sm ${
-                  review.userVote === 'helpful'
-                    ? 'text-blue-600'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <ThumbsUp className="w-4 h-4" />
-                <span>Helpful ({review.helpfulCount})</span>
-              </button>
-              <button
-                onClick={() => onVoteHelpful(review.id, false)}
-                className={`flex items-center gap-1 text-sm ${
-                  review.userVote === 'not-helpful'
-                    ? 'text-blue-600'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <ThumbsDown className="w-4 h-4" />
-                <span>Not helpful ({review.notHelpfulCount})</span>
-              </button>
+            <div className="flex items-center gap-4 mt-4 text-sm text-gray-500">
+              <span>{review.date.toLocaleDateString()}</span>
+              <div className="flex items-center gap-2">
+                <span>Was this review helpful?</span>
+                <button
+                  onClick={() => onVoteHelpful(review.id, true)}
+                  className={`flex items-center gap-1 px-3 py-1 rounded-full transition-colors ${
+                    review.userVote === 'helpful'
+                      ? 'bg-[#EDD9FF] text-[#3D1560]'
+                      : 'hover:bg-[#E8E9ED] text-[#383A47]'
+                  }`}
+                >
+                  <ThumbsUp className="w-4 h-4" />
+                  <span>{review.helpfulCount}</span>
+                </button>
+                <button
+                  onClick={() => onVoteHelpful(review.id, false)}
+                  className={`flex items-center gap-1 px-3 py-1 rounded-full transition-colors ${
+                    review.userVote === 'not-helpful'
+                      ? 'bg-[#EDD9FF] text-[#3D1560]'
+                      : 'hover:bg-[#E8E9ED] text-[#383A47]'
+                  }`}
+                >
+                  <ThumbsDown className="w-4 h-4" />
+                  <span>{review.notHelpfulCount}</span>
+                </button>
+              </div>
             </div>
           </div>
         ))}

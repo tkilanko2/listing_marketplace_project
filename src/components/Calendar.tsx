@@ -58,10 +58,10 @@ export function Calendar({ selectedDate, onDateSelect, availableSlots }: Calenda
               onClick={() => onDateSelect(date)}
               className={`h-10 flex items-center justify-center rounded-full
                 ${date.toDateString() === selectedDate.toDateString()
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-[#3D1560] text-white'
                   : hasSlots
-                  ? 'hover:bg-blue-100'
-                  : 'text-gray-400'
+                  ? 'hover:bg-[#EDD9FF] text-[#383A47]'
+                  : 'text-[#CDCED8]'
                 }`}
               disabled={!hasSlots}
             >

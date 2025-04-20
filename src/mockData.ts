@@ -1073,7 +1073,7 @@ export const mockOrders: Order[] = [
     items: [],
     type: 'service',
     service: mockServices[0],
-    appointmentDate: new Date('2023-10-15'),
+    appointmentDate: new Date('2024-05-15'),
     status: 'pending',
     paymentStatus: 'pending' as PaymentStatus,
     orderDate: new Date('2023-10-01'),
@@ -1103,7 +1103,7 @@ export const mockOrders: Order[] = [
     items: [],
     type: 'service',
     service: mockServices[1],
-    appointmentDate: new Date('2023-10-20'),
+    appointmentDate: new Date('2025-08-10'),
     status: 'processing',
     paymentStatus: 'pending' as PaymentStatus,
     orderDate: new Date('2023-10-05'),
@@ -1133,7 +1133,7 @@ export const mockOrders: Order[] = [
     items: [],
     type: 'service',
     service: mockServices[2],
-    appointmentDate: new Date('2023-10-25'),
+    appointmentDate: new Date('2025-08-20'),
     status: 'pending',
     paymentStatus: 'pending' as PaymentStatus,
     orderDate: new Date('2023-10-10'),
@@ -1141,6 +1141,75 @@ export const mockOrders: Order[] = [
     actions: [
       { label: 'Cancel', handler: () => console.log('Cancel order ORD005'), type: 'cancel' },
       { label: 'View Details', handler: () => console.log('View details of order ORD005'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'ORD006',
+    userId: 'USER001',
+    items: [{ id: 'ITEM006', product: mockProducts[2], quantity: 2, price: 99.99 }],
+    type: 'product',
+    status: 'pending',
+    paymentStatus: 'pending' as PaymentStatus,
+    orderDate: new Date('2023-11-01'),
+    totalAmount: 199.98,
+    actions: [
+      { label: 'Cancel', handler: () => console.log('Cancel order ORD006'), type: 'cancel' },
+      { label: 'View Details', handler: () => console.log('View details of order ORD006'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'ORD007',
+    userId: 'USER001',
+    items: [{ id: 'ITEM007', product: mockProducts[3], quantity: 1, price: 149.99 }],
+    type: 'product',
+    status: 'processing',
+    paymentStatus: 'completed' as PaymentStatus,
+    orderDate: new Date('2023-10-25'),
+    totalAmount: 149.99,
+    actions: [
+      { label: 'View Details', handler: () => console.log('View details of order ORD007'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'ORD008',
+    userId: 'USER001',
+    items: [{ id: 'ITEM008', product: mockProducts[4], quantity: 1, price: 79.99 }],
+    type: 'product',
+    status: 'shipped',
+    paymentStatus: 'completed' as PaymentStatus,
+    orderDate: new Date('2023-10-15'),
+    totalAmount: 79.99,
+    actions: [
+      { label: 'Track', handler: () => console.log('Track order ORD008'), type: 'track' },
+      { label: 'View Details', handler: () => console.log('View details of order ORD008'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'ORD009',
+    userId: 'USER001',
+    items: [{ id: 'ITEM009', product: mockProducts[5], quantity: 3, price: 29.99 }],
+    type: 'product',
+    status: 'delivered',
+    paymentStatus: 'completed' as PaymentStatus,
+    orderDate: new Date('2023-09-10'),
+    totalAmount: 89.97,
+    actions: [
+      { label: 'Review', handler: () => console.log('Review order ORD009'), type: 'review' },
+      { label: 'View Details', handler: () => console.log('View details of order ORD009'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'ORD010',
+    userId: 'USER001',
+    items: [{ id: 'ITEM010', product: mockProducts[6], quantity: 1, price: 199.99 }],
+    type: 'product',
+    status: 'delivered',
+    paymentStatus: 'completed' as PaymentStatus,
+    orderDate: new Date('2023-08-20'),
+    totalAmount: 199.99,
+    actions: [
+      { label: 'Reviewed', handler: () => console.log('Already reviewed order ORD010'), type: 'reviewed' },
+      { label: 'View Details', handler: () => console.log('View details of order ORD010'), type: 'reorder' }
     ] as unknown as OrderActionType[]
   }
 ];

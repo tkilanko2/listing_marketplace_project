@@ -110,7 +110,7 @@ export function Navbar({
               </button>
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                className="bg-[#3D1560] text-white px-4 py-2 rounded-md hover:bg-[#6D26AB]"
               >
                 {title}
               </button>
@@ -130,7 +130,7 @@ export function Navbar({
               className="flex-shrink-0 flex items-center cursor-pointer hover:opacity-80 transition-opacity"
               onClick={onHomeClick}
             >
-              <h1 className="text-xl md:text-2xl font-bold text-blue-600">Connect Market</h1>
+              <h1 className="text-xl md:text-2xl font-bold text-[#3D1560]">ExpaTray</h1>
             </div>
           </div>
 
@@ -146,7 +146,7 @@ export function Navbar({
           <div className="hidden md:flex items-center space-x-4">
             <button
               onClick={onSellNowClick}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+              className="px-4 py-2 bg-[#3D1560] hover:bg-[#6D26AB] text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
             >
               Sell Now
             </button>
@@ -169,7 +169,7 @@ export function Navbar({
                         className="w-8 h-8 rounded-full object-cover"
                       />
                     ) : (
-                      <UserCircle className="w-8 h-8 text-blue-600" />
+                      <UserCircle className="w-8 h-8 text-[#3D1560]" />
                     )}
                     <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white ${
                       user?.status === 'online' ? 'bg-green-500' :
@@ -190,7 +190,7 @@ export function Navbar({
                           className="w-10 h-10 rounded-full object-cover"
                         />
                       ) : (
-                        <UserCircle className="w-10 h-10 text-blue-600" />
+                        <UserCircle className="w-10 h-10 text-[#3D1560]" />
                       )}
                       <div>
                         <p className="text-sm font-medium text-gray-900">{user?.userId || 'CM7by141boza'}</p>
@@ -273,7 +273,7 @@ export function Navbar({
             )}
 
             <button className="relative p-2 hover:bg-gray-100 rounded-full transition-colors duration-200">
-              <div className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+              <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
                 0
               </div>
               <ShoppingCart className="w-6 h-6 text-gray-700" />
@@ -316,7 +316,7 @@ export function Navbar({
 
               <button className="relative p-2 hover:bg-gray-100 rounded-full">
                 <ShoppingCart className="w-6 h-6 text-gray-700" />
-                <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
                   0
                 </span>
               </button>

@@ -14,7 +14,7 @@ import {
   BarChart, Calendar, DollarSign, ShoppingCart, Package, TrendingUp, 
   ArrowUp, Wallet, ChevronDown, ChevronLeft, ChevronRight, Search, 
   Edit, Trash, Eye, PlusCircle, Zap, BarChart2, Settings, 
-  Users, Star, CheckCircle, MoreVertical, Film, X, Bookmark, ChevronUp 
+  Users, Star, CheckCircle, MoreVertical, Film, X, Bookmark, ChevronUp, LayoutDashboard, Store 
 } from 'lucide-react';
 import { MyOrdersPage } from './pages/MyOrdersPage';
 import { 
@@ -1112,22 +1112,22 @@ function App() {
 
     return (
       <PlaceholderPage title="Seller Dashboard">
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 mb-8 shadow-sm">
+        <div className="bg-gradient-to-r from-[#E8E9ED] to-[#EDD9FF] rounded-lg p-6 mb-8 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div>
-              <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                <BarChart className="h-6 w-6 mr-2 text-blue-600" />
+              <h2 className="text-xl font-bold text-[#1B1C20] flex items-center">
+                <BarChart className="h-6 w-6 mr-2 text-[#3D1560]" />
                 Performance Overview
               </h2>
-              <p className="text-gray-500 mt-1">Track your metrics and business growth</p>
+              <p className="text-[#70727F] mt-1">Track your metrics and business growth</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <button 
                 onClick={() => setTimeFilter('24h')}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
                   timeFilter === '24h' 
-                    ? 'bg-blue-600 text-white shadow-md' 
-                    : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                    ? 'bg-[#3D1560] text-[#FFFFFF] shadow-md' 
+                    : 'bg-[#FFFFFF] text-[#70727F] border border-[#CDCED8] hover:bg-[#E8E9ED]'
                 }`}
               >
                 Last 24 Hours
@@ -1136,8 +1136,8 @@ function App() {
                 onClick={() => setTimeFilter('7d')}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
                   timeFilter === '7d' 
-                    ? 'bg-blue-600 text-white shadow-md' 
-                    : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                    ? 'bg-[#3D1560] text-[#FFFFFF] shadow-md' 
+                    : 'bg-[#FFFFFF] text-[#70727F] border border-[#CDCED8] hover:bg-[#E8E9ED]'
                 }`}
               >
                 Weekly
@@ -1146,8 +1146,8 @@ function App() {
                 onClick={() => setTimeFilter('30d')}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
                   timeFilter === '30d' 
-                    ? 'bg-blue-600 text-white shadow-md' 
-                    : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                    ? 'bg-[#3D1560] text-[#FFFFFF] shadow-md' 
+                    : 'bg-[#FFFFFF] text-[#70727F] border border-[#CDCED8] hover:bg-[#E8E9ED]'
                 }`}
               >
                 Monthly
@@ -1156,8 +1156,8 @@ function App() {
                 onClick={() => setTimeFilter('90d')}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
                   timeFilter === '90d' 
-                    ? 'bg-blue-600 text-white shadow-md' 
-                    : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                    ? 'bg-[#3D1560] text-[#FFFFFF] shadow-md' 
+                    : 'bg-[#FFFFFF] text-[#70727F] border border-[#CDCED8] hover:bg-[#E8E9ED]'
                 }`}
               >
                 Quarterly
@@ -1807,69 +1807,69 @@ function App() {
     <PlaceholderPage title="My Shop">
         {/* Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 transition-all duration-300 hover:shadow-md">
+          <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#CDCED8] p-5 transition-all duration-300 hover:shadow-md">
             <div className="flex justify-between items-start">
             <div>
-                <p className="text-sm font-medium text-gray-500">Total Listings</p>
-                <h3 className="text-2xl font-bold mt-1 text-gray-900">
+                <p className="text-sm font-medium text-[#70727F]">Total Listings</p>
+                <h3 className="text-2xl font-bold mt-1 text-[#1B1C20]">
                   {mockListingsData.active + mockListingsData.draft + mockListingsData.inactive}
                 </h3>
-                <p className="text-xs text-gray-500 mt-1">
-                  <span className="text-green-600 font-medium">+3</span> new this month
+                <p className="text-xs text-[#70727F] mt-1">
+                  <span className="text-[#3D1560] font-medium">+3</span> new this month
                 </p>
               </div>
-              <div className="bg-blue-100 p-2 rounded-lg">
-                <Package className="w-6 h-6 text-blue-600" />
+              <div className="bg-[#EDD9FF] p-2 rounded-lg">
+                <Store className="w-6 h-6 text-[#3D1560]" />
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 transition-all duration-300 hover:shadow-md">
+          <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#CDCED8] p-5 transition-all duration-300 hover:shadow-md">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-medium text-gray-500">Live Listings</p>
-                <h3 className="text-2xl font-bold mt-1 text-gray-900">{mockListingsData.active}</h3>
+                <p className="text-sm font-medium text-[#70727F]">Live Listings</p>
+                <h3 className="text-2xl font-bold mt-1 text-[#1B1C20]">{mockListingsData.active}</h3>
                 <div className="flex gap-3 mt-1">
-                  <p className="text-xs text-gray-500">
-                    <span className="font-medium text-indigo-600">{mockListingsData.products}</span> products
+                  <p className="text-xs text-[#70727F]">
+                    <span className="font-medium text-[#3D1560]">{mockListingsData.products}</span> products
                   </p>
-                  <p className="text-xs text-gray-500">
-                    <span className="font-medium text-teal-600">{mockListingsData.services}</span> services
+                  <p className="text-xs text-[#70727F]">
+                    <span className="font-medium text-[#DF678C]">{mockListingsData.services}</span> services
                   </p>
                 </div>
               </div>
-              <div className="bg-green-100 p-2 rounded-lg">
-                <CheckCircle className="w-6 h-6 text-green-600" />
+              <div className="bg-[#EDD9FF] p-2 rounded-lg">
+                <CheckCircle className="w-6 h-6 text-[#3D1560]" />
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 transition-all duration-300 hover:shadow-md">
+          <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#CDCED8] p-5 transition-all duration-300 hover:shadow-md">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-medium text-gray-500">Monthly Revenue</p>
-                <h3 className="text-2xl font-bold mt-1 text-gray-900">{formatCurrency(mockListingsData.revenue)}</h3>
-                <p className="text-xs text-gray-500 mt-1">
-                  <span className="text-green-600 font-medium">↑ 12.5%</span> vs last month
+                <p className="text-sm font-medium text-[#70727F]">Monthly Revenue</p>
+                <h3 className="text-2xl font-bold mt-1 text-[#1B1C20]">{formatCurrency(mockListingsData.revenue)}</h3>
+                <p className="text-xs text-[#70727F] mt-1">
+                  <span className="text-[#3D1560] font-medium">↑ 12.5%</span> vs last month
                 </p>
               </div>
-              <div className="bg-purple-100 p-2 rounded-lg">
-                <DollarSign className="w-6 h-6 text-purple-600" />
+              <div className="bg-[#EDD9FF] p-2 rounded-lg">
+                <DollarSign className="w-6 h-6 text-[#3D1560]" />
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 transition-all duration-300 hover:shadow-md">
+          <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#CDCED8] p-5 transition-all duration-300 hover:shadow-md">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-medium text-gray-500">Shop Visitors</p>
-                <h3 className="text-2xl font-bold mt-1 text-gray-900">{mockListingsData.visitorsThisMonth}</h3>
-                <p className="text-xs text-gray-500 mt-1">
-                  <span className="text-green-600 font-medium">↑ 8.3%</span> vs last month
+                <p className="text-sm font-medium text-[#70727F]">Shop Visitors</p>
+                <h3 className="text-2xl font-bold mt-1 text-[#1B1C20]">{mockListingsData.visitorsThisMonth}</h3>
+                <p className="text-xs text-[#70727F] mt-1">
+                  <span className="text-[#3D1560] font-medium">↑ 8.3%</span> vs last month
                 </p>
               </div>
-              <div className="bg-amber-100 p-2 rounded-lg">
-                <Users className="w-6 h-6 text-amber-600" />
+              <div className="bg-[#EDD9FF] p-2 rounded-lg">
+                <Users className="w-6 h-6 text-[#3D1560]" />
               </div>
             </div>
           </div>

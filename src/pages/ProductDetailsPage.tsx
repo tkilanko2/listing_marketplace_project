@@ -159,18 +159,18 @@ export function ProductDetailsPage({ product, onBuyNow, onBack, onProviderSelect
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="container mx-auto px-4 py-8 max-w-7xl bg-[#F8F8FA]">
       {/* Navigation and Breadcrumb */}
       <FadeInOnScroll>
         <div className="mb-8">
           <button
             onClick={onBack}
-            className="flex items-center text-gray-600 hover:text-gray-800 mb-2"
+            className="flex items-center text-[#70727F] hover:text-[#383A47] mb-2"
           >
             <ArrowLeft className="w-4 h-4 mr-1" />
             <span className="text-sm">Back to listings</span>
           </button>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-[#70727F]">
             Home / {product.category} / {product.name}
           </div>
         </div>
@@ -181,31 +181,31 @@ export function ProductDetailsPage({ product, onBuyNow, onBack, onProviderSelect
         <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-8">
           <div className="flex-1">
             <div className="mb-4">
-              <span className="text-blue-600 text-sm font-medium tracking-wider uppercase">{product.category}</span>
-              <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 leading-tight mt-1">
+              <span className="text-[#3D1560] text-sm font-medium tracking-wider uppercase">{product.category}</span>
+              <h1 className="text-4xl font-bold text-[#1B1C20] leading-tight mt-1">
                 {product.name}
               </h1>
             </div>
-            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-              <div className="flex items-center bg-yellow-50 px-3 py-1 rounded-full">
-                <Star className="w-4 h-4 text-yellow-400 mr-1" />
+            <div className="flex flex-wrap items-center gap-4 text-sm text-[#70727F]">
+              <div className="flex items-center bg-[#E8E9ED] px-3 py-1 rounded-full">
+                <Star className="w-4 h-4 text-[#3D1560] mr-1" />
                 <span className="font-medium">{provider.rating}</span>
-                <span className="text-gray-500 ml-1">({provider.reviews.length} reviews)</span>
+                <span className="text-[#70727F] ml-1">({provider.reviews.length} reviews)</span>
               </div>
               <div className="flex items-center">
-                <Package2 className="w-4 h-4 text-gray-400 mr-1" />
+                <Package2 className="w-4 h-4 text-[#70727F] mr-1" />
                 <span>{product.condition}</span>
               </div>
               <div className="flex items-center">
-                <MapPin className="w-4 h-4 text-gray-400 mr-1" />
+                <MapPin className="w-4 h-4 text-[#70727F] mr-1" />
                 <span>{product.location.city}</span>
               </div>
               <div className="flex items-center">
-                <Eye className="w-4 h-4 text-gray-400 mr-1" />
+                <Eye className="w-4 h-4 text-[#70727F] mr-1" />
                 <span>{product.views} views</span>
               </div>
               <div className="flex items-center">
-                <Bookmark className="w-4 h-4 text-gray-400 mr-1" />
+                <Bookmark className="w-4 h-4 text-[#70727F] mr-1" />
                 <span>{product.saves} saves</span>
               </div>
             </div>
@@ -221,7 +221,7 @@ export function ProductDetailsPage({ product, onBuyNow, onBack, onProviderSelect
         <div className="lg:col-span-2">
           {/* Product Gallery */}
           <ParallaxSection offset={20}>
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-8 border border-[#CDCED8]">
               <ServiceGallery 
                 images={product.images} 
                 responseTime={product.provider.responseTime || "Within 2h"}
@@ -234,48 +234,48 @@ export function ProductDetailsPage({ product, onBuyNow, onBack, onProviderSelect
           <div className="space-y-8">
             {/* Short Description */}
             <FadeInOnScroll>
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-100">
-                <p className="text-blue-800 font-medium leading-relaxed">{product.shortDescription}</p>
+              <div className="bg-gradient-to-r from-[#EDD9FF] to-[#E8E9ED] p-6 rounded-xl border border-[#CDCED8]">
+                <p className="text-[#383A47] font-medium leading-relaxed">{product.shortDescription}</p>
               </div>
             </FadeInOnScroll>
 
             {/* Detailed Description */}
             <FadeInOnScroll>
               <div className="bg-white p-8 rounded-xl shadow-sm">
-                <h2 className="text-2xl font-semibold mb-6">About this product</h2>
-                <p className="text-gray-600 leading-relaxed whitespace-pre-line">{product.longDescription}</p>
+                <h2 className="text-2xl font-semibold mb-6 text-[#1B1C20]">About this product</h2>
+                <p className="text-[#383A47] leading-relaxed whitespace-pre-line">{product.longDescription}</p>
               </div>
             </FadeInOnScroll>
 
             {/* Product Features */}
             <FadeInOnScroll>
               <div className="bg-white p-8 rounded-xl shadow-sm">
-                <h2 className="text-2xl font-semibold mb-6">Product Details</h2>
+                <h2 className="text-2xl font-semibold mb-6 text-[#1B1C20]">Product Details</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {product.brand && (
-                    <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                      <Package2 className="w-8 h-8 text-blue-500" />
+                    <div className="flex items-center p-4 bg-[#E8E9ED] rounded-lg">
+                      <Package2 className="w-8 h-8 text-[#3D1560]" />
                       <div className="ml-4">
-                        <p className="font-semibold text-gray-900">Brand</p>
-                        <p className="text-gray-600">{product.brand}</p>
+                        <p className="font-semibold text-[#383A47]">Brand</p>
+                        <p className="text-[#70727F]">{product.brand}</p>
                       </div>
                     </div>
                   )}
                   {product.condition && (
-                    <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                      <RotateCcw className="w-8 h-8 text-blue-500" />
+                    <div className="flex items-center p-4 bg-[#E8E9ED] rounded-lg">
+                      <RotateCcw className="w-8 h-8 text-[#3D1560]" />
                       <div className="ml-4">
-                        <p className="font-semibold text-gray-900">Condition</p>
-                        <p className="text-gray-600">{product.condition}</p>
+                        <p className="font-semibold text-[#383A47]">Condition</p>
+                        <p className="text-[#70727F]">{product.condition}</p>
                       </div>
                     </div>
                   )}
                   {product.warranty && (
-                    <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                      <Shield className="w-8 h-8 text-blue-500" />
+                    <div className="flex items-center p-4 bg-[#E8E9ED] rounded-lg">
+                      <Shield className="w-8 h-8 text-[#3D1560]" />
                       <div className="ml-4">
-                        <p className="font-semibold text-gray-900">Warranty</p>
-                        <p className="text-gray-600">{product.warranty}</p>
+                        <p className="font-semibold text-[#383A47]">Warranty</p>
+                        <p className="text-[#70727F]">{product.warranty}</p>
                       </div>
                     </div>
                   )}
@@ -287,12 +287,12 @@ export function ProductDetailsPage({ product, onBuyNow, onBack, onProviderSelect
             {product.specifications && Object.keys(product.specifications).length > 0 && (
               <FadeInOnScroll>
                 <div className="bg-white p-8 rounded-xl shadow-sm">
-                  <h2 className="text-2xl font-semibold mb-6">Specifications</h2>
+                  <h2 className="text-2xl font-semibold mb-6 text-[#1B1C20]">Specifications</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {Object.entries(product.specifications).map(([key, value]) => (
-                      <div key={key} className="p-4 bg-gray-50 rounded-lg">
-                        <p className="font-semibold text-gray-900 mb-1">{key}</p>
-                        <p className="text-gray-600">{value}</p>
+                      <div key={key} className="p-4 bg-[#E8E9ED] rounded-lg">
+                        <p className="font-semibold text-[#383A47] mb-1">{key}</p>
+                        <p className="text-[#70727F]">{value}</p>
                       </div>
                     ))}
                   </div>
@@ -304,12 +304,12 @@ export function ProductDetailsPage({ product, onBuyNow, onBack, onProviderSelect
             {product.features && product.features.length > 0 && (
               <FadeInOnScroll>
                 <div className="bg-white p-8 rounded-xl shadow-sm">
-                  <h2 className="text-2xl font-semibold mb-6">Features</h2>
+                  <h2 className="text-2xl font-semibold mb-6 text-[#1B1C20]">Features</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {product.features.map((feature, index) => (
-                      <div key={index} className="flex items-start p-4 bg-gray-50 rounded-lg">
-                        <CheckCircle className="w-6 h-6 text-blue-500 flex-shrink-0 mt-0.5" />
-                        <p className="text-gray-600 ml-4">{feature}</p>
+                      <div key={index} className="flex items-start p-4 bg-[#E8E9ED] rounded-lg">
+                        <CheckCircle className="w-6 h-6 text-[#3D1560] flex-shrink-0 mt-0.5" />
+                        <p className="text-[#70727F] ml-4">{feature}</p>
                       </div>
                     ))}
                   </div>
@@ -320,7 +320,7 @@ export function ProductDetailsPage({ product, onBuyNow, onBack, onProviderSelect
             {/* Reviews Section */}
             <FadeInOnScroll>
               <div className="mt-16 lg:mt-24">
-                <h2 className="text-2xl font-bold text-gray-900 mb-8">Customer Reviews</h2>
+                <h2 className="text-2xl font-bold text-[#1B1C20] mb-8">Customer Reviews</h2>
                 <EnhancedReviews
                   reviews={reviews}
                   onVoteHelpful={handleReviewVote}
@@ -338,17 +338,14 @@ export function ProductDetailsPage({ product, onBuyNow, onBack, onProviderSelect
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-4">
                   <div>
-                    <span className="text-3xl font-bold text-gray-900">${product.price}</span>
-                    {product.originalPrice && (
-                      <span className="text-gray-500 line-through ml-2">${product.originalPrice}</span>
-                    )}
+                    <span className="text-3xl font-bold text-[#1B1C20]">${product.price}</span>
                   </div>
                 </div>
                 
                 <div className="space-y-4">
                   <button 
                     onClick={onBuyNow}
-                    className="w-full bg-blue-600 text-white px-6 py-4 rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md"
+                    className="w-full bg-[#3D1560] text-white px-6 py-4 rounded-xl font-semibold hover:bg-[#6D26AB] transition-colors shadow-sm hover:shadow-md"
                   >
                     Add to Cart
                   </button>
@@ -356,26 +353,26 @@ export function ProductDetailsPage({ product, onBuyNow, onBack, onProviderSelect
                   <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
                     <button 
                       onClick={() => setIsWishListed(!isWishListed)}
-                      className="flex items-center hover:text-blue-600 transition-colors"
+                      className="flex items-center hover:text-[#DF678C] transition-colors"
                     >
-                      <Heart className={`w-4 h-4 mr-1 ${isWishListed ? 'fill-current text-red-500' : ''}`} />
+                      <Heart className={`w-4 h-4 mr-1 ${isWishListed ? 'fill-current text-[#DF678C]' : ''}`} />
                       <span>Save</span>
                     </button>
                     <span>•</span>
-                    <button className="flex items-center hover:text-blue-600 transition-colors">
+                    <button className="flex items-center hover:text-[#DF678C] transition-colors">
                       <Share2 className="w-4 h-4 mr-1" />
                       <span>Share</span>
                     </button>
                     <span>•</span>
-                    <button className="flex items-center hover:text-blue-600 transition-colors">
+                    <button className="flex items-center hover:text-[#DF678C] transition-colors">
                       <Mail className="w-4 h-4 mr-1" />
                       <span>Contact</span>
                     </button>
                   </div>
                 </div>
 
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center text-sm text-gray-600">
+                <div className="mt-4 p-4 bg-[#E8E9ED] rounded-lg">
+                  <div className="flex items-center text-sm text-[#70727F]">
                     <Package2 className="w-4 h-4 mr-2" />
                     <span>In stock • {product.availableQuantity} available</span>
                   </div>
@@ -385,8 +382,6 @@ export function ProductDetailsPage({ product, onBuyNow, onBack, onProviderSelect
               {/* Trust Elements */}
               <TrustElements
                 monthlyPurchases={trustData.monthlyPurchases}
-                responseRate={trustData.responseRate}
-                responseTime={trustData.responseTime}
                 verifiedBusiness={trustData.verifiedBusiness}
                 onReport={() => {
                   // Handle report action

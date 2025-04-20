@@ -17,21 +17,21 @@ export function ServiceList({ services, selectedService, onServiceSelect }: Serv
           className={`p-4 rounded-lg border cursor-pointer transition-all
             ${
               selectedService?.id === service.id
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-200 hover:border-blue-300'
+                ? 'border-[#3D1560] bg-[#EDD9FF]'
+                : 'border-[#CDCED8] hover:border-[#6D26AB]'
             }`}
           onClick={() => onServiceSelect(service)}
         >
-          <h3 className="font-semibold text-lg mb-2">{service.name}</h3>
-          <p className="text-gray-600 text-sm mb-4">{service.description}</p>
+          <h3 className="font-semibold text-lg mb-2 text-[#1B1C20]">{service.name}</h3>
+          <p className="text-[#70727F] text-sm mb-4">{service.description}</p>
           
           <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center text-gray-500">
-              <Clock className="w-4 h-4 mr-1" />
+            <div className="flex items-center text-[#70727F]">
+              <Clock className="w-4 h-4 mr-1 text-[#3D1560]" />
               <span>{service.duration} min</span>
             </div>
-            <div className="flex items-center text-gray-500">
-              <DollarSign className="w-4 h-4 mr-1" />
+            <div className="flex items-center text-[#70727F]">
+              <DollarSign className="w-4 h-4 mr-1 text-[#3D1560]" />
               <span>${service.price}</span>
             </div>
           </div>

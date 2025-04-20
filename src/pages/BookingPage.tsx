@@ -114,7 +114,7 @@ export function BookingPage({ selectedService, allServices, onBack, onProceedToP
     const startTime = selectedSlot.start.toISOString();
     const endTime = selectedSlot.end.toISOString();
     const eventTitle = encodeURIComponent(`${currentService.name} Appointment`);
-    const eventDetails = encodeURIComponent(`Service: ${currentService.name}\nProvider: ${currentService.provider.name || 'Service Provider'}`);
+    const eventDetails = encodeURIComponent(`Service: ${currentService.name}\nProvider: ${currentService.provider.username || 'Service Provider'}`);
     
     // Generate Google Calendar link
     const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=${startTime.replace(/[-:]/g, '').replace(/\.\d+/g, '')}/${endTime.replace(/[-:]/g, '').replace(/\.\d+/g, '')}&details=${eventDetails}`;
@@ -125,40 +125,40 @@ export function BookingPage({ selectedService, allServices, onBack, onProceedToP
 
   // Confirmation view component
   const ConfirmationView = () => (
-    <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-      <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
-        <Check className="w-8 h-8 text-green-600" />
+    <div className="bg-white rounded-lg shadow-sm p-8 text-center border border-[#CDCED8]">
+      <div className="mx-auto w-16 h-16 bg-[#E8E9ED] rounded-full flex items-center justify-center mb-6">
+        <Check className="w-8 h-8 text-[#3D1560]" />
       </div>
       
-      <h2 className="text-2xl font-semibold mb-2">Booking Confirmed!</h2>
-      <p className="text-gray-600 mb-3">
+      <h2 className="text-2xl font-semibold mb-2 text-[#1B1C20]">Booking Confirmed!</h2>
+      <p className="text-[#70727F] mb-3">
         You've successfully booked {currentService.name} on {selectedSlot?.start.toLocaleDateString('default', { weekday: 'long', month: 'long', day: 'numeric' })} at {selectedSlot?.start.toLocaleTimeString('default', { hour: 'numeric', minute: '2-digit' })}.
       </p>
       
       {bookingDetails?.paymentMethod === 'online' ? (
         <div className="mb-6">
-          <div className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
+          <div className="inline-flex items-center px-3 py-1 bg-[#EDD9FF] text-[#3D1560] rounded-full">
             <CreditCard className="w-4 h-4 mr-1" />
             <span className="text-sm font-medium">Paid Online</span>
           </div>
         </div>
       ) : (
         <div className="mb-6">
-          <div className="inline-flex items-center px-3 py-1 bg-amber-100 text-amber-800 rounded-full">
+          <div className="inline-flex items-center px-3 py-1 bg-[#E8E9ED] text-[#383A47] rounded-full">
             <Clock className="w-4 h-4 mr-1" />
             <span className="text-sm font-medium">Pay at Service</span>
           </div>
         </div>
       )}
       
-      <p className="text-gray-600 mb-8">
+      <p className="text-[#70727F] mb-8">
         A confirmation email has been sent to {bookingDetails?.customerEmail}.
       </p>
       
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
         <button 
           onClick={handleAddToCalendar}
-          className="flex items-center justify-center px-6 py-3 bg-white border border-blue-500 text-blue-600 rounded-md hover:bg-blue-50 transition-colors duration-200"
+          className="flex items-center justify-center px-6 py-3 bg-white border border-[#3D1560] text-[#3D1560] rounded-md hover:bg-[#EDD9FF] transition-colors duration-200"
         >
           <CalendarPlus className="w-5 h-5 mr-2" />
           Add to Calendar
@@ -166,7 +166,7 @@ export function BookingPage({ selectedService, allServices, onBack, onProceedToP
         
         <button 
           onClick={handleEditBooking}
-          className="flex items-center justify-center px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors duration-200"
+          className="flex items-center justify-center px-6 py-3 bg-white border border-[#CDCED8] text-[#383A47] rounded-md hover:bg-[#E8E9ED] transition-colors duration-200"
         >
           <Edit className="w-5 h-5 mr-2" />
           Edit Booking
@@ -176,14 +176,14 @@ export function BookingPage({ selectedService, allServices, onBack, onProceedToP
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
+    <div className="min-h-screen bg-[#F8F8FA]">
+      <header className="bg-white shadow-sm border-b border-[#CDCED8]">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <button
                 onClick={onBack}
-                className="flex items-center text-gray-600 hover:text-gray-900"
+                className="flex items-center text-[#70727F] hover:text-[#383A47]"
               >
                 <ArrowLeft className="w-5 h-5 mr-2" />
                 Back
@@ -192,14 +192,14 @@ export function BookingPage({ selectedService, allServices, onBack, onProceedToP
             <div className="flex items-center space-x-4">
               <img
                 src={currentService.provider.avatar}
-                alt={currentService.provider.name}
+                alt={currentService.provider.username || 'Service Provider'}
                 className="w-10 h-10 rounded-full object-cover"
               />
               <div>
-                <h3 className="font-medium text-gray-900">
-                  {currentService.provider.name}
+                <h3 className="font-medium text-[#383A47]">
+                  {currentService.provider.username || 'Service Provider'}
                 </h3>
-                <p className="text-sm text-gray-600">Service Provider</p>
+                <p className="text-sm text-[#70727F]">Service Provider</p>
               </div>
             </div>
           </div>
@@ -221,8 +221,8 @@ export function BookingPage({ selectedService, allServices, onBack, onProceedToP
         ) : (
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-                <h2 className="text-xl font-semibold mb-4">Select a Service</h2>
+              <div className="bg-white rounded-lg shadow-sm p-6 mb-8 border border-[#CDCED8]">
+                <h2 className="text-xl font-semibold mb-4 text-[#1B1C20]">Select a Service</h2>
                 <ServiceList
                   services={allServices}
                   selectedService={currentService}
@@ -230,8 +230,8 @@ export function BookingPage({ selectedService, allServices, onBack, onProceedToP
                 />
               </div>
 
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold mb-4">Select Date & Time</h2>
+              <div className="bg-white rounded-lg shadow-sm p-6 border border-[#CDCED8]">
+                <h2 className="text-xl font-semibold mb-4 text-[#1B1C20]">Select Date & Time</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Calendar
                     selectedDate={selectedDate}
@@ -240,7 +240,7 @@ export function BookingPage({ selectedService, allServices, onBack, onProceedToP
                   />
                   
                   <div className="space-y-4">
-                    <h3 className="font-medium">Available Times</h3>
+                    <h3 className="font-medium text-[#383A47]">Available Times</h3>
                     <div className="grid grid-cols-2 gap-2">
                       {availableSlots
                         .filter(
@@ -275,8 +275,8 @@ export function BookingPage({ selectedService, allServices, onBack, onProceedToP
                               className={`p-2 text-sm rounded-md border-2 transition-all duration-200
                                 ${
                                   isSelected
-                                    ? 'border-blue-500 bg-blue-400 text-white shadow-sm ring-2 ring-blue-200'
-                                    : 'border-gray-300 bg-white text-gray-700 hover:bg-blue-50 hover:border-blue-300'
+                                    ? 'border-[#3D1560] bg-[#6D26AB] text-white shadow-sm ring-2 ring-[#EDD9FF]'
+                                    : 'border-[#CDCED8] bg-white text-[#383A47] hover:bg-[#EDD9FF] hover:border-[#6D26AB]'
                                 }`}
                               disabled={!slot.available}
                             >
@@ -291,7 +291,7 @@ export function BookingPage({ selectedService, allServices, onBack, onProceedToP
             </div>
 
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-sm p-6 sticky top-4">
+              <div className="bg-white rounded-lg shadow-sm p-6 sticky top-4 border border-[#CDCED8]">
                 {currentService && selectedSlot ? (
                   <BookingForm
                     selectedService={currentService}
@@ -300,33 +300,33 @@ export function BookingPage({ selectedService, allServices, onBack, onProceedToP
                   />
                 ) : (
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Booking Steps</h3>
+                    <h3 className="text-lg font-semibold text-[#1B1C20]">Booking Steps</h3>
                     <div className="space-y-3">
                       <div className="flex items-start">
                         <div className="flex-shrink-0">
-                          <Users className="h-6 w-6 text-blue-500" />
+                          <Users className="h-6 w-6 text-[#3D1560]" />
                         </div>
                         <div className="ml-3">
-                          <p className="text-sm font-medium">Select a Service</p>
-                          <p className="text-sm text-gray-500">Choose from available services</p>
+                          <p className="text-sm font-medium text-[#383A47]">Select a Service</p>
+                          <p className="text-sm text-[#70727F]">Choose from available services</p>
                         </div>
                       </div>
                       <div className="flex items-start">
                         <div className="flex-shrink-0">
-                          <CalendarIcon className="h-6 w-6 text-blue-500" />
+                          <CalendarIcon className="h-6 w-6 text-[#3D1560]" />
                         </div>
                         <div className="ml-3">
-                          <p className="text-sm font-medium">Pick a Date</p>
-                          <p className="text-sm text-gray-500">Select your preferred date</p>
+                          <p className="text-sm font-medium text-[#383A47]">Pick a Date</p>
+                          <p className="text-sm text-[#70727F]">Select your preferred date</p>
                         </div>
                       </div>
                       <div className="flex items-start">
                         <div className="flex-shrink-0">
-                          <Clock className="h-6 w-6 text-blue-500" />
+                          <Clock className="h-6 w-6 text-[#3D1560]" />
                         </div>
                         <div className="ml-3">
-                          <p className="text-sm font-medium">Choose a Time</p>
-                          <p className="text-sm text-gray-500">Pick an available time slot</p>
+                          <p className="text-sm font-medium text-[#383A47]">Choose a Time</p>
+                          <p className="text-sm text-[#70727F]">Pick an available time slot</p>
                         </div>
                       </div>
                     </div>

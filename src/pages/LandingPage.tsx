@@ -140,23 +140,23 @@ export function LandingPage({
 
   const ListingGrid = ({ items, title }: { items: ListingItem[], title: string }) => (
     <div className="mb-8">
-      <h2 className="text-2xl font-bold text-gray-900 mb-4">{title}</h2>
+      <h2 className="text-2xl font-bold text-[#1B1C20] mb-4">{title}</h2>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {items.slice(0, 5).map((item) => (
-          <ListingCard key={item.id} item={item} />
+          <ListingCard key={item.id} item={item} onClick={() => handleListingClick(item)} />
         ))}
       </div>
     </div>
   );
 
-  const ListingCard = ({ item }: { item: ListingItem }) => (
+  const ListingCard = ({ item, onClick }: { item: ListingItem, onClick: () => void }) => (
     <div
-      onClick={() => onListingSelect(item)}
-      onKeyDown={(e) => e.key === 'Enter' && onListingSelect(item)}
+      onClick={onClick}
+      onKeyDown={(e) => e.key === 'Enter' && onClick()}
       role="button"
       tabIndex={0}
       aria-label={`View details for ${item.name}`}
-      className="group bg-white rounded-xl overflow-hidden transition-all duration-300 cursor-pointer border border-gray-100 hover:border-blue-100 shadow-[0_2px_8px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_40px_rgb(59,130,246,0.15)] hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+      className="group bg-white rounded-xl overflow-hidden transition-all duration-300 cursor-pointer border border-[#CDCED8] hover:border-[#6D26AB] shadow-[0_2px_8px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_40px_rgb(59,130,246,0.15)] hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:ring-offset-2"
     >
       <div className="relative">
         <img
@@ -196,16 +196,16 @@ export function LandingPage({
       </div>
       <div className="p-4 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-blue-50/0 to-blue-50/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        <h3 className="font-medium text-gray-900 mb-1 group-hover:text-blue-600 transition-colors duration-300 relative line-clamp-2">
+        <h3 className="font-medium text-[#1B1C20] mb-1 group-hover:text-[#3D1560] transition-colors duration-300 relative line-clamp-2">
           {item.name}
         </h3>
         <div className="flex items-center justify-between mt-2 relative">
           <div className="flex items-center space-x-2">
-            <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
+            <span className="text-sm font-semibold bg-gradient-to-r from-[#3D1560] to-[#6D26AB] bg-clip-text text-transparent">
               ${item.price.toLocaleString()}
             </span>
             {item.trending && (
-              <span className="px-2 py-0.5 text-xs font-medium bg-red-50 text-red-600 rounded-full border border-red-100">
+              <span className="px-2 py-0.5 text-xs font-medium bg-[#FFE5ED] text-[#D84773] rounded-full border border-[#FFE5ED]">
                 Trending
               </span>
             )}
@@ -238,7 +238,7 @@ export function LandingPage({
                 </svg>
               ))}
             </div>
-            <span className="text-xs text-gray-600">({item.reviewCount})</span>
+            <span className="text-xs text-[#70727F]">({item.reviewCount})</span>
           </div>
         )}
       </div>
@@ -322,8 +322,8 @@ export function LandingPage({
                   onClick={() => setListingType('all')}
                   className={`flex items-center space-x-2 px-2 md:px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                     listingType === 'all'
-                      ? 'bg-blue-50 text-blue-600 shadow-sm'
-                      : 'text-gray-600 hover:bg-gray-50'
+                      ? 'bg-[#EDD9FF] text-[#3D1560] shadow-sm'
+                      : 'text-[#70727F] hover:bg-[#E8E9ED]'
                   }`}
                 >
                   <LayoutGrid className="w-4 h-4" />
@@ -333,8 +333,8 @@ export function LandingPage({
                   onClick={() => setListingType('products')}
                   className={`flex items-center space-x-2 px-2 md:px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                     listingType === 'products'
-                      ? 'bg-blue-50 text-blue-600 shadow-sm'
-                      : 'text-gray-600 hover:bg-gray-50'
+                      ? 'bg-[#EDD9FF] text-[#3D1560] shadow-sm'
+                      : 'text-[#70727F] hover:bg-[#E8E9ED]'
                   }`}
                 >
                   <Package2 className="w-4 h-4" />
@@ -344,8 +344,8 @@ export function LandingPage({
                   onClick={() => setListingType('services')}
                   className={`flex items-center space-x-2 px-2 md:px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                     listingType === 'services'
-                      ? 'bg-blue-50 text-blue-600 shadow-sm'
-                      : 'text-gray-600 hover:bg-gray-50'
+                      ? 'bg-[#EDD9FF] text-[#3D1560] shadow-sm'
+                      : 'text-[#70727F] hover:bg-[#E8E9ED]'
                   }`}
                 >
                   <Wrench className="w-4 h-4" />

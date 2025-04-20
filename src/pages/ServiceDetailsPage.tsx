@@ -154,18 +154,18 @@ export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelec
   }, [service]);
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="container mx-auto px-4 py-8 max-w-7xl bg-[#F8F8FA]">
       {/* Navigation and Breadcrumb */}
       <FadeInOnScroll>
         <div className="mb-8">
           <button
             onClick={onBack}
-            className="flex items-center text-gray-600 hover:text-gray-800 mb-2"
+            className="flex items-center text-[#70727F] hover:text-[#383A47] mb-2"
           >
             <ArrowLeft className="w-4 h-4 mr-1" />
             <span className="text-sm">Back to listings</span>
           </button>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-[#70727F]">
             Home / {service.category} / {service.name}
           </div>
         </div>
@@ -176,37 +176,56 @@ export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelec
         <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-8">
           <div className="flex-1">
             <div className="mb-4">
-              <span className="text-blue-600 text-sm font-medium tracking-wider uppercase">{service.category}</span>
-              <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 leading-tight mt-1">
+              <span className="text-[#3D1560] text-sm font-medium tracking-wider uppercase">{service.category}</span>
+              <h1 className="text-4xl font-bold text-[#1B1C20] leading-tight mt-1">
                 {service.name}
               </h1>
             </div>
-            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-              <div className="flex items-center bg-yellow-50 px-3 py-1 rounded-full">
-                <Star className="w-4 h-4 text-yellow-400 mr-1" />
+            <div className="flex flex-wrap items-center gap-4 text-sm text-[#70727F]">
+              <div className="flex items-center bg-[#E8E9ED] px-3 py-1 rounded-full">
+                <Star className="w-4 h-4 text-[#3D1560] mr-1" />
                 <span className="font-medium">{provider.rating}</span>
-                <span className="text-gray-500 ml-1">({provider.reviews.length} reviews)</span>
+                <span className="text-[#70727F] ml-1">({provider.reviews.length} reviews)</span>
               </div>
               <div className="flex items-center">
-                <Clock className="w-4 h-4 text-gray-400 mr-1" />
+                <Clock className="w-4 h-4 text-[#70727F] mr-1" />
                 <span>{service.duration} min</span>
               </div>
               <div className="flex items-center">
-                <MapPin className="w-4 h-4 text-gray-400 mr-1" />
+                <MapPin className="w-4 h-4 text-[#70727F] mr-1" />
                 <span>{service.location.city}</span>
               </div>
               <div className="flex items-center">
-                <Eye className="w-4 h-4 text-gray-400 mr-1" />
+                <Eye className="w-4 h-4 text-[#70727F] mr-1" />
                 <span>{service.views} views</span>
-              </div>
-              <div className="flex items-center">
-                <Bookmark className="w-4 h-4 text-gray-400 mr-1" />
-                <span>{service.saves} saves</span>
               </div>
             </div>
           </div>
-          <div className="flex items-center space-x-6">
-            {/* Empty div for layout */}
+          <div className="flex gap-2 items-center mt-4 md:mt-0">
+            <button 
+              onClick={() => setIsWishListed(!isWishListed)}
+              className="p-2 rounded-full border border-[#CDCED8] text-[#383A47] hover:bg-[#EDD9FF] hover:text-[#6D26AB] transition-colors duration-200"
+            >
+              {isWishListed ? (
+                <HeartAnimation isActive={true} onClick={() => setIsWishListed(false)}>
+                  <Heart className="w-5 h-5 fill-[#DF678C] text-[#DF678C]" />
+                </HeartAnimation>
+              ) : (
+                <Heart className="w-5 h-5 text-[#383A47]" />
+              )}
+            </button>
+            <button className="p-2 rounded-full border border-[#CDCED8] text-[#383A47] hover:bg-[#EDD9FF] hover:text-[#6D26AB] transition-colors duration-200">
+              <Share2 className="w-5 h-5" />
+            </button>
+            <button className="p-2 rounded-full border border-[#CDCED8] text-[#383A47] hover:bg-[#EDD9FF] hover:text-[#6D26AB] transition-colors duration-200">
+              <Mail className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={onBookNow}
+              className="px-6 py-3 bg-[#3D1560] text-white rounded-md hover:bg-[#6D26AB] transition-colors duration-200 font-medium"
+            >
+              Book Now
+            </button>
           </div>
         </div>
       </FadeInOnScroll>
@@ -216,7 +235,7 @@ export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelec
         <div className="lg:col-span-2">
           {/* Service Gallery */}
           <ParallaxSection offset={20}>
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-8 border border-[#CDCED8]">
               <ServiceGallery 
                 images={service.images} 
                 responseTime={service.provider.responseTime || "Within 2h"}
@@ -229,64 +248,64 @@ export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelec
           <div className="space-y-8">
             {/* Short Description */}
             <FadeInOnScroll>
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-100">
-                <p className="text-blue-800 font-medium leading-relaxed">{service.shortDescription}</p>
+              <div className="bg-gradient-to-r from-[#EDD9FF] to-[#E8E9ED] p-6 rounded-xl border border-[#CDCED8]">
+                <p className="text-[#383A47] font-medium leading-relaxed">{service.shortDescription}</p>
               </div>
             </FadeInOnScroll>
 
             {/* Detailed Description */}
             <FadeInOnScroll>
               <div className="bg-white p-8 rounded-xl shadow-sm">
-                <h2 className="text-2xl font-semibold mb-6">About this service</h2>
-                <p className="text-gray-600 leading-relaxed whitespace-pre-line">{service.longDescription}</p>
+                <h2 className="text-2xl font-semibold mb-6 text-[#1B1C20]">About this service</h2>
+                <p className="text-[#383A47] leading-relaxed whitespace-pre-line">{service.longDescription}</p>
               </div>
             </FadeInOnScroll>
 
             {/* Service Features */}
             <FadeInOnScroll>
               <div className="bg-white p-8 rounded-xl shadow-sm">
-                <h2 className="text-2xl font-semibold mb-6">Service Details</h2>
+                <h2 className="text-2xl font-semibold mb-6 text-[#1B1C20]">Service Details</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                    <Clock className="w-8 h-8 text-blue-500" />
+                  <div className="flex items-center p-4 bg-[#E8E9ED] rounded-lg">
+                    <Clock className="w-8 h-8 text-[#3D1560]" />
                     <div className="ml-4">
-                      <p className="font-semibold text-gray-900">Duration</p>
-                      <p className="text-gray-600">{service.duration} minutes</p>
+                      <p className="font-semibold text-[#383A47]">Duration</p>
+                      <p className="text-[#70727F]">{service.duration} minutes</p>
                     </div>
                   </div>
-                  <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                    <MapPin className="w-8 h-8 text-blue-500" />
+                  <div className="flex items-center p-4 bg-[#E8E9ED] rounded-lg">
+                    <MapPin className="w-8 h-8 text-[#3D1560]" />
                     <div className="ml-4">
-                      <p className="font-semibold text-gray-900">Location</p>
-                      <p className="text-gray-600">{service.location.city}, {service.location.country}</p>
+                      <p className="font-semibold text-[#383A47]">Location</p>
+                      <p className="text-[#70727F]">{service.location.city}, {service.location.country}</p>
                     </div>
                   </div>
-                  <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                    <Home className="w-8 h-8 text-blue-500" />
+                  <div className="flex items-center p-4 bg-[#E8E9ED] rounded-lg">
+                    <Home className="w-8 h-8 text-[#3D1560]" />
                     <div className="ml-4">
-                      <p className="font-semibold text-gray-900">Category</p>
-                      <p className="text-gray-600">{service.category}</p>
+                      <p className="font-semibold text-[#383A47]">Category</p>
+                      <p className="text-[#70727F]">{service.category}</p>
                     </div>
                   </div>
-                  <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                    <Globe className="w-8 h-8 text-blue-500" />
+                  <div className="flex items-center p-4 bg-[#E8E9ED] rounded-lg">
+                    <Globe className="w-8 h-8 text-[#3D1560]" />
                     <div className="ml-4">
-                      <p className="font-semibold text-gray-900">Service Area</p>
-                      <p className="text-gray-600">Within {service.location.city}</p>
+                      <p className="font-semibold text-[#383A47]">Service Area</p>
+                      <p className="text-[#70727F]">Within {service.location.city}</p>
                     </div>
                   </div>
-                  <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                    <Languages className="w-8 h-8 text-blue-500" />
+                  <div className="flex items-center p-4 bg-[#E8E9ED] rounded-lg">
+                    <Languages className="w-8 h-8 text-[#3D1560]" />
                     <div className="ml-4">
-                      <p className="font-semibold text-gray-900">Languages</p>
-                      <p className="text-gray-600">English</p>
+                      <p className="font-semibold text-[#383A47]">Languages</p>
+                      <p className="text-[#70727F]">English</p>
                     </div>
                   </div>
-                  <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                    <Briefcase className="w-8 h-8 text-blue-500" />
+                  <div className="flex items-center p-4 bg-[#E8E9ED] rounded-lg">
+                    <Briefcase className="w-8 h-8 text-[#3D1560]" />
                     <div className="ml-4">
-                      <p className="font-semibold text-gray-900">Experience</p>
-                      <p className="text-gray-600">{service.provider.totalBookings}+ bookings</p>
+                      <p className="font-semibold text-[#383A47]">Experience</p>
+                      <p className="text-[#70727F]">{service.provider.totalBookings}+ bookings</p>
                     </div>
                   </div>
                 </div>
@@ -296,34 +315,34 @@ export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelec
             {/* What's Included */}
             <FadeInOnScroll>
               <div className="bg-white p-8 rounded-xl shadow-sm">
-                <h2 className="text-2xl font-semibold mb-6">What's Included</h2>
+                <h2 className="text-2xl font-semibold mb-6 text-[#1B1C20]">What's Included</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-start p-4 bg-green-50 rounded-lg">
-                    <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                  <div className="flex items-start p-4 bg-[#E8E9ED] rounded-lg">
+                    <CheckCircle className="w-6 h-6 text-[#3D1560] flex-shrink-0 mt-0.5" />
                     <div className="ml-4">
-                      <p className="font-semibold text-gray-900">Professional Service</p>
-                      <p className="text-gray-600 text-sm mt-1">Experienced and verified provider</p>
+                      <p className="font-semibold text-[#383A47]">Professional Service</p>
+                      <p className="text-[#70727F] text-sm mt-1">Experienced and verified provider</p>
                     </div>
                   </div>
-                  <div className="flex items-start p-4 bg-green-50 rounded-lg">
-                    <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                  <div className="flex items-start p-4 bg-[#E8E9ED] rounded-lg">
+                    <CheckCircle className="w-6 h-6 text-[#3D1560] flex-shrink-0 mt-0.5" />
                     <div className="ml-4">
-                      <p className="font-semibold text-gray-900">Satisfaction Guaranteed</p>
-                      <p className="text-gray-600 text-sm mt-1">100% satisfaction or money back</p>
+                      <p className="font-semibold text-[#383A47]">Satisfaction Guaranteed</p>
+                      <p className="text-[#70727F] text-sm mt-1">100% satisfaction or money back</p>
                     </div>
                   </div>
-                  <div className="flex items-start p-4 bg-green-50 rounded-lg">
-                    <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                  <div className="flex items-start p-4 bg-[#E8E9ED] rounded-lg">
+                    <CheckCircle className="w-6 h-6 text-[#3D1560] flex-shrink-0 mt-0.5" />
                     <div className="ml-4">
-                      <p className="font-semibold text-gray-900">Flexible Scheduling</p>
-                      <p className="text-gray-600 text-sm mt-1">Book at your convenience</p>
+                      <p className="font-semibold text-[#383A47]">Flexible Scheduling</p>
+                      <p className="text-[#70727F] text-sm mt-1">Book at your convenience</p>
                     </div>
                   </div>
-                  <div className="flex items-start p-4 bg-green-50 rounded-lg">
-                    <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                  <div className="flex items-start p-4 bg-[#E8E9ED] rounded-lg">
+                    <CheckCircle className="w-6 h-6 text-[#3D1560] flex-shrink-0 mt-0.5" />
                     <div className="ml-4">
-                      <p className="font-semibold text-gray-900">On-location Service</p>
-                      <p className="text-gray-600 text-sm mt-1">Service provided at your location</p>
+                      <p className="font-semibold text-[#383A47]">On-location Service</p>
+                      <p className="text-[#70727F] text-sm mt-1">Service provided at your location</p>
                     </div>
                   </div>
                 </div>
@@ -333,7 +352,7 @@ export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelec
             {/* Reviews Section */}
             <FadeInOnScroll>
               <div className="mt-16 lg:mt-24">
-                <h2 className="text-2xl font-bold text-gray-900 mb-8">Customer Reviews</h2>
+                <h2 className="text-2xl font-bold text-[#1B1C20] mb-8">Customer Reviews</h2>
                 <EnhancedReviews
                   reviews={reviews}
                   onVoteHelpful={handleReviewVote}
@@ -351,42 +370,42 @@ export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelec
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-4">
                   <div>
-                    <span className="text-3xl font-bold text-gray-900">${service.price}</span>
-                    <span className="text-gray-500 ml-2">per service</span>
+                    <span className="text-3xl font-bold text-[#1B1C20]">${service.price}</span>
+                    <span className="text-[#70727F] ml-2">per service</span>
                   </div>
                 </div>
                 
                 <div className="space-y-4">
                   <button 
                     onClick={onBookNow}
-                    className="w-full bg-blue-600 text-white px-6 py-4 rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md"
+                    className="w-full bg-[#3D1560] text-white px-6 py-4 rounded-xl font-semibold hover:bg-[#6D26AB] transition-colors shadow-sm hover:shadow-md"
                   >
                     Book Now
                   </button>
                   
-                  <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
+                  <div className="flex items-center justify-center space-x-2 text-sm text-[#70727F]">
                     <button 
                       onClick={() => setIsWishListed(!isWishListed)}
-                      className="flex items-center hover:text-blue-600 transition-colors"
+                      className="flex items-center hover:text-[#DF678C] transition-colors"
                     >
-                      <Heart className={`w-4 h-4 mr-1 ${isWishListed ? 'fill-current text-red-500' : ''}`} />
+                      <Heart className={`w-4 h-4 mr-1 ${isWishListed ? 'fill-current text-[#DF678C]' : ''}`} />
                       <span>Save</span>
                     </button>
                     <span>•</span>
-                    <button className="flex items-center hover:text-blue-600 transition-colors">
+                    <button className="flex items-center hover:text-[#DF678C] transition-colors">
                       <Share2 className="w-4 h-4 mr-1" />
                       <span>Share</span>
                     </button>
                     <span>•</span>
-                    <button className="flex items-center hover:text-blue-600 transition-colors">
+                    <button className="flex items-center hover:text-[#DF678C] transition-colors">
                       <Mail className="w-4 h-4 mr-1" />
                       <span>Contact</span>
                     </button>
                   </div>
                 </div>
 
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center text-sm text-gray-600">
+                <div className="mt-4 p-4 bg-[#E8E9ED] rounded-lg">
+                  <div className="flex items-center text-sm text-[#70727F]">
                     <Clock className="w-4 h-4 mr-2" />
                     <span>Instant confirmation</span>
                   </div>
@@ -396,8 +415,6 @@ export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelec
               {/* Trust Elements */}
               <TrustElements
                 monthlyPurchases={trustData.monthlyPurchases}
-                responseRate={trustData.responseRate}
-                responseTime={trustData.responseTime}
                 verifiedBusiness={trustData.verifiedBusiness}
                 onReport={() => {
                   // Handle report action
