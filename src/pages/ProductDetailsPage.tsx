@@ -27,6 +27,7 @@ import { FadeInOnScroll } from '../components/animations/FadeInOnScroll';
 import { ParallaxSection } from '../components/animations/ParallaxSection';
 import { HeartAnimation } from '../components/animations/HeartAnimation';
 import { ProductCardSkeleton, ReviewSkeleton } from '../components/loading/SkeletonLoader';
+import { useCart } from '../context/CartContext';
 
 interface ProductDetailsPageProps {
   product: Product;
@@ -34,11 +35,20 @@ interface ProductDetailsPageProps {
   onBack: () => void;
   onProviderSelect: (provider: ServiceProvider) => void;
   onListingSelect: (listing: ListingItem) => void;
+  onNavigateTo?: (page: string) => void;
 }
 
-export function ProductDetailsPage({ product, onBuyNow, onBack, onProviderSelect, onListingSelect }: ProductDetailsPageProps) {
+export function ProductDetailsPage({ 
+  product, 
+  onBuyNow, 
+  onBack, 
+  onProviderSelect, 
+  onListingSelect,
+  onNavigateTo 
+}: ProductDetailsPageProps) {
   const [quantity, setQuantity] = useState(1);
   const [isWishListed, setIsWishListed] = useState(false);
+  const { addToCart } = useCart();
   const [provider, setProvider] = useState(product.provider);
   const [reviews, setReviews] = useState<DetailedReview[]>([
     {
@@ -83,6 +93,10 @@ export function ProductDetailsPage({ product, onBuyNow, onBack, onProviderSelect
   );
 
   const [isLoading, setIsLoading] = useState(false);
+  const [cartFeedback, setCartFeedback] = useState<{visible: boolean, message: string}>({
+    visible: false,
+    message: ''
+  });
 
   useEffect(() => {
     if (!product || !product.provider) {
@@ -158,8 +172,52 @@ export function ProductDetailsPage({ product, onBuyNow, onBack, onProviderSelect
     }));
   };
 
+  const handleAddToCart = () => {
+    console.log('Add to Cart clicked', product, quantity);
+    addToCart(product, quantity);
+    
+    // Show feedback message
+    setCartFeedback({
+      visible: true,
+      message: `${quantity} item${quantity > 1 ? 's' : ''} added to cart`
+    });
+    
+    // Hide feedback after 2 seconds
+    setTimeout(() => {
+      setCartFeedback({
+        visible: false,
+        message: ''
+      });
+    }, 2000);
+  };
+
+  const navigateToCart = () => {
+    if (onNavigateTo) {
+      onNavigateTo('cart');
+    } else {
+      // Fallback if onNavigateTo is not provided
+      window.location.href = '/cart';
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl bg-[#F8F8FA]">
+      {/* Feedback Toast */}
+      {cartFeedback.visible && (
+        <div className="fixed top-16 right-5 bg-[#3D1560] bg-opacity-80 text-white px-4 py-3 rounded-lg shadow-lg z-50 flex items-center justify-between max-w-xs md:max-w-md">
+          <div className="flex items-center">
+            <CheckCircle className="w-5 h-5 mr-2" />
+            <span>{cartFeedback.message}</span>
+          </div>
+          <button 
+            onClick={navigateToCart}
+            className="ml-4 text-white underline hover:text-[#EDD9FF] text-sm"
+          >
+            View Cart
+          </button>
+        </div>
+      )}
+
       {/* Navigation and Breadcrumb */}
       <FadeInOnScroll>
         <div className="mb-8">
@@ -334,47 +392,87 @@ export function ProductDetailsPage({ product, onBuyNow, onBack, onProviderSelect
         <div className="lg:col-span-1">
           <FadeInOnScroll delay={0.4}>
             <div className="bg-white p-6 rounded-xl shadow-sm lg:sticky lg:top-6">
-              {/* Price and Purchase Section */}
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-4">
-                  <div>
-                    <span className="text-3xl font-bold text-[#1B1C20]">${product.price}</span>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <button 
-                    onClick={onBuyNow}
-                    className="w-full bg-[#3D1560] text-white px-6 py-4 rounded-xl font-semibold hover:bg-[#6D26AB] transition-colors shadow-sm hover:shadow-md"
-                  >
-                    Add to Cart
-                  </button>
-                  
-                  <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
-                    <button 
-                      onClick={() => setIsWishListed(!isWishListed)}
-                      className="flex items-center hover:text-[#DF678C] transition-colors"
-                    >
-                      <Heart className={`w-4 h-4 mr-1 ${isWishListed ? 'fill-current text-[#DF678C]' : ''}`} />
-                      <span>Save</span>
-                    </button>
-                    <span>•</span>
-                    <button className="flex items-center hover:text-[#DF678C] transition-colors">
-                      <Share2 className="w-4 h-4 mr-1" />
-                      <span>Share</span>
-                    </button>
-                    <span>•</span>
-                    <button className="flex items-center hover:text-[#DF678C] transition-colors">
-                      <Mail className="w-4 h-4 mr-1" />
-                      <span>Contact</span>
-                    </button>
-                  </div>
-                </div>
+              {/* Purchase Controls */}
+              <div className="bg-[#E8E9ED] rounded-xl p-6 mt-8 border border-[#CDCED8]">
+                <div className="flex flex-col gap-6">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-semibold text-[#1B1C20]">Price:</span>
+                      <span className="text-3xl font-bold text-[#3D1560]">${product.price.toFixed(2)}</span>
+                    </div>
 
-                <div className="mt-4 p-4 bg-[#E8E9ED] rounded-lg">
-                  <div className="flex items-center text-sm text-[#70727F]">
-                    <Package2 className="w-4 h-4 mr-2" />
-                    <span>In stock • {product.availableQuantity} available</span>
+                    <div className="flex items-center gap-2 text-sm text-[#70727F]">
+                      <Truck className="w-4 h-4" />
+                      <span>Free shipping on orders over $50</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm text-[#70727F]">
+                      <RotateCcw className="w-4 h-4" />
+                      <span>30-day return policy</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm text-[#70727F]">
+                      <Shield className="w-4 h-4" />
+                      <span>Secure checkout</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center border border-[#CDCED8] rounded-lg overflow-hidden bg-[#F8F8FA] shadow-sm">
+                      <button
+                        onClick={() => handleQuantityChange(quantity - 1)}
+                        disabled={quantity <= 1}
+                        className="px-3 py-2 text-[#383A47] hover:bg-[#E8E9ED] disabled:text-[#CDCED8] disabled:cursor-not-allowed transition-colors duration-200"
+                      >
+                        -
+                      </button>
+                      <span className="px-4 py-2 text-[#383A47] font-medium">{quantity}</span>
+                      <button
+                        onClick={() => handleQuantityChange(quantity + 1)}
+                        disabled={quantity >= product.availableQuantity}
+                        className="px-3 py-2 text-[#383A47] hover:bg-[#E8E9ED] disabled:text-[#CDCED8] disabled:cursor-not-allowed transition-colors duration-200"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <span className="text-sm text-[#70727F]">{product.availableQuantity} in stock</span>
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    <button
+                      onClick={onBuyNow}
+                      className="bg-[#3D1560] text-[#FFFFFF] px-6 py-3 rounded-lg font-medium hover:bg-[#6D26AB] transition-colors duration-200 shadow-sm hover:shadow-md"
+                    >
+                      Buy Now
+                    </button>
+                    <div className="relative group inline-block">
+                      <button
+                        onClick={handleAddToCart}
+                        className="flex items-center justify-center gap-2 bg-[#F8F8FA] text-[#383A47] border border-[#CDCED8] px-6 py-3 rounded-lg font-medium hover:bg-[#E8E9ED] transition-colors duration-200 shadow-sm w-full"
+                      >
+                        <ShoppingCart className="h-5 w-5" />
+                        <span>Add to Cart</span>
+                      </button>
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-32 bg-[#1B1C20] text-[#FFFFFF] text-sm py-1 px-2 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 text-center pointer-events-none">
+                        Add to Cart
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-center gap-4 pt-2 border-t border-[#CDCED8]">
+                    <button
+                      onClick={() => setIsWishListed(!isWishListed)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm ${
+                        isWishListed ? 'bg-[#EDD9FF] text-[#3D1560]' : 'bg-[#F8F8FA] text-[#383A47] hover:bg-[#E8E9ED] border border-[#CDCED8]'
+                      }`}
+                    >
+                      <Heart className={`h-4 w-4 ${isWishListed ? 'fill-[#3D1560] text-[#3D1560]' : ''}`} />
+                      {isWishListed ? 'Wishlisted' : 'Wishlist'}
+                    </button>
+                    <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#F8F8FA] text-[#383A47] hover:bg-[#E8E9ED] border border-[#CDCED8] transition-colors duration-200 shadow-sm">
+                      <Share2 className="h-4 w-4" />
+                      Share
+                    </button>
                   </div>
                 </div>
               </div>

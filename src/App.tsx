@@ -6,6 +6,7 @@ import { BookingPage } from './pages/BookingPage';
 import { PaymentPage } from './pages/PaymentPage';
 import { SellerProfilePage } from './pages/SellerProfilePage';
 import CreateListingPage from './pages/CreateListingPage';
+import { CartPage } from './pages/CartPage';
 import { Service, Product, ListingItem, ServiceProvider } from './types';
 import { mockServices, mockProducts, mockListings, mockOrders } from './mockData';
 import { Navbar } from './components/Navbar';
@@ -45,7 +46,8 @@ function App() {
     'sellerDashboard_finance' |
     'editListing' |
     'bookings' |
-    'home'
+    'home' |
+    'cart'
   >('landing');
   const [selectedListing, setSelectedListing] = useState<ListingItem | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<ServiceProvider | null>(null);
@@ -3264,6 +3266,7 @@ function App() {
             onBack={handleBackToLanding}
             onProviderSelect={handleProviderSelect}
             onListingSelect={handleListingSelect}
+            onNavigateTo={handleNavigate}
           />
         )}
         
@@ -3404,6 +3407,12 @@ function App() {
         
         {currentPage === 'home' && (
           <PlaceholderPage title="Home" />
+        )}
+        
+        {currentPage === 'cart' && (
+          <CartPage 
+            onNavigateTo={handleNavigate}
+          />
         )}
       </div>
     </div>

@@ -181,25 +181,25 @@ export function MyOrdersPage({
           <span className="hover:text-[#383A47] cursor-pointer">Home</span> &gt; 
           <span className="hover:text-[#383A47] cursor-pointer">My Account</span> &gt; 
           <span className="text-[#383A47]">Orders</span>
-        </div>
+      </div>
         <div className="flex flex-wrap gap-4 items-center mb-6">
           <h1 className="text-3xl font-bold text-[#1B1C20] flex-1">My Orders</h1>
           <div className="flex gap-2 flex-wrap">
             <button className={`text-sm font-medium px-4 py-2 rounded-lg ${viewType === 'all' ? 'bg-[#EDD9FF] text-[#3D1560]' : 'text-[#383A47] hover:bg-[#E8E9ED]'} transition-colors duration-200 shadow-sm`}
-              onClick={() => setViewType('all')}
-            >
-              All Orders
-            </button>
+          onClick={() => setViewType('all')}
+        >
+          All Orders
+        </button>
             <button className={`text-sm font-medium px-4 py-2 rounded-lg ${viewType === 'product' ? 'bg-[#EDD9FF] text-[#3D1560]' : 'text-[#383A47] hover:bg-[#E8E9ED]'} transition-colors duration-200 shadow-sm`}
-              onClick={() => setViewType('product')}
-            >
-              Products
-            </button>
+          onClick={() => setViewType('product')}
+        >
+          Products
+        </button>
             <button className={`text-sm font-medium px-4 py-2 rounded-lg ${viewType === 'service' ? 'bg-[#EDD9FF] text-[#3D1560]' : 'text-[#383A47] hover:bg-[#E8E9ED]'} transition-colors duration-200 shadow-sm`}
-              onClick={() => setViewType('service')}
-            >
-              Services
-            </button>
+          onClick={() => setViewType('service')}
+        >
+          Services
+        </button>
             {viewType === 'all' || viewType === 'product' ? (
               <>
                 <button className={`text-sm font-medium px-4 py-2 rounded-lg ${productFilter === 'buyAgain' ? 'bg-[#EDD9FF] text-[#3D1560]' : 'text-[#383A47] hover:bg-[#E8E9ED]'} transition-colors duration-200 shadow-sm`}
@@ -295,7 +295,7 @@ export function MyOrdersPage({
                 </select>
                 <ChevronDown className="absolute right-4 top-3.5 h-5 w-5 text-[#70727F]" />
               </div>
-            </div>
+          </div>
           </div>
         </div>
       </div>
@@ -341,7 +341,7 @@ export function MyOrdersPage({
         <div className="flex flex-col gap-4 animate-fade-in">
           {paginatedOrders.map(order => (
             <div 
-              key={order.id} 
+              key={order.id}
               className="bg-[#E8E9ED] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-[#CDCED8] cursor-pointer hover:bg-[#E0E1E5]"
               onClick={() => onViewOrderDetails(order.id)}
               role="article" 

@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { UserCircle, LogOut, User, ShoppingBag, LayoutDashboard, UserPlus, Settings, ShoppingCart, Bell, Menu, X } from 'lucide-react';
 import { LanguageSelector } from './LanguageSelector';
 import { Product } from '../types';
+import { useCart } from '../context/CartContext';
 
 interface NavbarProps {
   isAuthenticated: boolean;
@@ -41,6 +42,7 @@ export function Navbar({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const { getCartCount } = useCart();
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,6 +160,16 @@ export function Navbar({
               <Bell className="w-6 h-6 text-gray-700" />
             </button>
 
+            <button 
+              className="relative p-2 hover:bg-gray-100 rounded-full"
+              onClick={() => onNavigateTo('cart')}
+            >
+              <div className="absolute -top-1 -right-1 bg-[#3D1560] text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                {getCartCount()}
+              </div>
+              <ShoppingCart className="w-6 h-6 text-gray-700" />
+            </button>
+
             {isAuthenticated ? (
               <div className="relative group">
                 <div className="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 p-2 rounded-full group-hover:pr-3">
@@ -272,13 +284,6 @@ export function Navbar({
               </button>
             )}
 
-            <button className="relative p-2 hover:bg-gray-100 rounded-full transition-colors duration-200">
-              <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
-                0
-              </div>
-              <ShoppingCart className="w-6 h-6 text-gray-700" />
-            </button>
-
             <LanguageSelector onLanguageChange={onLanguageChange} />
           </div>
         </div>
@@ -316,8 +321,8 @@ export function Navbar({
 
               <button className="relative p-2 hover:bg-gray-100 rounded-full">
                 <ShoppingCart className="w-6 h-6 text-gray-700" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
-                  0
+                <span className="absolute -top-1 -right-1 bg-[#3D1560] text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                  {getCartCount()}
                 </span>
               </button>
             </div>

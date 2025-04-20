@@ -43,6 +43,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Add an item to the cart
   const addToCart = (product: Product, quantity: number = 1) => {
+    console.log('Adding to cart:', product.name, 'quantity:', quantity);
     setCartItems(prevItems => {
       // Check if the item is already in the cart
       const existingItem = prevItems.find(item => item.id === product.id);
