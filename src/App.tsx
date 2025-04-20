@@ -25,6 +25,9 @@ import {
   OrderReturnPage,
   OrderReviewPage
 } from './pages/PlaceholderPages';
+import { CheckoutPage } from './pages/CheckoutPage';
+import { OrderConfirmation } from './pages/OrderConfirmation';
+import { CartItem } from './context/CartContext';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<
@@ -47,7 +50,9 @@ function App() {
     'editListing' |
     'bookings' |
     'home' |
-    'cart'
+    'cart' |
+    'checkout' |
+    'order-confirmation'
   >('landing');
   const [selectedListing, setSelectedListing] = useState<ListingItem | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<ServiceProvider | null>(null);
@@ -69,6 +74,7 @@ function App() {
   } | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [orderAction, setOrderAction] = useState<string | null>(null);
+  const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]);
 
   // Determine if sidebar should be shown
   const shouldShowSidebar = () => {
@@ -133,13 +139,16 @@ function App() {
     setSelectedProvider(null);
   };
 
+  // Modify the handleBuyNow function to ensure it navigates to checkout
   const handleBuyNow = () => {
-    // Mock payment behavior
-    alert('Processing payment...');
-    setTimeout(() => {
-      alert('Payment successful! Your order has been confirmed.');
-      handleBackToLanding();
-    }, 1500);
+    // If coming from product details page, use the selected listing
+    if (selectedListing) {
+      // Add the current product to checkout with quantity 1
+      handleCheckout([{...(selectedListing as Product), quantity: 1}]);
+    } else {
+      // Generic fallback if called from elsewhere
+      handleNavigate('checkout');
+    }
   };
 
   const handleSellNowClick = () => {
@@ -148,12 +157,18 @@ function App() {
 
   // Handler for sidebar navigation
   const handleNavigate = (page: string) => {
-    // If navigating to sellerDashboard_overview, just use sellerDashboard for consistency
     setCurrentPage(page as any);
-    // Ensure orderAction is null when navigating to myOrders to meet rendering condition
-    if (page === 'myOrders') {
-      setOrderAction(null);
-    }
+    // Reset scroll position when navigating
+    window.scrollTo(0, 0);
+  };
+
+  // Handle checkout process
+  const handleCheckout = (items: CartItem[] = []) => {
+    // Store items being checked out if coming from "Buy Now"
+    // If empty, it means we're checking out the entire cart
+    setCheckoutItems(items);
+    setCurrentPage('checkout');
+    window.scrollTo(0, 0);
   };
 
   // Simple placeholder component for sidebar pages
@@ -3410,8 +3425,24 @@ function App() {
         )}
         
         {currentPage === 'cart' && (
-          <CartPage 
+          <CartPage
             onNavigateTo={handleNavigate}
+            onCheckout={() => handleCheckout()}
+          />
+        )}
+        {currentPage === 'checkout' && (
+          <CheckoutPage
+            onBack={() => handleNavigate('cart')}
+            onProceedAsGuest={() => handleNavigate('checkout-shipping')}
+            onSignIn={() => handleNavigate('login')}
+            onSignUp={() => handleNavigate('signup')}
+            onOrderComplete={() => handleNavigate('order-confirmation')}
+          />
+        )}
+        {currentPage === 'order-confirmation' && (
+          <OrderConfirmation 
+            onContinueShopping={() => handleNavigate('landing')}
+            onViewOrders={() => handleNavigate('my-orders')}
           />
         )}
       </div>

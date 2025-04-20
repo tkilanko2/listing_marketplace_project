@@ -5,9 +5,10 @@ import { Product } from '../types';
 
 interface CartPageProps {
   onNavigateTo?: (page: string) => void;
+  onCheckout?: () => void;
 }
 
-export function CartPage({ onNavigateTo }: CartPageProps = {}) {
+export function CartPage({ onNavigateTo, onCheckout }: CartPageProps = {}) {
   const { cartItems, removeFromCart, updateQuantity, getCartCount, getCartTotal } = useCart();
   const [selectAll, setSelectAll] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -62,9 +63,14 @@ export function CartPage({ onNavigateTo }: CartPageProps = {}) {
   };
 
   const handleCheckoutAll = () => {
-    // Placeholder for checkout logic for all items
-    console.log('Checkout for all items');
-    setSelectedItems(cartItems.map(item => item.id));
+    // If we have an onCheckout prop, use it
+    if (onCheckout) {
+      onCheckout();
+    } else {
+      // Placeholder for checkout logic for all items
+      console.log('Checkout for all items');
+      setSelectedItems(cartItems.map(item => item.id));
+    }
   };
 
   return (
