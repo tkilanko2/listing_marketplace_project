@@ -28,6 +28,7 @@ import {
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderConfirmation } from './pages/OrderConfirmation';
 import { CartItem } from './context/CartContext';
+import { ShippingInfoPage } from './pages/ShippingInfoPage';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<
@@ -75,6 +76,9 @@ function App() {
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [orderAction, setOrderAction] = useState<string | null>(null);
   const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]);
+  const [checkoutStep, setCheckoutStep] = useState<'auth' | 'shipping' | 'payment' | 'review'>('auth');
+  // Add a state to keep track if the user came from checkout
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   // Determine if sidebar should be shown
   const shouldShowSidebar = () => {
@@ -106,19 +110,40 @@ function App() {
     setSelectedProvider(null);
   };
 
+  // Update the handleLogin function to ensure it redirects correctly after authentication
   const handleLogin = (email: string, password: string) => {
-    // Enhanced login logic with user ID and status
+    console.log('Login attempt with', email, 'isCheckingOut:', isCheckingOut);
+    
+    // Simulate authentication success
     setIsAuthenticated(true);
     setUser({
       name: email.split('@')[0],
-      email,
+      email: email,
       userId: 'CM7by141boza',
       status: 'online'
     });
+
+    console.log('Authentication successful, redirecting...');
+    
+    // If user was in checkout flow, return them to checkout
+    if (isCheckingOut) {
+      console.log('Returning to checkout flow, advancing to shipping step');
+      // First reset the checkout flag
+      setIsCheckingOut(false);
+      // Then ensure we're on the shipping step
+      setCheckoutStep('shipping');
+      // Finally navigate back to checkout
+      setCurrentPage('checkout');
+    } else {
+      // Default navigation for normal login
+      setCurrentPage('landing');
+    }
   };
 
+  // Handle signup form submission
   const handleSignup = (email: string, password: string) => {
-    // Enhanced signup logic with user ID and status
+    console.log('Signup with', email, password);
+    // Simulate account creation
     setIsAuthenticated(true);
     setUser({
       name: email.split('@')[0],
@@ -126,6 +151,17 @@ function App() {
       userId: 'CM7by141boza',
       status: 'online'
     });
+
+    // If user was in checkout flow, return them to checkout
+    if (isCheckingOut) {
+      setIsCheckingOut(false);
+      setCurrentPage('checkout');
+      // Skip the auth step since they're now registered
+      setCheckoutStep('shipping');
+    } else {
+      // Default navigation for normal signup
+      setCurrentPage('landing');
+    }
   };
 
   const handleLogout = () => {
@@ -139,14 +175,21 @@ function App() {
     setSelectedProvider(null);
   };
 
-  // Modify the handleBuyNow function to ensure it navigates to checkout
+  // Update the handleBuyNow function to ensure checkout flag is reset
   const handleBuyNow = () => {
+    // Set checking out flag to track the flow
+    setIsCheckingOut(false);
+    // Reset checkout step to auth
+    setCheckoutStep('auth');
+    
     // If coming from product details page, use the selected listing
     if (selectedListing) {
       // Add the current product to checkout with quantity 1
+      console.log('Buy Now clicked for product:', selectedListing.name);
       handleCheckout([{...(selectedListing as Product), quantity: 1}]);
     } else {
       // Generic fallback if called from elsewhere
+      console.log('Buy Now clicked without product');
       handleNavigate('checkout');
     }
   };
@@ -3203,8 +3246,11 @@ function App() {
     notes: string;
     timeSlot: any;
   }) => {
-    setBookingDetails(details);
-    setCurrentPage('payment');
+    console.log('Proceeding to payment with details:', details);
+    // This is where you'd handle the actual payment processing
+    setTimeout(() => {
+      handlePaymentComplete();
+    }, 1500);
   };
 
   const handlePaymentComplete = () => {
@@ -3224,6 +3270,11 @@ function App() {
 
   const handleBackToOrders = () => {
     setOrderAction(null);
+  };
+
+  // Function to handle navigation between checkout steps
+  const handleCheckoutNavigation = (step: 'auth' | 'shipping' | 'payment' | 'review') => {
+    setCheckoutStep(step);
   };
 
   return (
@@ -3431,13 +3482,41 @@ function App() {
           />
         )}
         {currentPage === 'checkout' && (
-          <CheckoutPage
-            onBack={() => handleNavigate('cart')}
-            onProceedAsGuest={() => handleNavigate('checkout-shipping')}
-            onSignIn={() => handleNavigate('login')}
-            onSignUp={() => handleNavigate('signup')}
-            onOrderComplete={() => handleNavigate('order-confirmation')}
-          />
+          <>
+            {checkoutStep === 'auth' && (
+              <CheckoutPage
+                onBack={() => handleNavigate('cart')}
+                onProceedAsGuest={() => {
+                  console.log('Proceeding as guest');
+                  handleCheckoutNavigation('shipping');
+                }}
+                onSignIn={() => {
+                  console.log('Setting checkout flag and navigating to sign in');
+                  setIsCheckingOut(true);
+                  handleNavigate('login');
+                }}
+                onSignUp={() => {
+                  console.log('Setting checkout flag and navigating to sign up');
+                  setIsCheckingOut(true);
+                  handleNavigate('signup');
+                }}
+                onOrderComplete={() => handleNavigate('order-confirmation')}
+              />
+            )}
+            {checkoutStep === 'shipping' && (
+              <ShippingInfoPage
+                onBack={() => {
+                  console.log('Going back from shipping, isAuthenticated:', isAuthenticated);
+                  // If user is logged in, go back to cart
+                  // If guest, go back to auth options
+                  isAuthenticated ? handleNavigate('cart') : handleCheckoutNavigation('auth');
+                }}
+                onContinue={() => handleNavigate('order-confirmation')}
+                isAuthenticated={isAuthenticated}
+                userData={user}
+              />
+            )}
+          </>
         )}
         {currentPage === 'order-confirmation' && (
           <OrderConfirmation 
