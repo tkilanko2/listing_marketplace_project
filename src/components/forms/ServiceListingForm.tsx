@@ -18,6 +18,20 @@ import {
   Divider,
   Stack,
   styled,
+  Checkbox,
+  FormControlLabel,
+  FormGroup,
+  Chip,
+  Card,
+  CardContent,
+  Radio,
+  RadioGroup,
+  FormLabel,
+  Slider,
+  Tabs,
+  Tab,
+  Switch,
+  Autocomplete,
 } from '@mui/material';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -28,6 +42,13 @@ import InventoryIcon from '@mui/icons-material/Inventory';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CheckIcon from '@mui/icons-material/Check';
+import AddIcon from '@mui/icons-material/Add';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import EventIcon from '@mui/icons-material/Event';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 
 const serviceCategories = [
   'Professional Services',
@@ -48,6 +69,14 @@ interface FormValues extends Record<string, any> {
   detailedDescription: string;
   price: string;
   location: string;
+  country: string;
+  coverageAreaKm: string;
+  serviceAreas: string[];
+  serviceCities: Array<{
+    country: string;
+    city: string;
+    radius: string;
+  }>;
   images: File[];
   category: string;
   serviceType: string;
@@ -55,6 +84,41 @@ interface FormValues extends Record<string, any> {
     onlinePayment: boolean;
     payAtService: boolean;
   };
+  availability: {
+    type: 'weekdays' | 'weekends' | 'allWeek' | 'custom';
+    scheduleType: 'weekly' | 'dateRange';
+    customSchedule: {
+      monday: boolean;
+      tuesday: boolean;
+      wednesday: boolean;
+      thursday: boolean;
+      friday: boolean;
+      saturday: boolean;
+      sunday: boolean;
+      timeRanges: Array<{
+        startTime: string;
+        endTime: string;
+        days: string[];
+      }>;
+    };
+    dateRanges: Array<{
+      startDate: string;
+      endDate: string;
+      timeSlots: Array<{
+        startTime: string;
+        endTime: string;
+      }>;
+    }>;
+  };
+  pricingModel: 'flat' | 'tiered';
+  flatRatePrice: string;
+  pricingTiers: Array<{
+    id: string;
+    name: string;
+    price: string;
+    description: string;
+    features: string[];
+  }>;
 }
 
 interface FieldConfig {
@@ -185,9 +249,6 @@ const FormSection = styled(Paper)(({ theme }) => ({
 const PreviewSection = styled(Box)(({ theme }) => ({
   flex: '1 1 40%',
   position: 'relative',
-  [theme.breakpoints.down('md')]: {
-    display: 'none',
-  },
 }));
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
@@ -278,7 +339,23 @@ const StepIndicator = styled(Box)(({ theme }) => ({
 
 const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [activeStep, setActiveStep] = useState(0);
-  const steps = ['Basic Information', 'Service Category', 'Category Details'];
+  const [availabilityTab, setAvailabilityTab] = useState<number>(0);
+  const steps = ['Basic Information', 'Category & Availability', 'Pricing Options'];
+
+  // Function to get availability preview text
+  const getAvailabilityPreviewText = (availability: any) => {
+    if (availability.scheduleType === 'dateRange') {
+      return 'Available on specific dates';
+    } else if (availability.type === 'custom') {
+      return 'Custom weekly schedule';
+    } else if (availability.type === 'weekdays') {
+      return 'Weekdays, 9AM-5PM';
+    } else if (availability.type === 'weekends') {
+      return 'Weekends';
+    } else {
+      return 'All week';
+    }
+  };
 
   const formik = useFormik<FormValues>({
     initialValues: {
@@ -287,21 +364,86 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       detailedDescription: '',
       price: '',
       location: '',
+      country: '',
+      coverageAreaKm: '',
+      serviceAreas: [],
+      serviceCities: [],
       images: [],
       category: '',
       serviceType: '',
       paymentOptions: {
         onlinePayment: false,
         payAtService: true
-      }
+      },
+      availability: {
+        type: 'weekdays',
+        scheduleType: 'weekly',
+        customSchedule: {
+          monday: true,
+          tuesday: true,
+          wednesday: true,
+          thursday: true,
+          friday: true,
+          saturday: false,
+          sunday: false,
+          timeRanges: [
+            {
+              startTime: '09:00',
+              endTime: '17:00',
+              days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
+            }
+          ]
+        },
+        dateRanges: []
+      },
+      pricingModel: 'flat',
+      flatRatePrice: '',
+      pricingTiers: [
+        {
+          id: '1',
+          name: 'Basic',
+          price: '',
+          description: '',
+          features: []
+        },
+        {
+          id: '2',
+          name: 'Standard',
+          price: '',
+          description: '',
+          features: []
+        },
+        {
+          id: '3',
+          name: 'Premium',
+          price: '',
+          description: '',
+          features: []
+        }
+      ]
     },
     validationSchema: Yup.object({
       title: Yup.string().required('Title is required'),
       shortDescription: Yup.string().required('Short description is required'),
       detailedDescription: Yup.string().required('Detailed description is required'),
-      price: Yup.string().required('Price is required'),
-      location: Yup.string().required('Location is required'),
+      location: Yup.string().required('City is required'),
+      country: Yup.string().required('Country is required'),
       category: Yup.string().required('Category is required'),
+      pricingModel: Yup.string().required('Pricing model is required'),
+      flatRatePrice: Yup.string().when('pricingModel', {
+        is: 'flat',
+        then: () => Yup.string().required('Price is required')
+      }),
+      pricingTiers: Yup.array().when('pricingModel', {
+        is: 'tiered',
+        then: () => Yup.array().of(
+          Yup.object().shape({
+            name: Yup.string().required('Tier name is required'),
+            price: Yup.string().required('Tier price is required'),
+            description: Yup.string().required('Tier description is required')
+          })
+        )
+      })
     }),
     onSubmit: (values) => {
       if (activeStep < 2) {
@@ -457,6 +599,871 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     </Box>
   );
 
+  const renderServiceAreaFields = () => {
+    // List of countries - you can expand this list as needed
+    const countries = [
+      'United States',
+      'Canada',
+      'United Kingdom',
+      'Australia',
+      'Germany',
+      'France',
+      'Italy',
+      'Japan',
+      'China',
+      'India',
+      'Brazil',
+      'Mexico',
+      // Add more countries as needed
+    ];
+
+    return (
+      <Box sx={{ mt: 2 }}>
+        <Typography variant="subtitle1" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+          <LocationOnIcon sx={{ mr: 1 }} /> Service Locations
+        </Typography>
+        
+        {/* Primary Location with Country and City */}
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          <Grid item xs={12} md={6}>
+            <StyledFormControl fullWidth>
+              <InputLabel>Primary Country</InputLabel>
+              <Select
+                name="country"
+                value={formik.values.country}
+                onChange={formik.handleChange}
+                error={formik.touched.country && Boolean(formik.errors.country)}
+              >
+                {countries.map((country) => (
+                  <MenuItem key={country} value={country}>
+                    {country}
+                  </MenuItem>
+                ))}
+              </Select>
+            </StyledFormControl>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <StyledTextField
+              fullWidth
+              name="location"
+              label="Primary City"
+              value={formik.values.location}
+              onChange={formik.handleChange}
+              error={formik.touched.location && Boolean(formik.errors.location)}
+              helperText={formik.touched.location && formik.errors.location}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <StyledTextField 
+              fullWidth
+              name="coverageAreaKm"
+              label="Coverage Radius"
+              type="number"
+              placeholder="Enter radius in km"
+              InputProps={{
+                endAdornment: <InputAdornment position="end">km</InputAdornment>,
+              }}
+              value={formik.values.coverageAreaKm}
+              onChange={formik.handleChange}
+            />
+          </Grid>
+        </Grid>
+        
+        {/* Additional Service Locations */}
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="subtitle2" gutterBottom>
+            Additional Service Locations
+          </Typography>
+          
+          {formik.values.serviceCities.length === 0 && (
+            <Box sx={{ p: 2, bgcolor: '#F8F8FA', borderRadius: 1, mb: 2 }}>
+              <Typography variant="body2" color="text.secondary" align="center">
+                No additional locations added. Add a location if you serve multiple cities.
+              </Typography>
+            </Box>
+          )}
+          
+          {formik.values.serviceCities.map((cityData, index) => (
+            <Card key={index} sx={{ mb: 2, p: 2, border: '1px solid', borderColor: 'divider' }}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={4}>
+                  <StyledFormControl fullWidth>
+                    <InputLabel>Country</InputLabel>
+                    <Select
+                      value={cityData.country || ''}
+                      onChange={(e) => {
+                        const newCities = [...formik.values.serviceCities];
+                        newCities[index].country = e.target.value;
+                        formik.setFieldValue('serviceCities', newCities);
+                      }}
+                    >
+                      {countries.map((country) => (
+                        <MenuItem key={country} value={country}>
+                          {country}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </StyledFormControl>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <StyledTextField 
+                    fullWidth
+                    placeholder="Enter city name"
+                    label="City"
+                    value={cityData.city}
+                    onChange={(e) => {
+                      const newCities = [...formik.values.serviceCities];
+                      newCities[index].city = e.target.value;
+                      formik.setFieldValue('serviceCities', newCities);
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <StyledTextField 
+                    fullWidth
+                    placeholder="km"
+                    label="Coverage Radius"
+                    type="number"
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">km</InputAdornment>,
+                    }}
+                    value={cityData.radius}
+                    onChange={(e) => {
+                      const newCities = [...formik.values.serviceCities];
+                      newCities[index].radius = e.target.value;
+                      formik.setFieldValue('serviceCities', newCities);
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={1} sx={{ display: 'flex', alignItems: 'center' }}>
+                  <IconButton 
+                    color="error"
+                    onClick={() => {
+                      const newCities = [...formik.values.serviceCities];
+                      newCities.splice(index, 1);
+                      formik.setFieldValue('serviceCities', newCities);
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Grid>
+              </Grid>
+            </Card>
+          ))}
+          
+          <Button 
+            variant="outlined" 
+            startIcon={<AddIcon />}
+            onClick={() => {
+              formik.setFieldValue('serviceCities', [
+                ...formik.values.serviceCities,
+                { country: formik.values.country || '', city: '', radius: '10' }
+              ]);
+            }}
+            sx={{ 
+              mt: 1, 
+              backgroundColor: '#F8F8FA',
+              borderColor: '#CDCED8',
+              color: '#383A47',
+              '&:hover': {
+                backgroundColor: '#E8E9ED',
+                borderColor: '#70727F',
+              }
+            }}
+          >
+            Add Another Location
+          </Button>
+        </Box>
+        
+        {/* General service areas (optional) */}
+        <Grid item xs={12}>
+          <Autocomplete
+            multiple
+            id="service-areas"
+            options={[
+              'Downtown', 'Suburbs', 'Urban Area', 'Rural Area', 'Entire City',
+              'Remote Service', 'Nationwide', 'International'
+            ]}
+            freeSolo
+            value={formik.values.serviceAreas}
+            onChange={(_, newValue) => {
+              formik.setFieldValue('serviceAreas', newValue);
+            }}
+            renderTags={(value, getTagProps) =>
+              value.map((option, index) => (
+                <Chip
+                  variant="outlined"
+                  label={option}
+                  size="small"
+                  {...getTagProps({ index })}
+                />
+              ))
+            }
+            renderInput={(params) => (
+              <StyledTextField
+                {...params}
+                variant="outlined"
+                label="Additional Service Areas"
+                placeholder="Add general areas you cover"
+                helperText="Add regions, neighborhoods or service types (e.g., Remote Only)"
+              />
+            )}
+          />
+        </Grid>
+      </Box>
+    );
+  };
+
+  const renderAvailabilitySection = () => {
+    const weekDays = [
+      { value: 'monday', label: 'MON' },
+      { value: 'tuesday', label: 'TUE' },
+      { value: 'wednesday', label: 'WED' },
+      { value: 'thursday', label: 'THU' },
+      { value: 'friday', label: 'FRI' },
+      { value: 'saturday', label: 'SAT' },
+      { value: 'sunday', label: 'SUN' }
+    ];
+
+    // Helper function to get time slots for a specific day
+    const getTimeSlotsForDay = (day: string) => {
+      return formik.values.availability.customSchedule.timeRanges.filter(
+        timeRange => timeRange.days.includes(day)
+      );
+    };
+    
+    // Add a time slot for a specific day
+    const addTimeSlotForDay = (day: string) => {
+      const newTimeRanges = [...formik.values.availability.customSchedule.timeRanges];
+      newTimeRanges.push({
+        startTime: '09:00',
+        endTime: '17:00',
+        days: [day]
+      });
+      formik.setFieldValue('availability.customSchedule.timeRanges', newTimeRanges);
+    };
+    
+    // Remove a time slot
+    const removeTimeSlot = (index: number) => {
+      const newTimeRanges = [...formik.values.availability.customSchedule.timeRanges];
+      newTimeRanges.splice(index, 1);
+      formik.setFieldValue('availability.customSchedule.timeRanges', newTimeRanges);
+    };
+
+    // Helper to safely check if a day is selected
+    const isDaySelected = (day: string): boolean => {
+      const dayProperty = day as keyof typeof formik.values.availability.customSchedule;
+      return Boolean(formik.values.availability.customSchedule[dayProperty]);
+    };
+    
+    // Date range helpers
+    const addDateRange = () => {
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      formik.setFieldValue('availability.dateRanges', [
+        ...formik.values.availability.dateRanges,
+        {
+          startDate: today.toISOString().split('T')[0],
+          endDate: tomorrow.toISOString().split('T')[0],
+          timeSlots: [
+            {
+              startTime: '09:00',
+              endTime: '17:00'
+            }
+          ]
+        }
+      ]);
+    };
+    
+    const removeDateRange = (index: number) => {
+      const newDateRanges = [...formik.values.availability.dateRanges];
+      newDateRanges.splice(index, 1);
+      formik.setFieldValue('availability.dateRanges', newDateRanges);
+    };
+    
+    const addTimeSlotToDateRange = (dateRangeIndex: number) => {
+      const newDateRanges = [...formik.values.availability.dateRanges];
+      newDateRanges[dateRangeIndex].timeSlots.push({
+        startTime: '09:00',
+        endTime: '17:00'
+      });
+      formik.setFieldValue('availability.dateRanges', newDateRanges);
+    };
+    
+    const removeTimeSlotFromDateRange = (dateRangeIndex: number, timeSlotIndex: number) => {
+      const newDateRanges = [...formik.values.availability.dateRanges];
+      newDateRanges[dateRangeIndex].timeSlots.splice(timeSlotIndex, 1);
+      formik.setFieldValue('availability.dateRanges', newDateRanges);
+    };
+    
+    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+      setAvailabilityTab(newValue);
+      // Update the schedule type based on tab
+      formik.setFieldValue('availability.scheduleType', newValue === 0 ? 'weekly' : 'dateRange');
+    };
+    
+    const renderWeeklySchedule = () => (
+      <>
+        <Typography variant="subtitle1" gutterBottom>
+          Select days you're available
+        </Typography>
+        
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 3 }}>
+          {weekDays.map((day) => {
+            const isSelected = isDaySelected(day.value);
+            return (
+              <Button
+                key={day.value}
+                variant={isSelected ? "contained" : "outlined"}
+                sx={{ 
+                  minWidth: 70,
+                  backgroundColor: isSelected ? '#3D1560' : 'transparent',
+                  borderColor: '#CDCED8',
+                  color: isSelected ? 'white' : '#383A47',
+                  '&:hover': {
+                    backgroundColor: isSelected ? '#6D26AB' : '#F8F8FA',
+                  }
+                }}
+                onClick={() => {
+                  formik.setFieldValue(
+                    `availability.customSchedule.${day.value}`, 
+                    !isSelected
+                  );
+                  // If day is being selected, add default time slot
+                  if (!isSelected && getTimeSlotsForDay(day.value).length === 0) {
+                    addTimeSlotForDay(day.value);
+                  }
+                }}
+              >
+                {day.label}
+              </Button>
+            );
+          })}
+        </Box>
+        
+        <Typography variant="subtitle1" gutterBottom>
+          Set hours for each day
+        </Typography>
+        
+        {weekDays.map((day) => {
+          const isSelected = isDaySelected(day.value);
+          if (!isSelected) return null;
+          
+          const timeSlots = formik.values.availability.customSchedule.timeRanges.filter(
+            slot => slot.days.includes(day.value)
+          );
+          
+          return (
+            <Box key={day.value} sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" fontWeight="bold">
+                {day.label.charAt(0) + day.label.slice(1).toLowerCase()}
+              </Typography>
+              
+              {timeSlots && timeSlots.map((slot, index) => {
+                const slotIndex = formik.values.availability.customSchedule.timeRanges.findIndex(
+                  s => s === slot
+                );
+                
+                return (
+                  <Grid container spacing={2} key={index} sx={{ mb: 1 }}>
+                    <Grid item xs={5}>
+                      <TextField
+                        label="From"
+                        type="time"
+                        value={slot.startTime}
+                        onChange={(e) => {
+                          const newTimeRanges = [...formik.values.availability.customSchedule.timeRanges];
+                          newTimeRanges[slotIndex].startTime = e.target.value;
+                          formik.setFieldValue('availability.customSchedule.timeRanges', newTimeRanges);
+                        }}
+                        InputLabelProps={{ shrink: true }}
+                        fullWidth
+                        size="small"
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
+                      />
+                    </Grid>
+                    <Grid item xs={5}>
+                      <TextField
+                        label="To"
+                        type="time"
+                        value={slot.endTime}
+                        onChange={(e) => {
+                          const newTimeRanges = [...formik.values.availability.customSchedule.timeRanges];
+                          newTimeRanges[slotIndex].endTime = e.target.value;
+                          formik.setFieldValue('availability.customSchedule.timeRanges', newTimeRanges);
+                        }}
+                        InputLabelProps={{ shrink: true }}
+                        fullWidth
+                        size="small"
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
+                      />
+                    </Grid>
+                    <Grid item xs={1} sx={{ display: 'flex', alignItems: 'center' }}>
+                      <IconButton 
+                        size="small"
+                        onClick={() => removeTimeSlot(slotIndex)}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Grid>
+                    <Grid item xs={1} sx={{ display: 'flex', alignItems: 'center' }}>
+                      {index === timeSlots.length - 1 && (
+                        <IconButton 
+                          size="small"
+                          onClick={() => addTimeSlotForDay(day.value)}
+                        >
+                          <AddIcon fontSize="small" />
+                        </IconButton>
+                      )}
+                    </Grid>
+                  </Grid>
+                );
+              })}
+            </Box>
+          );
+        })}
+      </>
+    );
+    
+    const renderDateRangeSchedule = () => (
+      <>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle1" gutterBottom>
+            Add specific date ranges when you're available
+          </Typography>
+          
+          {formik.values.availability.dateRanges.length === 0 && (
+            <Box sx={{ p: 3, textAlign: 'center', bgcolor: 'background.default', borderRadius: 1, mb: 2 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                No date ranges added yet
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Add a date range to specify when you're available
+              </Typography>
+            </Box>
+          )}
+          
+          {formik.values.availability.dateRanges.map((dateRange, dateIndex) => (
+            <Card key={dateIndex} sx={{ mb: 3, p: 2, border: '1px solid', borderColor: 'divider' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="subtitle2" fontWeight="bold">
+                  Date Range {dateIndex + 1}
+                </Typography>
+                <IconButton size="small" onClick={() => removeDateRange(dateIndex)}>
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </Box>
+              
+              <Grid container spacing={2} sx={{ mb: 2 }}>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    type="date"
+                    label="Start Date"
+                    value={dateRange.startDate}
+                    onChange={(e) => {
+                      const newDateRanges = [...formik.values.availability.dateRanges];
+                      newDateRanges[dateIndex].startDate = e.target.value;
+                      formik.setFieldValue('availability.dateRanges', newDateRanges);
+                    }}
+                    InputLabelProps={{ shrink: true }}
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    fullWidth
+                    type="date"
+                    label="End Date"
+                    value={dateRange.endDate}
+                    onChange={(e) => {
+                      const newDateRanges = [...formik.values.availability.dateRanges];
+                      newDateRanges[dateIndex].endDate = e.target.value;
+                      formik.setFieldValue('availability.dateRanges', newDateRanges);
+                    }}
+                    InputLabelProps={{ shrink: true }}
+                    size="small"
+                  />
+                </Grid>
+              </Grid>
+              
+              <Typography variant="subtitle2" gutterBottom>
+                Time Slots
+              </Typography>
+              
+              {dateRange.timeSlots.map((timeSlot, timeIndex) => (
+                <Grid container spacing={2} key={timeIndex} sx={{ mb: 1 }}>
+                  <Grid item xs={5}>
+                    <TextField
+                      label="From"
+                      type="time"
+                      value={timeSlot.startTime}
+                      onChange={(e) => {
+                        const newDateRanges = [...formik.values.availability.dateRanges];
+                        newDateRanges[dateIndex].timeSlots[timeIndex].startTime = e.target.value;
+                        formik.setFieldValue('availability.dateRanges', newDateRanges);
+                      }}
+                      InputLabelProps={{ shrink: true }}
+                      fullWidth
+                      size="small"
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
+                    />
+                  </Grid>
+                  <Grid item xs={5}>
+                    <TextField
+                      label="To"
+                      type="time"
+                      value={timeSlot.endTime}
+                      onChange={(e) => {
+                        const newDateRanges = [...formik.values.availability.dateRanges];
+                        newDateRanges[dateIndex].timeSlots[timeIndex].endTime = e.target.value;
+                        formik.setFieldValue('availability.dateRanges', newDateRanges);
+                      }}
+                      InputLabelProps={{ shrink: true }}
+                      fullWidth
+                      size="small"
+                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
+                    />
+                  </Grid>
+                  <Grid item xs={1} sx={{ display: 'flex', alignItems: 'center' }}>
+                    <IconButton 
+                      size="small"
+                      onClick={() => removeTimeSlotFromDateRange(dateIndex, timeIndex)}
+                      disabled={dateRange.timeSlots.length <= 1}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Grid>
+                  <Grid item xs={1} sx={{ display: 'flex', alignItems: 'center' }}>
+                    {timeIndex === dateRange.timeSlots.length - 1 && (
+                      <IconButton 
+                        size="small"
+                        onClick={() => addTimeSlotToDateRange(dateIndex)}
+                      >
+                        <AddIcon fontSize="small" />
+                      </IconButton>
+                    )}
+                  </Grid>
+                </Grid>
+              ))}
+            </Card>
+          ))}
+          
+          <Button 
+            variant="outlined" 
+            startIcon={<EventIcon />}
+            onClick={addDateRange}
+            sx={{ mt: 1 }}
+          >
+            Add Date Range
+          </Button>
+        </Box>
+      </>
+    );
+    
+    return (
+      <Card sx={{ mt: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', color: '#3D1560' }}>
+            <CalendarMonthIcon sx={{ mr: 1 }} /> Availability
+          </Typography>
+          
+          <Box sx={{ width: '100%', mb: 3 }}>
+            <Tabs
+              value={availabilityTab}
+              onChange={handleTabChange}
+              sx={{
+                '.MuiTabs-indicator': {
+                  backgroundColor: '#3D1560',
+                },
+                '.MuiTab-root.Mui-selected': {
+                  color: '#3D1560',
+                },
+              }}
+            >
+              <Tab label="WEEKLY SCHEDULE" />
+              <Tab label="SPECIFIC DATE RANGE" />
+            </Tabs>
+          </Box>
+          
+          {availabilityTab === 0 ? renderWeeklySchedule() : renderDateRangeSchedule()}
+          
+          <Divider sx={{ my: 3 }} />
+          
+          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', color: '#3D1560' }}>
+            <MonetizationOnIcon sx={{ mr: 1 }} /> Payment Options
+          </Typography>
+          
+          <Box sx={{ mt: 2 }}>
+            <FormControlLabel
+              control={
+                <Switch 
+                  checked={formik.values.paymentOptions.onlinePayment}
+                  onChange={(e) => {
+                    formik.setFieldValue('paymentOptions.onlinePayment', e.target.checked);
+                  }}
+                  color="primary"
+                />
+              }
+              label="Accept Online Payments"
+            />
+            <FormControlLabel
+              control={
+                <Switch 
+                  checked={formik.values.paymentOptions.payAtService}
+                  onChange={(e) => {
+                    formik.setFieldValue('paymentOptions.payAtService', e.target.checked);
+                  }}
+                  color="primary"
+                />
+              }
+              label="Accept Pay at Service"
+            />
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const renderCategoryDetails = () => {
+    if (!formik.values.category) {
+      return (
+        <Box sx={{ mt: 2, p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            Please select a service category to see specific options.
+          </Typography>
+        </Box>
+      );
+    }
+    
+    const categoryFields = categorySpecificFields[formik.values.category as keyof typeof categorySpecificFields] || [];
+    
+    return (
+      <Card sx={{ mt: 3, p: 2, border: '1px solid', borderColor: 'divider' }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+            <HandymanIcon sx={{ mr: 1 }} /> Category Details
+          </Typography>
+          
+          <Grid container spacing={2}>
+            {categoryFields.map((field) => (
+              <Grid item xs={12} md={field.type === 'textarea' ? 12 : 6} key={field.name}>
+                {renderField(field)}
+              </Grid>
+            ))}
+          </Grid>
+        </CardContent>
+      </Card>
+    );
+  };
+  
+  const renderPricingSection = () => {
+    const addFeature = (tierIndex: number) => {
+      const newTiers = [...formik.values.pricingTiers];
+      newTiers[tierIndex].features.push('');
+      formik.setFieldValue('pricingTiers', newTiers);
+    };
+    
+    const removeFeature = (tierIndex: number, featureIndex: number) => {
+      const newTiers = [...formik.values.pricingTiers];
+      newTiers[tierIndex].features.splice(featureIndex, 1);
+      formik.setFieldValue('pricingTiers', newTiers);
+    };
+    
+    return (
+      <Card sx={{ p: 3, border: '1px solid', borderColor: 'divider' }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', color: '#3D1560' }}>
+            <MonetizationOnIcon sx={{ mr: 1 }} /> Pricing Options
+          </Typography>
+          
+          <FormControl component="fieldset" sx={{ mb: 3, width: '100%' }}>
+            <FormLabel component="legend">Pricing Model</FormLabel>
+            <RadioGroup
+              name="pricingModel"
+              value={formik.values.pricingModel}
+              onChange={formik.handleChange}
+              row
+            >
+              <FormControlLabel 
+                value="flat" 
+                control={<Radio />} 
+                label="Flat Rate" 
+              />
+              <FormControlLabel 
+                value="tiered" 
+                control={<Radio />} 
+                label="Tiered Packages" 
+              />
+            </RadioGroup>
+          </FormControl>
+          
+          {formik.values.pricingModel === 'flat' ? (
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" gutterBottom>
+                Set Your Flat Rate Price
+              </Typography>
+              <TextField
+                name="flatRatePrice"
+                label="Price"
+                type="number"
+                value={formik.values.flatRatePrice}
+                onChange={formik.handleChange}
+                fullWidth
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                }}
+                error={formik.touched.flatRatePrice && Boolean(formik.errors.flatRatePrice)}
+                helperText={formik.touched.flatRatePrice && formik.errors.flatRatePrice}
+              />
+            </Box>
+          ) : (
+            <Box>
+              <Typography variant="subtitle1" gutterBottom>
+                Configure Your Service Tiers
+              </Typography>
+              <Typography variant="body2" color="text.secondary" paragraph>
+                Create tiered packages with different prices and features. Customers can choose the package that best fits their needs.
+              </Typography>
+              
+              <Grid container spacing={3}>
+                {formik.values.pricingTiers.map((tier, tierIndex) => (
+                  <Grid item xs={12} md={4} key={tier.id}>
+                    <Card 
+                      elevation={2} 
+                      sx={{ 
+                        height: '100%', 
+                        display: 'flex', 
+                        flexDirection: 'column',
+                        border: tierIndex === 1 ? '2px solid #3D1560' : 'none',
+                        position: 'relative'
+                      }}
+                    >
+                      {tierIndex === 1 && (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: -12,
+                            left: 0,
+                            right: 0,
+                            textAlign: 'center'
+                          }}
+                        >
+                          <Chip 
+                            label="MOST POPULAR" 
+                            size="small" 
+                            sx={{ 
+                              bgcolor: '#3D1560', 
+                              color: 'white',
+                              fontWeight: 'bold'
+                            }} 
+                          />
+                        </Box>
+                      )}
+                      
+                      <CardContent sx={{ flexGrow: 1 }}>
+                        <TextField
+                          label="Package Name"
+                          value={tier.name}
+                          onChange={(e) => {
+                            const newTiers = [...formik.values.pricingTiers];
+                            newTiers[tierIndex].name = e.target.value;
+                            formik.setFieldValue('pricingTiers', newTiers);
+                          }}
+                          fullWidth
+                          margin="normal"
+                          placeholder={`e.g., ${tier.name}`}
+                          InputProps={{
+                            sx: { fontWeight: 'bold', color: '#3D1560' }
+                          }}
+                        />
+                        
+                        <TextField
+                          label="Price"
+                          type="number"
+                          value={tier.price}
+                          onChange={(e) => {
+                            const newTiers = [...formik.values.pricingTiers];
+                            newTiers[tierIndex].price = e.target.value;
+                            formik.setFieldValue('pricingTiers', newTiers);
+                          }}
+                          fullWidth
+                          margin="normal"
+                          InputProps={{
+                            startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                          }}
+                        />
+                        
+                        <TextField
+                          label="Description"
+                          value={tier.description}
+                          onChange={(e) => {
+                            const newTiers = [...formik.values.pricingTiers];
+                            newTiers[tierIndex].description = e.target.value;
+                            formik.setFieldValue('pricingTiers', newTiers);
+                          }}
+                          fullWidth
+                          margin="normal"
+                          multiline
+                          rows={2}
+                          placeholder="Brief description of this package"
+                        />
+                        
+                        <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
+                          Features Included
+                        </Typography>
+                        
+                        {tier.features.map((feature, featureIndex) => (
+                          <Box key={featureIndex} sx={{ display: 'flex', mb: 1 }}>
+                            <TextField
+                              size="small"
+                              fullWidth
+                              value={feature}
+                              onChange={(e) => {
+                                const newTiers = [...formik.values.pricingTiers];
+                                newTiers[tierIndex].features[featureIndex] = e.target.value;
+                                formik.setFieldValue('pricingTiers', newTiers);
+                              }}
+                              placeholder={`Feature ${featureIndex + 1}`}
+                              InputProps={{
+                                startAdornment: (
+                                  <InputAdornment position="start">
+                                    <CheckIcon fontSize="small" color="success" />
+                                  </InputAdornment>
+                                ),
+                              }}
+                            />
+                            <IconButton 
+                              size="small" 
+                              onClick={() => removeFeature(tierIndex, featureIndex)}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        ))}
+                        
+                        <Button
+                          startIcon={<AddIcon />}
+                          onClick={() => addFeature(tierIndex)}
+                          size="small"
+                          sx={{ mt: 1 }}
+                        >
+                          Add Feature
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
   const renderStepContent = (step: number) => {
     switch (step) {
       case 0:
@@ -494,65 +1501,45 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
               multiline
               rows={4}
             />
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <StyledTextField
-                  fullWidth
-                  name="price"
-                  label="Price"
-                  type="number"
-                  value={formik.values.price}
-                  onChange={formik.handleChange}
-                  error={formik.touched.price && Boolean(formik.errors.price)}
-                  helperText={formik.touched.price && formik.errors.price}
-                  InputProps={{
-                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                  }}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <StyledTextField
-                  fullWidth
-                  name="location"
-                  label="Location"
-                  value={formik.values.location}
-                  onChange={formik.handleChange}
-                  error={formik.touched.location && Boolean(formik.errors.location)}
-                  helperText={formik.touched.location && formik.errors.location}
-                />
-              </Grid>
-            </Grid>
+            
+            {renderServiceAreaFields()}
           </Stack>
         );
       case 1:
         return (
-          <Stack spacing={3}>
-            <StyledFormControl fullWidth>
-              <InputLabel>Category</InputLabel>
-              <Select
-                name="category"
-                value={formik.values.category}
-                onChange={formik.handleChange}
-                error={formik.touched.category && Boolean(formik.errors.category)}
-              >
-                {serviceCategories.map((category) => (
-                  <MenuItem key={category} value={category}>
-                    {category}
-                  </MenuItem>
-                ))}
-              </Select>
-            </StyledFormControl>
+          <Stack spacing={2}>
+            <Card sx={{ p: 2, border: '1px solid', borderColor: 'divider' }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+                  <EventIcon sx={{ mr: 1 }} /> Service Category
+                </Typography>
+                
+                <StyledFormControl fullWidth>
+                  <InputLabel>Category</InputLabel>
+                  <Select
+                    name="category"
+                    value={formik.values.category}
+                    onChange={formik.handleChange}
+                    error={formik.touched.category && Boolean(formik.errors.category)}
+                  >
+                    {serviceCategories.map((category) => (
+                      <MenuItem key={category} value={category}>
+                        {category}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </StyledFormControl>
+              </CardContent>
+            </Card>
+            
+            {renderCategoryDetails()}
+            {renderAvailabilitySection()}
           </Stack>
         );
       case 2:
-        const categoryFields = categorySpecificFields[formik.values.category as keyof typeof categorySpecificFields] || [];
         return (
-          <Stack spacing={3}>
-            {categoryFields.map((field) => (
-              <Box key={field.name}>
-                {renderField(field)}
-              </Box>
-            ))}
+          <Stack spacing={2}>
+            {renderPricingSection()}
           </Stack>
         );
       default:
@@ -644,14 +1631,18 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           formData={{
             id: 'preview',
             name: formik.values.title,
-            price: Number(formik.values.price) || 0,
+            price: Number(formik.values.pricingModel === 'flat' 
+              ? formik.values.flatRatePrice || 0 
+              : formik.values.pricingTiers[0]?.price || 0),
             shortDescription: formik.values.shortDescription,
             category: formik.values.category,
             location: {
               city: formik.values.location,
-              country: 'Country',
+              country: formik.values.country || 'Select a country',
             },
-            images: formik.values.images,
+            images: formik.values.images.length > 0 
+              ? Array.from(formik.values.images).map(file => URL.createObjectURL(file) as string)
+              : [],
             type: 'service',
             views: 0,
             saves: 0,
@@ -664,8 +1655,8 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
               joinedDate: new Date(),
               isOnline: true,
               location: {
-                city: '',
-                country: '',
+                city: formik.values.location,
+                country: formik.values.country || 'Select a country',
               },
               reviews: [],
               responseTime: '1 hour',
@@ -678,9 +1669,19 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             recommended: false,
             duration: 60,
             serviceType: formik.values.serviceType,
-            serviceArea: '',
-            availability: '',
-            pricingStructure: 'fixed',
+            serviceArea: formik.values.serviceCities.length > 0 
+              ? `Multiple locations in ${formik.values.serviceCities.length + 1} cities` 
+              : `Coverage area: ${formik.values.coverageAreaKm || 'local'} km`,
+            availability: formik.values.availability.scheduleType === 'dateRange'
+              ? `Available on specific dates` 
+              : formik.values.availability.type === 'custom'
+                ? 'Custom weekly schedule'
+                : formik.values.availability.type === 'weekdays'
+                  ? 'Weekdays, 9AM-5PM'
+                  : formik.values.availability.type === 'weekends'
+                    ? 'Weekends'
+                    : 'All week',
+            pricingStructure: formik.values.pricingModel === 'tiered' ? 'tiered' : 'fixed',
             languagesSpoken: ['English'],
             serviceMode: 'both',
             paymentOptions: {
