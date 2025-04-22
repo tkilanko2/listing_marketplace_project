@@ -15,7 +15,7 @@ import {
   BarChart, Calendar, DollarSign, ShoppingCart, Package, TrendingUp, 
   ArrowUp, Wallet, ChevronDown, ChevronLeft, ChevronRight, Search, 
   Edit, Trash, Eye, PlusCircle, Zap, BarChart2, Settings, 
-  Users, Star, CheckCircle, MoreVertical, Film, X, Bookmark, ChevronUp, LayoutDashboard, Store 
+  Users, Star, CheckCircle, MoreVertical, Film, X, Bookmark, ChevronUp, LayoutDashboard, Store, ExternalLink, Archive, Trash2, AlertTriangle, MapPin 
 } from 'lucide-react';
 import { MyOrdersPage } from './pages/MyOrdersPage';
 import { 
@@ -2444,107 +2444,485 @@ function App() {
           
           {/* View Listing Modal */}
           {showViewModal && selectedViewListing && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+                {/* Modal Header with Actions */}
                 <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-                  <h3 className="text-lg font-medium text-gray-900">Listing Details</h3>
-                  <button 
-                    onClick={() => setShowViewModal(false)}
-                    className="text-gray-400 hover:text-gray-500"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+                  <div className="flex items-center">
+                    <h3 className="text-xl font-semibold text-[#1B1C20]">Listing Details</h3>
+                    <span className={`ml-3 px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getStatusColor(selectedViewListing.status).badge}`}>
+                      {selectedViewListing.status === 'active' ? 'Live' : selectedViewListing.status}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button 
+                      onClick={() => {
+                        setShowViewModal(false);
+                        handleEdit(selectedViewListing.id);
+                      }}
+                      className="px-3 py-1.5 text-sm font-medium rounded-md text-[#3D1560] bg-[#EDD9FF] hover:bg-[#9B53D9] hover:text-white transition-colors duration-200"
+                    >
+                      <Edit className="w-4 h-4 inline mr-1" />
+                      Edit
+                    </button>
+                    <button 
+                      className="px-3 py-1.5 text-sm font-medium rounded-md text-white bg-[#3D1560] hover:bg-[#6D26AB] transition-colors duration-200"
+                    >
+                      <ExternalLink className="w-4 h-4 inline mr-1" />
+                      View Live
+                    </button>
+                    <button 
+                      onClick={() => setShowViewModal(false)}
+                      className="ml-2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
                 
-                <div className="p-6">
-                  {/* Listing details content */}
-                  <div className="flex flex-col md:flex-row gap-6">
-                    <div className="md:w-1/3">
-                      <div className="aspect-w-4 aspect-h-3 rounded-lg overflow-hidden border border-gray-200">
-                        <img src={selectedViewListing.image} alt={selectedViewListing.name} className="w-full h-full object-cover" />
-                      </div>
-                    </div>
-                    <div className="md:w-2/3">
-                      <h2 className="text-2xl font-semibold text-gray-900 mb-2">{selectedViewListing.name}</h2>
-                      <div className="flex items-center mb-4">
-                        <div className={`px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getStatusColor(selectedViewListing.status).badge}`}>
-                          {selectedViewListing.status === 'active' ? 'Live' : selectedViewListing.status}
+                {/* Modal Content - Scrollable Area */}
+                <div className="flex-1 overflow-y-auto">
+                  <div className="p-6">
+                    {/* Main Info Section */}
+                    <div className="flex flex-col lg:flex-row gap-6 mb-8">
+                      {/* Left Column - Image and Gallery */}
+                      <div className="lg:w-2/5">
+                        <div className="aspect-w-4 aspect-h-3 rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
+                          <img 
+                            src={selectedViewListing.image} 
+                            alt={selectedViewListing.name} 
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=No+Image';
+                            }}
+                          />
                         </div>
-                        <div className="mx-2 text-gray-300">•</div>
-                        <div className="text-sm text-gray-500 capitalize">{selectedViewListing.type}</div>
-                        <div className="mx-2 text-gray-300">•</div>
-                        <div className="text-sm text-gray-500">{selectedViewListing.category}</div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <div>
-                          <p className="text-sm text-gray-500 mb-1">Price</p>
-                          <p className="font-semibold text-xl">${selectedViewListing.price.toFixed(2)}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500 mb-1">Available Quantity</p>
-                          <p className="font-semibold">{selectedViewListing.quantity}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500 mb-1">Created</p>
-                          <p className="font-semibold">{formatDate(selectedViewListing.createdAt)}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500 mb-1">Last Updated</p>
-                          <p className="font-semibold">{formatDate(selectedViewListing.lastUpdated || selectedViewListing.createdAt)}</p>
+                        <div className="mt-3 flex justify-between">
+                          <span className="text-sm text-gray-500">Product ID: <span className="font-medium text-gray-700">{selectedViewListing.id}</span></span>
+                          <span className="text-sm text-gray-500 capitalize">{selectedViewListing.type} in <span className="font-medium text-gray-700">{selectedViewListing.category}</span></span>
                         </div>
                       </div>
                       
-                      <div className="mb-6">
-                        <p className="text-sm text-gray-500 mb-1">Location</p>
-                        <p className="font-semibold">{selectedViewListing.location}</p>
-                      </div>
-                      
-                      <div className="mb-6">
-                        <p className="text-sm text-gray-500 mb-2">Performance</p>
-                        <div className="flex space-x-4">
-                          <div className="flex items-center">
-                            <Eye className="w-4 h-4 text-gray-400 mr-1" />
-                            <span className="text-gray-900 font-medium">{selectedViewListing.views}</span>
-                            <span className="text-gray-500 ml-1">views</span>
+                      {/* Right Column - Listing Details */}
+                      <div className="lg:w-3/5">
+                        <h2 className="text-2xl font-bold text-[#1B1C20] mb-4">{selectedViewListing.name}</h2>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-6">
+                          <div>
+                            <p className="text-sm text-[#70727F] mb-1">Price</p>
+                            <p className="font-semibold text-xl text-[#1B1C20]">${selectedViewListing.price.toFixed(2)}</p>
                           </div>
-                          <div className="flex items-center">
-                            <ShoppingCart className="w-4 h-4 text-gray-400 mr-1" />
-                            <span className="text-gray-900 font-medium">{selectedViewListing.orders}</span>
-                            <span className="text-gray-500 ml-1">orders</span>
+                          <div>
+                            <p className="text-sm text-[#70727F] mb-1">Available Quantity</p>
+                            <p className="font-semibold text-[#1B1C20]">{selectedViewListing.quantity}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-[#70727F] mb-1">Created</p>
+                            <p className="font-medium text-[#383A47]">{formatDate(selectedViewListing.createdAt)}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-[#70727F] mb-1">Last Updated</p>
+                            <p className="font-medium text-[#383A47]">{formatDate(selectedViewListing.lastUpdated || selectedViewListing.createdAt)}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-[#70727F] mb-1">Location</p>
+                            <p className="font-medium text-[#383A47] flex items-center">
+                              <MapPin className="w-4 h-4 mr-1 text-[#DF678C]" />
+                              {selectedViewListing.location}
+                            </p>
                           </div>
                           {selectedViewListing.rating > 0 && (
-                            <div className="flex items-center">
-                              <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
-                              <span className="text-gray-900 font-medium">{selectedViewListing.rating.toFixed(1)}</span>
+                            <div>
+                              <p className="text-sm text-[#70727F] mb-1">Rating</p>
+                              <div className="flex items-center">
+                                <div className="flex">
+                                  {[...Array(5)].map((_, i) => (
+                                    <Star 
+                                      key={i} 
+                                      className={`w-4 h-4 ${i < Math.floor(selectedViewListing.rating) 
+                                        ? 'text-yellow-400 fill-current' 
+                                        : i < selectedViewListing.rating 
+                                          ? 'text-yellow-400 fill-current opacity-50' 
+                                          : 'text-gray-300'}`} 
+                                    />
+                                  ))}
+                                </div>
+                                <span className="ml-2 font-medium text-[#383A47]">{selectedViewListing.rating.toFixed(1)}</span>
+                                <span className="text-sm text-[#70727F] ml-1">({selectedViewListing.orders} reviews)</span>
+                              </div>
                             </div>
                           )}
                         </div>
+                        
+                        {/* Description placeholder */}
+                        <div className="mb-6">
+                          <p className="text-sm text-[#70727F] mb-1">Description</p>
+                          <p className="text-[#383A47]">
+                            {selectedViewListing.description || 
+                              `This ${selectedViewListing.type} offers exceptional value and quality. ${
+                                selectedViewListing.type === 'service' 
+                                  ? 'Our professional staff ensures a premium experience tailored to your needs.' 
+                                  : 'Made with premium materials and attention to detail for long-lasting use.'
+                              }`
+                            }
+                          </p>
+                        </div>
+                        
+                        {/* Tags */}
+                        <div className="mb-6">
+                          <p className="text-sm text-[#70727F] mb-2">Tags</p>
+                          <div className="flex flex-wrap gap-2">
+                            <span className="bg-[#F8F8FA] text-[#383A47] text-xs px-3 py-1 rounded-full">{selectedViewListing.category}</span>
+                            <span className="bg-[#F8F8FA] text-[#383A47] text-xs px-3 py-1 rounded-full capitalize">{selectedViewListing.type}</span>
+                            {selectedViewListing.type === 'service' && (
+                              <span className="bg-[#F8F8FA] text-[#383A47] text-xs px-3 py-1 rounded-full">Professional</span>
+                            )}
+                            {selectedViewListing.type === 'product' && (
+                              <span className="bg-[#F8F8FA] text-[#383A47] text-xs px-3 py-1 rounded-full">Premium</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Horizontal divider */}
+                    <div className="border-t border-gray-200 my-6"></div>
+                    
+                    {/* Performance Insights Section */}
+                    <div className="mb-8">
+                      <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Performance Insights</h3>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {/* Key Metrics Cards */}
+                        <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="text-sm text-[#70727F]">Total Views</p>
+                              <h4 className="text-2xl font-bold mt-1 text-[#1B1C20]">{selectedViewListing.views}</h4>
+                              <p className="text-xs text-[#70727F] mt-1">
+                                <span className="text-[#3D1560] font-medium">↑ 12%</span> this month
+                              </p>
+                            </div>
+                            <div className="bg-[#EDD9FF] p-2 rounded-lg">
+                              <Eye className="w-5 h-5 text-[#3D1560]" />
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="text-sm text-[#70727F]">Saves/Wishlists</p>
+                              <h4 className="text-2xl font-bold mt-1 text-[#1B1C20]">{selectedViewListing.saves}</h4>
+                              <p className="text-xs text-[#70727F] mt-1">
+                                <span className="text-[#3D1560] font-medium">↑ 5%</span> this month
+                              </p>
+                            </div>
+                            <div className="bg-[#EDD9FF] p-2 rounded-lg">
+                              <Bookmark className="w-5 h-5 text-[#3D1560]" />
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="text-sm text-[#70727F]">Orders/Bookings</p>
+                              <h4 className="text-2xl font-bold mt-1 text-[#1B1C20]">{selectedViewListing.orders}</h4>
+                              <p className="text-xs text-[#70727F] mt-1">
+                                <span className="text-[#3D1560] font-medium">↑ 8%</span> this month
+                              </p>
+                            </div>
+                            <div className="bg-[#EDD9FF] p-2 rounded-lg">
+                              <ShoppingCart className="w-5 h-5 text-[#3D1560]" />
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* New Revenue Card */}
+                        <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="text-sm text-[#70727F]">Revenue</p>
+                              <h4 className="text-2xl font-bold mt-1 text-[#1B1C20]">
+                                {formatCurrency(selectedViewListing.price * selectedViewListing.orders)}
+                              </h4>
+                              <p className="text-xs text-[#70727F] mt-1">
+                                <span className="text-[#3D1560] font-medium">↑ 15%</span> this month
+                              </p>
+                            </div>
+                            <div className="bg-[#EDD9FF] p-2 rounded-lg">
+                              <DollarSign className="w-5 h-5 text-[#3D1560]" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Revenue Over Time Chart */}
+                      <div className="mt-6 bg-[#F8F8FA] rounded-lg p-5 border border-[#E8E9ED]">
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h4 className="font-medium text-[#383A47]">Revenue Over Time</h4>
+                            <p className="text-sm text-[#70727F] mt-1">
+                              Monthly revenue data for this {selectedViewListing.type}
+                            </p>
+                          </div>
+                          <div className="flex items-center">
+                            <select className="text-sm border border-[#CDCED8] rounded-md px-2 py-1 bg-white">
+                              <option>Last 6 months</option>
+                              <option>Last year</option>
+                              <option>All time</option>
+                            </select>
+                          </div>
+                        </div>
+                        
+                        <div className="h-64 relative">
+                          {/* Mock chart - we'll create bars for a basic visualization */}
+                          <div className="absolute inset-0 flex items-end justify-between px-2">
+                            {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((month, i) => {
+                              // Generate random heights for the demo
+                              const randomHeight = 30 + Math.floor(Math.random() * 60);
+                              const isHighest = randomHeight > 75;
+                              
+                              return (
+                                <div key={month} className="flex flex-col items-center" style={{ width: '14%' }}>
+                                  <div 
+                                    className={`w-full rounded-t-md ${isHighest ? 'bg-[#3D1560]' : 'bg-[#9B53D9]'}`} 
+                                    style={{ height: `${randomHeight}%` }}
+                                  ></div>
+                                  <span className="text-xs text-[#70727F] mt-2">{month}</span>
+                                  <span className="text-xs font-medium text-[#383A47]">
+                                    ${(selectedViewListing.price * (1 + i * 0.3)).toFixed(0)}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          
+                          {/* Y-axis labels */}
+                          <div className="absolute left-0 inset-y-0 w-10 flex flex-col justify-between py-2 text-xs text-[#70727F]">
+                            <span>$1k</span>
+                            <span>$750</span>
+                            <span>$500</span>
+                            <span>$250</span>
+                            <span>$0</span>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 pt-4 border-t border-[#E8E9ED] flex justify-between">
+                          <div>
+                            <span className="text-sm text-[#70727F]">Total Revenue</span>
+                            <p className="text-lg font-semibold text-[#1B1C20]">
+                              {formatCurrency(selectedViewListing.price * selectedViewListing.orders * 3.5)}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-sm text-[#70727F]">Average Order Value</span>
+                            <p className="text-lg font-semibold text-[#1B1C20]">
+                              {formatCurrency(selectedViewListing.price)}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-sm text-[#70727F]">Best Month</span>
+                            <p className="text-lg font-semibold text-[#1B1C20]">Jun</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Performance Metrics Chart Placeholder - replace with revenue chart above */}
+                      <div className="mt-6 bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED] flex flex-col justify-center items-center">
+                        <BarChart2 className="w-12 h-12 text-[#CDCED8] mb-3" />
+                        <h4 className="text-lg font-medium text-[#383A47]">Performance Trends</h4>
+                        <p className="text-sm text-[#70727F] mt-1">View history and detailed analytics for this listing</p>
+                        <button className="mt-4 px-4 py-2 bg-[#3D1560] hover:bg-[#6D26AB] text-white rounded-md text-sm font-medium transition-colors duration-200">
+                          View Detailed Analytics
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* Horizontal divider */}
+                    <div className="border-t border-gray-200 my-6"></div>
+                    
+                    {/* Additional Details Section - we avoid tabs but use logical sections instead */}
+                    <div className="mb-8">
+                      <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Additional Details</h3>
+                      
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Specifications */}
+                        <div>
+                          <h4 className="font-medium text-[#383A47] mb-3">Specifications</h4>
+                          <div className="bg-[#F8F8FA] rounded-lg overflow-hidden">
+                            <div className="border-b border-[#E8E9ED] py-2.5 px-4 flex">
+                              <span className="text-sm text-[#70727F] w-1/3">Type</span>
+                              <span className="text-sm text-[#383A47] w-2/3 capitalize">{selectedViewListing.type}</span>
+                            </div>
+                            <div className="border-b border-[#E8E9ED] py-2.5 px-4 flex">
+                              <span className="text-sm text-[#70727F] w-1/3">Category</span>
+                              <span className="text-sm text-[#383A47] w-2/3">{selectedViewListing.category}</span>
+                            </div>
+                            <div className="border-b border-[#E8E9ED] py-2.5 px-4 flex">
+                              <span className="text-sm text-[#70727F] w-1/3">Location</span>
+                              <span className="text-sm text-[#383A47] w-2/3">{selectedViewListing.location}</span>
+                            </div>
+                            <div className="border-b border-[#E8E9ED] py-2.5 px-4 flex">
+                              <span className="text-sm text-[#70727F] w-1/3">SKU/ID</span>
+                              <span className="text-sm text-[#383A47] w-2/3">{selectedViewListing.id}</span>
+                            </div>
+                            <div className="py-2.5 px-4 flex">
+                              <span className="text-sm text-[#70727F] w-1/3">Published</span>
+                              <span className="text-sm text-[#383A47] w-2/3">{formatDate(selectedViewListing.createdAt)}</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Pricing & Inventory */}
+                        <div>
+                          <h4 className="font-medium text-[#383A47] mb-3">Pricing & Inventory</h4>
+                          <div className="bg-[#F8F8FA] rounded-lg overflow-hidden">
+                            <div className="border-b border-[#E8E9ED] py-2.5 px-4 flex">
+                              <span className="text-sm text-[#70727F] w-1/3">Base Price</span>
+                              <span className="text-sm text-[#383A47] w-2/3">${selectedViewListing.price.toFixed(2)}</span>
+                            </div>
+                            <div className="border-b border-[#E8E9ED] py-2.5 px-4 flex">
+                              <span className="text-sm text-[#70727F] w-1/3">Discounted</span>
+                              <span className="text-sm text-[#383A47] w-2/3">No</span>
+                            </div>
+                            <div className="border-b border-[#E8E9ED] py-2.5 px-4 flex">
+                              <span className="text-sm text-[#70727F] w-1/3">Stock</span>
+                              <span className="text-sm text-[#383A47] w-2/3">{selectedViewListing.quantity}</span>
+                            </div>
+                            <div className="border-b border-[#E8E9ED] py-2.5 px-4 flex">
+                              <span className="text-sm text-[#70727F] w-1/3">Low Stock Alert</span>
+                              <span className="text-sm text-[#383A47] w-2/3">
+                                {selectedViewListing.quantity !== 'Unlimited' && parseInt(selectedViewListing.quantity) < 10 ? (
+                                  <span className="text-amber-600 flex items-center">
+                                    <AlertTriangle className="w-4 h-4 mr-1" /> 
+                                    Low Stock (Less than 10)
+                                  </span>
+                                ) : (
+                                  'Not Set'
+                                )}
+                              </span>
+                            </div>
+                            <div className="py-2.5 px-4 flex">
+                              <span className="text-sm text-[#70727F] w-1/3">Tax Category</span>
+                              <span className="text-sm text-[#383A47] w-2/3">Standard</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Marketing & Promotion Section */}
+                    <div className="mb-8">
+                      <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Marketing & Promotion</h3>
+                      
+                      <div className="bg-gradient-to-r from-[#3D1560] to-[#6D26AB] rounded-lg p-6 text-white">
+                        <div className="flex flex-col md:flex-row justify-between items-center">
+                          <div className="mb-4 md:mb-0">
+                            <h4 className="text-xl font-bold mb-2">Boost this listing</h4>
+                            <p className="text-white text-opacity-90">
+                              Increase visibility and sales by promoting this listing.
+                              {selectedViewListing.views > 100 ? 
+                                ` This listing has ${selectedViewListing.views} views with good engagement!` : 
+                                ' Start attracting more customers today.'}
+                            </p>
+                          </div>
+                          <div className="flex space-x-3">
+                            <button className="px-4 py-2 bg-white text-[#3D1560] rounded-md hover:bg-[#EDD9FF] transition-colors duration-200">
+                              See Options
+                            </button>
+                            <button className="px-4 py-2 bg-[#DF678C] text-white rounded-md hover:bg-[#c55578] transition-colors duration-200">
+                              Boost Now
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* SEO Optimization */}
+                      <div className="mt-6 bg-[#F8F8FA] rounded-lg p-5 border border-[#E8E9ED]">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-medium text-[#383A47] mb-1">SEO Optimization</h4>
+                            <p className="text-sm text-[#70727F]">
+                              Optimize your listing to appear higher in search results
+                            </p>
+                          </div>
+                          <div className="bg-[#EDD9FF] p-2 rounded-md text-[#3D1560] font-medium text-sm">
+                            {selectedViewListing.views > 100 ? 'Good' : 'Needs Improvement'}
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 space-y-3">
+                          <div>
+                            <div className="flex justify-between">
+                              <span className="text-xs text-[#70727F]">Title Optimization</span>
+                              <span className="text-xs font-medium text-[#3D1560]">
+                                {selectedViewListing.name.length > 30 ? '100%' : '75%'}
+                              </span>
+                            </div>
+                            <div className="mt-1 h-1.5 bg-[#E8E9ED] rounded-full overflow-hidden">
+                              <div 
+                                className="bg-[#3D1560] h-full" 
+                                style={{ width: selectedViewListing.name.length > 30 ? '100%' : '75%' }}
+                              ></div>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <div className="flex justify-between">
+                              <span className="text-xs text-[#70727F]">Description Quality</span>
+                              <span className="text-xs font-medium text-[#3D1560]">
+                                {selectedViewListing.description ? '90%' : '50%'}
+                              </span>
+                            </div>
+                            <div className="mt-1 h-1.5 bg-[#E8E9ED] rounded-full overflow-hidden">
+                              <div 
+                                className="bg-[#3D1560] h-full" 
+                                style={{ width: selectedViewListing.description ? '90%' : '50%' }}
+                              ></div>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <div className="flex justify-between">
+                              <span className="text-xs text-[#70727F]">Images & Media</span>
+                              <span className="text-xs font-medium text-[#3D1560]">60%</span>
+                            </div>
+                            <div className="mt-1 h-1.5 bg-[#E8E9ED] rounded-full overflow-hidden">
+                              <div className="bg-[#3D1560] h-full" style={{ width: '60%' }}></div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <button className="mt-5 w-full px-4 py-2 bg-[#3D1560] hover:bg-[#6D26AB] text-white rounded-md text-sm font-medium transition-colors duration-200">
+                          Improve SEO Score
+                        </button>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
-                  <button 
-                    onClick={() => setShowViewModal(false)}
-                    className="px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                  >
-                    Close
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setShowViewModal(false);
-                      handleEdit(selectedViewListing.id);
-                    }}
-                    className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-[#3D1560] hover:bg-[#6D26AB]"
-                  >
-                    Edit Listing
-                  </button>
-                  <button 
-                    className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-[#3D1560] hover:bg-[#6D26AB]"
-                  >
-                    View Live Listing
-                  </button>
+                
+                {/* Modal Footer */}
+                <div className="px-6 py-4 border-t border-gray-200 bg-[#F8F8FA] flex justify-between items-center">
+                  <div className="flex items-center space-x-2">
+                    <button className="px-3 py-1.5 text-sm rounded-md text-[#383A47] hover:bg-[#E8E9ED] border border-[#CDCED8] transition-colors">
+                      <Archive className="w-4 h-4 inline mr-1" />
+                      {selectedViewListing.status === 'active' ? 'Deactivate' : 'Activate'}
+                    </button>
+                    <button className="px-3 py-1.5 text-sm rounded-md text-red-600 hover:bg-red-50 border border-red-200 transition-colors">
+                      <Trash2 className="w-4 h-4 inline mr-1" />
+                      Delete
+                    </button>
+                  </div>
+                  <div>
+                    <button 
+                      onClick={() => setShowViewModal(false)}
+                      className="px-4 py-1.5 text-sm font-medium rounded-md text-[#383A47] hover:bg-[#E8E9ED] border border-[#CDCED8] transition-colors"
+                    >
+                      Close
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2717,7 +3095,7 @@ function App() {
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M8.257 3.099c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" clipRule="evenodd" />
                 </svg>
               </div>
               <div className="ml-3">
