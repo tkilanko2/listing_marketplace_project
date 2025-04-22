@@ -1136,7 +1136,6 @@ function App() {
       '90d': [52000, 56000, 49000, 61000, 68000, 72000, 79000]
     };
     
-    // Add a local reference to the navigate function
     const navigateTo = (page: string) => {
       handleNavigate(page);
     };
@@ -1167,6 +1166,23 @@ function App() {
           return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
         default:
           return [];
+      }
+    };
+
+    // Status color mapping for consistency
+    const getStatusBadgeColor = (status: string) => {
+      const statusLower = status.toLowerCase();
+      switch (statusLower) {
+        case 'pending':
+          return 'bg-[#FFF8DD] text-[#DAA520]';
+        case 'processing':
+          return 'bg-[#F3E8F9] text-[#C7A2E0]';
+        case 'new':
+          return 'bg-[#F3E8F9] text-[#C7A2E0]';
+        case 'confirmed':
+          return 'bg-[#E8F5E9] text-[#4CAF50]';
+        default:
+          return 'bg-[#E8E9ED] text-[#70727F]';
       }
     };
 
@@ -1268,10 +1284,10 @@ function App() {
             </div>
             <p className="text-3xl font-bold text-gray-800">248</p>
             <div className="flex justify-between mt-3">
-              <div className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+              <div className="text-xs px-2 py-1 ${getStatusBadgeColor('new')} rounded-full">
                 New: 42
               </div>
-              <div className="text-xs px-2 py-1 bg-orange-100 text-orange-800 rounded-full">
+              <div className="text-xs px-2 py-1 ${getStatusBadgeColor('processing')} rounded-full">
                 Processing: 17
               </div>
             </div>
@@ -1317,10 +1333,10 @@ function App() {
             </div>
             <p className="text-3xl font-bold text-gray-800">42</p>
             <div className="flex justify-between mt-3">
-              <div className="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full">
+              <div className="text-xs px-2 py-1 ${getStatusBadgeColor('pending')} rounded-full">
                 Pending: 12
               </div>
-              <div className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full">
+              <div className="text-xs px-2 py-1 ${getStatusBadgeColor('confirmed')} rounded-full">
                 Confirmed: 30
               </div>
             </div>
@@ -1769,19 +1785,15 @@ function App() {
 
     // Status color mapping
     const getStatusColor = (status: string) => {
-      switch (status.toLowerCase()) {
-        case 'active':
-        case 'live':
-          return 'bg-green-100 text-green-800';
-        case 'inactive':
-          return 'bg-gray-100 text-gray-800';
-        case 'draft':
-          return 'bg-blue-100 text-blue-800';
-        case 'pending':
-          return 'bg-yellow-100 text-yellow-800';
-        default:
-          return 'bg-gray-100 text-gray-800';
-      }
+      const statusLower = status.toLowerCase();
+      const colorMap: Record<string, { bar: string; badge: string }> = {
+        'live': { bar: '#4CAF50', badge: 'bg-[#E8F5E9] text-[#4CAF50]' },
+        'active': { bar: '#4CAF50', badge: 'bg-[#E8F5E9] text-[#4CAF50]' },
+        'draft': { bar: '#C7A2E0', badge: 'bg-[#F3E8F9] text-[#C7A2E0]' },
+        'pending': { bar: '#FFD700', badge: 'bg-[#FFF8DD] text-[#DAA520]' },
+        'inactive': { bar: '#CDCED8', badge: 'bg-[#E8E9ED] text-[#70727F]' },
+      };
+      return colorMap[statusLower] || { bar: '#CDCED8', badge: 'bg-[#E8E9ED] text-[#70727F]' };
     };
 
     // Format date
@@ -1956,7 +1968,7 @@ function App() {
                   </>
                 )}
               </button>
-              <button className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center">
+              <button className="text-[#3D1560] hover:text-[#6D26AB] text-sm font-medium flex items-center transition-colors duration-200">
                 <Edit className="w-4 h-4 mr-1" />
                 Edit Shop
               </button>
@@ -2074,7 +2086,7 @@ function App() {
               <div className="flex flex-col space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                    <div className="w-3 h-3 rounded-full bg-[#4CAF50] mr-2"></div>
                     <span className="text-sm text-gray-700">Live</span>
                   </div>
                   <span className="text-sm font-medium">{mockListingsData.active}</span>
@@ -2082,7 +2094,7 @@ function App() {
                 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
+                    <div className="w-3 h-3 rounded-full bg-[#C7A2E0] mr-2"></div>
                     <span className="text-sm text-gray-700">Draft</span>
                   </div>
                   <span className="text-sm font-medium">{mockListingsData.draft}</span>
@@ -2090,7 +2102,7 @@ function App() {
                 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-yellow-400 mr-2"></div>
+                    <div className="w-3 h-3 rounded-full bg-[#FFD700] mr-2"></div>
                     <span className="text-sm text-gray-700">Pending</span>
                   </div>
                   <span className="text-sm font-medium">{mockListingsData.pending}</span>
@@ -2098,7 +2110,7 @@ function App() {
                 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-gray-400 mr-2"></div>
+                    <div className="w-3 h-3 rounded-full bg-[#CDCED8] mr-2"></div>
                     <span className="text-sm text-gray-700">Inactive</span>
                   </div>
                   <span className="text-sm font-medium">{mockListingsData.inactive}</span>
@@ -2108,19 +2120,19 @@ function App() {
               <div className="mt-4 h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div className="flex h-full">
                   <div 
-                    className="bg-green-500 h-full" 
+                    className="bg-[#4CAF50] h-full" 
                     style={{ width: `${(mockListingsData.active / (mockListingsData.active + mockListingsData.draft + mockListingsData.pending + mockListingsData.inactive)) * 100}%` }}
                   ></div>
                   <div 
-                    className="bg-yellow-500 h-full" 
+                    className="bg-[#C7A2E0] h-full" 
                     style={{ width: `${(mockListingsData.draft / (mockListingsData.active + mockListingsData.draft + mockListingsData.pending + mockListingsData.inactive)) * 100}%` }}
                   ></div>
                   <div 
-                    className="bg-yellow-400 h-full" 
+                    className="bg-[#FFD700] h-full" 
                     style={{ width: `${(mockListingsData.pending / (mockListingsData.active + mockListingsData.draft + mockListingsData.pending + mockListingsData.inactive)) * 100}%` }}
                   ></div>
                   <div 
-                    className="bg-gray-400 h-full" 
+                    className="bg-[#CDCED8] h-full" 
                     style={{ width: `${(mockListingsData.inactive / (mockListingsData.active + mockListingsData.draft + mockListingsData.pending + mockListingsData.inactive)) * 100}%` }}
                   ></div>
                 </div>
@@ -2137,7 +2149,7 @@ function App() {
               <div className="flex flex-col space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-indigo-500 mr-2"></div>
+                    <div className="w-3 h-3 rounded-full bg-[#6D26AB] mr-2"></div>
                     <span className="text-sm text-gray-700">Products</span>
                   </div>
                   <span className="text-sm font-medium">{mockListingsData.products}</span>
@@ -2145,7 +2157,7 @@ function App() {
                 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-teal-500 mr-2"></div>
+                    <div className="w-3 h-3 rounded-full bg-[#DF678C] mr-2"></div>
                     <span className="text-sm text-gray-700">Services</span>
                   </div>
                   <span className="text-sm font-medium">{mockListingsData.services}</span>
@@ -2162,7 +2174,7 @@ function App() {
                       a 15.9155 15.9155 0 0 1 0 31.831
                       a 15.9155 15.9155 0 0 1 0 -31.831"
                     fill="none"
-                    stroke="#4F46E5"
+                    stroke="#6D26AB"
                     strokeWidth="3"
                     strokeDasharray={`${(mockListingsData.products / (mockListingsData.products + mockListingsData.services)) * 100}, 100`}
                   />
@@ -2171,7 +2183,7 @@ function App() {
                       a 15.9155 15.9155 0 0 1 0 31.831
                       a 15.9155 15.9155 0 0 1 0 -31.831"
                     fill="none"
-                    stroke="#14B8A6"
+                    stroke="#DF678C"
                     strokeWidth="3"
                     strokeDasharray={`${(mockListingsData.services / (mockListingsData.products + mockListingsData.services)) * 100}, 100`}
                     strokeDashoffset={`${-1 * (mockListingsData.products / (mockListingsData.products + mockListingsData.services)) * 100}`}
@@ -2190,25 +2202,25 @@ function App() {
               <div className="grid grid-cols-2 gap-4">
                 <button 
                   onClick={handleCreateListing}
-                  className="flex flex-col items-center justify-center bg-blue-50 hover:bg-blue-100 transition-colors p-4 rounded-lg border border-blue-100"
+                  className="flex flex-col items-center justify-center bg-[#EDD9FF] hover:bg-[#9B53D9] transition-colors p-4 rounded-lg border border-[#EDD9FF]"
                 >
-                  <PlusCircle className="w-8 h-8 text-blue-600 mb-2" />
-                  <span className="text-sm font-medium text-blue-700">New Listing</span>
+                  <PlusCircle className="w-8 h-8 text-[#3D1560] mb-2" />
+                  <span className="text-sm font-medium text-[#3D1560]">New Listing</span>
                 </button>
                 
-                <button className="flex flex-col items-center justify-center bg-green-50 hover:bg-green-100 transition-colors p-4 rounded-lg border border-green-100">
-                  <Zap className="w-8 h-8 text-green-600 mb-2" />
-                  <span className="text-sm font-medium text-green-700">Promote</span>
+                <button className="flex flex-col items-center justify-center bg-[#EDD9FF] hover:bg-[#9B53D9] transition-colors p-4 rounded-lg border border-[#EDD9FF]">
+                  <Zap className="w-8 h-8 text-[#3D1560] mb-2" />
+                  <span className="text-sm font-medium text-[#3D1560]">Promote</span>
                 </button>
                 
-                <button className="flex flex-col items-center justify-center bg-amber-50 hover:bg-amber-100 transition-colors p-4 rounded-lg border border-amber-100">
-                  <BarChart2 className="w-8 h-8 text-amber-600 mb-2" />
-                  <span className="text-sm font-medium text-amber-700">Analytics</span>
+                <button className="flex flex-col items-center justify-center bg-[#EDD9FF] hover:bg-[#9B53D9] transition-colors p-4 rounded-lg border border-[#EDD9FF]">
+                  <BarChart2 className="w-8 h-8 text-[#3D1560] mb-2" />
+                  <span className="text-sm font-medium text-[#3D1560]">Analytics</span>
                 </button>
                 
-                <button className="flex flex-col items-center justify-center bg-purple-50 hover:bg-purple-100 transition-colors p-4 rounded-lg border border-purple-100">
-                  <Settings className="w-8 h-8 text-purple-600 mb-2" />
-                  <span className="text-sm font-medium text-purple-700">Settings</span>
+                <button className="flex flex-col items-center justify-center bg-[#EDD9FF] hover:bg-[#9B53D9] transition-colors p-4 rounded-lg border border-[#EDD9FF]">
+                  <Settings className="w-8 h-8 text-[#3D1560] mb-2" />
+                  <span className="text-sm font-medium text-[#3D1560]">Settings</span>
                 </button>
               </div>
             </div>
@@ -2241,8 +2253,8 @@ function App() {
                   onClick={() => setActiveTab('all')}
                   className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                     activeTab === 'all' 
-                      ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-500' 
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      ? 'bg-[#EDD9FF] text-[#3D1560] border-b-2 border-[#3D1560]' 
+                      : 'text-gray-600 hover:text-[#6D26AB] hover:bg-[#EDD9FF]'
                   }`}
                 >
                   All
@@ -2251,8 +2263,8 @@ function App() {
                   onClick={() => setActiveTab('product')}
                   className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                     activeTab === 'product' 
-                      ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-500' 
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      ? 'bg-[#EDD9FF] text-[#3D1560] border-b-2 border-[#3D1560]' 
+                      : 'text-gray-600 hover:text-[#6D26AB] hover:bg-[#EDD9FF]'
                   }`}
                 >
                   Products
@@ -2261,8 +2273,8 @@ function App() {
                   onClick={() => setActiveTab('service')}
                   className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                     activeTab === 'service' 
-                      ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-500' 
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      ? 'bg-[#EDD9FF] text-[#3D1560] border-b-2 border-[#3D1560]' 
+                      : 'text-gray-600 hover:text-[#6D26AB] hover:bg-[#EDD9FF]'
                   }`}
                 >
                   Services
@@ -2313,7 +2325,7 @@ function App() {
                       </td>
                       <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center">
-                          <div className={`w-2 h-2 rounded-full ${listing.type === 'product' ? 'bg-indigo-500' : 'bg-teal-500'} mr-2`}></div>
+                          <div className={`w-2 h-2 rounded-full ${listing.type === 'product' ? 'bg-[#6D26AB]' : 'bg-[#DF678C]'} mr-2`}></div>
                           <span className="text-sm text-gray-500 capitalize">{listing.type}</span>
                         </div>
                       </td>
@@ -2327,7 +2339,7 @@ function App() {
                         {listing.quantity}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${getStatusColor(listing.status)}`}>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${getStatusColor(listing.status).badge}`}>
                           {listing.status === 'active' ? 'Live' : listing.status}
                         </span>
                       </td>
@@ -2356,7 +2368,7 @@ function App() {
                               e.stopPropagation();
                               handleEdit(listing.id);
                             }} 
-                            className="text-blue-600 hover:text-blue-900 transition-colors"
+                            className="text-[#3D1560] hover:text-[#6D26AB] transition-colors"
                           >
                             <Edit className="w-5 h-5" />
                           </button>
@@ -2365,7 +2377,7 @@ function App() {
                               e.stopPropagation();
                               handleViewListingDetails(listing, e);
                             }} 
-                            className="text-indigo-600 hover:text-indigo-900 transition-colors"
+                            className="text-[#3D1560] hover:text-[#6D26AB] transition-colors"
                           >
                             <Eye className="w-5 h-5" />
                           </button>
@@ -2455,7 +2467,7 @@ function App() {
                     <div className="md:w-2/3">
                       <h2 className="text-2xl font-semibold text-gray-900 mb-2">{selectedViewListing.name}</h2>
                       <div className="flex items-center mb-4">
-                        <div className={`px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getStatusColor(selectedViewListing.status)}`}>
+                        <div className={`px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getStatusColor(selectedViewListing.status).badge}`}>
                           {selectedViewListing.status === 'active' ? 'Live' : selectedViewListing.status}
                         </div>
                         <div className="mx-2 text-gray-300">•</div>
@@ -2524,12 +2536,12 @@ function App() {
                       setShowViewModal(false);
                       handleEdit(selectedViewListing.id);
                     }}
-                    className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                    className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-[#3D1560] hover:bg-[#6D26AB]"
                   >
                     Edit Listing
                   </button>
                   <button 
-                    className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+                    className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-[#3D1560] hover:bg-[#6D26AB]"
                   >
                     View Live Listing
                   </button>

@@ -513,19 +513,18 @@ export function MyOrdersPage({
 // Status badge component
 function StatusBadge({ status }: { status: OrderStatus }) {
   const getStatusColor = () => {
-    switch (status) {
+    const statusLower = status.toLowerCase();
+    switch (statusLower) {
       case 'pending':
-        return 'bg-[#EDD9FF] text-[#1B1C20]';
+        return 'bg-[#FFF8DD] text-[#DAA520]';
       case 'processing':
-        return 'bg-[#EDD9FF] text-[#1B1C20]';
+        return 'bg-[#F3E8F9] text-[#C7A2E0]';
       case 'shipped':
-        return 'bg-[#EDD9FF] text-[#1B1C20]';
+        return 'bg-[#E8F5E9] text-[#4CAF50]';
       case 'delivered':
-        return 'bg-[#E8E9ED] text-[#383A47]';
+        return 'bg-[#E8F5E9] text-[#4CAF50]';
       case 'cancelled':
-        return 'bg-[#E8E9ED] text-[#383A47]';
-      case 'returned':
-        return 'bg-[#E8E9ED] text-[#383A47]';
+        return 'bg-[#E8E9ED] text-[#70727F]';
       default:
         return 'bg-[#E8E9ED] text-[#70727F]';
     }
