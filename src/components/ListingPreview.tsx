@@ -60,7 +60,7 @@ const PreviewBadge = styled(Chip)(({ theme }) => ({
   top: theme.spacing(2),
   right: theme.spacing(2),
   zIndex: 1,
-  backgroundColor: theme.palette.primary.main,
+  backgroundColor: '#3D1560',
   color: theme.palette.primary.contrastText,
   fontWeight: 'bold',
 }));
@@ -86,7 +86,7 @@ const StatItem = styled(Box)(({ theme }) => ({
 }));
 
 const HighlightChip = styled(Chip)(({ theme }) => ({
-  backgroundColor: theme.palette.secondary.main,
+  backgroundColor: '#6D26AB',
   color: theme.palette.secondary.contrastText,
   fontWeight: 'bold',
   '& .MuiChip-icon': {
@@ -197,7 +197,7 @@ const ListingPreview: React.FC<ListingPreviewProps> = ({ formData, type }) => {
                   </IconButton>
                 </Tooltip>
               </Stack>
-              <Typography variant="h5" color="primary" fontWeight="bold">
+              <Typography variant="h5" color="#3D1560" fontWeight="bold">
                 ${formData.price?.toLocaleString() || '0'}
                 {type === 'service' && (
                   <Typography component="span" variant="body2" color="text.secondary">
@@ -253,7 +253,7 @@ const ListingPreview: React.FC<ListingPreviewProps> = ({ formData, type }) => {
                 sx={{ 
                   width: 48, 
                   height: 48,
-                  border: `2px solid ${theme.palette.primary.main}`,
+                  border: `2px solid #3D1560`,
                 }}
               />
               <Box flex={1}>
