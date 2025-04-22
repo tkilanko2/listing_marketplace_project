@@ -32,6 +32,9 @@ import {
   Tab,
   Switch,
   Autocomplete,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -49,6 +52,8 @@ import EventIcon from '@mui/icons-material/Event';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import DescriptionIcon from '@mui/icons-material/Description';
 
 const serviceCategories = [
   'Professional Services',
@@ -255,12 +260,16 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
   marginBottom: theme.spacing(2),
   '& .MuiOutlinedInput-root': {
     transition: 'all 0.2s ease-in-out',
-    '&:hover': {
-      borderColor: theme.palette.primary.main,
+    '&:hover fieldset': {
+      borderColor: '#6D26AB',
     },
-    '&.Mui-focused': {
-      boxShadow: `0 0 0 2px ${theme.palette.primary.main}25`,
+    '&.Mui-focused fieldset': {
+      boxShadow: '0 0 0 0.3px #9B53D9',
+      borderColor: '#3D1560',
     },
+  },
+  '& .MuiInputLabel-root.Mui-focused': {
+    color: '#3D1560',
   },
 }));
 
@@ -268,12 +277,16 @@ const StyledFormControl = styled(FormControl)(({ theme }) => ({
   marginBottom: theme.spacing(2),
   '& .MuiOutlinedInput-root': {
     transition: 'all 0.2s ease-in-out',
-    '&:hover': {
-      borderColor: theme.palette.primary.main,
+    '&:hover fieldset': {
+      borderColor: '#6D26AB',
     },
-    '&.Mui-focused': {
-      boxShadow: `0 0 0 2px ${theme.palette.primary.main}25`,
+    '&.Mui-focused fieldset': {
+      boxShadow: '0 0 0 0.3px #9B53D9',
+      borderColor: '#3D1560',
     },
+  },
+  '& .MuiInputLabel-root.Mui-focused': {
+    color: '#3D1560',
   },
 }));
 
@@ -322,8 +335,8 @@ const StyledUploadButton = styled('label')(({ theme }) => ({
   cursor: 'pointer',
   transition: 'all 0.2s ease-in-out',
   '&:hover': {
-    borderColor: theme.palette.primary.main,
-    backgroundColor: theme.palette.action.hover,
+    borderColor: '#6D26AB',
+    backgroundColor: '#E8E9ED',
   },
 }));
 
@@ -623,51 +636,72 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           <LocationOnIcon sx={{ mr: 1 }} /> Service Locations
         </Typography>
         
-        {/* Primary Location with Country and City */}
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} md={6}>
-            <StyledFormControl fullWidth>
-              <InputLabel>Primary Country</InputLabel>
-              <Select
-                name="country"
-                value={formik.values.country}
-                onChange={formik.handleChange}
-                error={formik.touched.country && Boolean(formik.errors.country)}
-              >
-                {countries.map((country) => (
-                  <MenuItem key={country} value={country}>
-                    {country}
-                  </MenuItem>
-                ))}
-              </Select>
-            </StyledFormControl>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <StyledTextField
-              fullWidth
-              name="location"
-              label="Primary City"
-              value={formik.values.location}
-              onChange={formik.handleChange}
-              error={formik.touched.location && Boolean(formik.errors.location)}
-              helperText={formik.touched.location && formik.errors.location}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <StyledTextField 
-              fullWidth
-              name="coverageAreaKm"
-              label="Coverage Radius"
-              type="number"
-              placeholder="Enter radius in km"
-              InputProps={{
-                endAdornment: <InputAdornment position="end">km</InputAdornment>,
-              }}
-              value={formik.values.coverageAreaKm}
-              onChange={formik.handleChange}
-            />
-          </Grid>
-        </Grid>
+        {/* Primary Service Location */}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle2" gutterBottom>
+            Primary Service Location
+          </Typography>
+          
+          <Card sx={{ 
+            mb: 2, 
+            p: 1.5, 
+            border: '1px solid', 
+            borderColor: '#CDCED8', 
+            boxShadow: 'none',
+            borderRadius: '8px' 
+          }}>
+            <Grid container spacing={1.5} alignItems="center">
+              <Grid item xs={12} sm={4}>
+                <StyledFormControl fullWidth>
+                  <InputLabel>Country</InputLabel>
+                  <Select
+                    name="country"
+                    value={formik.values.country}
+                    onChange={formik.handleChange}
+                    error={formik.touched.country && Boolean(formik.errors.country)}
+                  >
+                    {countries.map((country) => (
+                      <MenuItem key={country} value={country}>
+                        {country}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </StyledFormControl>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <StyledTextField
+                  fullWidth
+                  name="location"
+                  label="City"
+                  value={formik.values.location}
+                  onChange={formik.handleChange}
+                  error={formik.touched.location && Boolean(formik.errors.location)}
+                  helperText={formik.touched.location && formik.errors.location}
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <StyledTextField 
+                  fullWidth
+                  name="coverageAreaKm"
+                  label="Coverage Radius"
+                  type="number"
+                  defaultValue="10"
+                  placeholder="10"
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">km</InputAdornment>,
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '4px',
+                    }
+                  }}
+                  value={formik.values.coverageAreaKm}
+                  onChange={formik.handleChange}
+                />
+              </Grid>
+            </Grid>
+          </Card>
+        </Box>
         
         {/* Additional Service Locations */}
         <Box sx={{ mb: 2 }}>
@@ -684,8 +718,15 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           )}
           
           {formik.values.serviceCities.map((cityData, index) => (
-            <Card key={index} sx={{ mb: 2, p: 2, border: '1px solid', borderColor: 'divider' }}>
-              <Grid container spacing={2}>
+            <Card key={index} sx={{ 
+              mb: 2, 
+              p: 1.5, 
+              border: '1px solid', 
+              borderColor: '#CDCED8', 
+              boxShadow: 'none',
+              borderRadius: '8px' 
+            }}>
+              <Grid container spacing={1.5} alignItems="center">
                 <Grid item xs={12} md={4}>
                   <StyledFormControl fullWidth>
                     <InputLabel>Country</InputLabel>
@@ -705,7 +746,7 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     </Select>
                   </StyledFormControl>
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={3}>
                   <StyledTextField 
                     fullWidth
                     placeholder="Enter city name"
@@ -718,14 +759,20 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     }}
                   />
                 </Grid>
-                <Grid item xs={12} md={3}>
+                <Grid item xs={12} md={4}>
                   <StyledTextField 
                     fullWidth
-                    placeholder="km"
                     label="Coverage Radius"
                     type="number"
+                    defaultValue="10"
+                    placeholder="10"
                     InputProps={{
                       endAdornment: <InputAdornment position="end">km</InputAdornment>,
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '4px',
+                      }
                     }}
                     value={cityData.radius}
                     onChange={(e) => {
@@ -735,7 +782,7 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     }}
                   />
                 </Grid>
-                <Grid item xs={12} md={1} sx={{ display: 'flex', alignItems: 'center' }}>
+                <Grid item xs={12} md={1} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <IconButton 
                     color="error"
                     onClick={() => {
@@ -919,11 +966,11 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 variant={isSelected ? "contained" : "outlined"}
                 sx={{ 
                   minWidth: 70,
-                  backgroundColor: isSelected ? '#3D1560' : 'transparent',
+                  backgroundColor: isSelected ? '#6D26AB' : 'transparent',
                   borderColor: '#CDCED8',
                   color: isSelected ? 'white' : '#383A47',
                   '&:hover': {
-                    backgroundColor: isSelected ? '#6D26AB' : '#F8F8FA',
+                    backgroundColor: isSelected ? '#9B53D9' : '#F8F8FA',
                   }
                 }}
                 onClick={() => {
@@ -969,7 +1016,7 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 return (
                   <Grid container spacing={2} key={index} sx={{ mb: 1 }}>
                     <Grid item xs={5}>
-                      <TextField
+                      <StyledTextField
                         label="From"
                         type="time"
                         value={slot.startTime}
@@ -985,7 +1032,7 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                       />
                     </Grid>
                     <Grid item xs={5}>
-                      <TextField
+                      <StyledTextField
                         label="To"
                         type="time"
                         value={slot.endTime}
@@ -1056,9 +1103,9 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 </IconButton>
               </Box>
               
-              <Grid container spacing={2} sx={{ mb: 2 }}>
-                <Grid item xs={6}>
-                  <TextField
+              <Grid container spacing={2} sx={{ mb: 2, alignItems: 'center' }}>
+                <Grid item xs={12} sm={6}>
+                  <StyledTextField
                     fullWidth
                     type="date"
                     label="Start Date"
@@ -1072,8 +1119,8 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     size="small"
                   />
                 </Grid>
-                <Grid item xs={6}>
-                  <TextField
+                <Grid item xs={12} sm={6}>
+                  <StyledTextField
                     fullWidth
                     type="date"
                     label="End Date"
@@ -1094,9 +1141,9 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
               </Typography>
               
               {dateRange.timeSlots.map((timeSlot, timeIndex) => (
-                <Grid container spacing={2} key={timeIndex} sx={{ mb: 1 }}>
-                  <Grid item xs={5}>
-                    <TextField
+                <Grid container spacing={2} key={timeIndex} sx={{ mb: 1, alignItems: 'center' }}>
+                  <Grid item xs={12} sm={5}>
+                    <StyledTextField
                       label="From"
                       type="time"
                       value={timeSlot.startTime}
@@ -1111,8 +1158,8 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                       sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
                     />
                   </Grid>
-                  <Grid item xs={5}>
-                    <TextField
+                  <Grid item xs={12} sm={5}>
+                    <StyledTextField
                       label="To"
                       type="time"
                       value={timeSlot.endTime}
@@ -1153,9 +1200,17 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           
           <Button 
             variant="outlined" 
-            startIcon={<EventIcon />}
+            startIcon={<EventIcon sx={{ color: '#3D1560' }} />}
             onClick={addDateRange}
-            sx={{ mt: 1 }}
+            sx={{ 
+              mt: 1,
+              color: '#3D1560',
+              borderColor: '#3D1560',
+              '&:hover': {
+                backgroundColor: '#E8E9ED',
+                borderColor: '#6D26AB',
+              }
+            }}
           >
             Add Date Range
           </Button>
@@ -1204,7 +1259,14 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                   onChange={(e) => {
                     formik.setFieldValue('paymentOptions.onlinePayment', e.target.checked);
                   }}
-                  color="primary"
+                  sx={{
+                    '& .MuiSwitch-switchBase.Mui-checked': {
+                      color: '#3D1560',
+                    },
+                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                      backgroundColor: '#9B53D9',
+                    },
+                  }}
                 />
               }
               label="Accept Online Payments"
@@ -1216,7 +1278,14 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                   onChange={(e) => {
                     formik.setFieldValue('paymentOptions.payAtService', e.target.checked);
                   }}
-                  color="primary"
+                  sx={{
+                    '& .MuiSwitch-switchBase.Mui-checked': {
+                      color: '#3D1560',
+                    },
+                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                      backgroundColor: '#9B53D9',
+                    },
+                  }}
                 />
               }
               label="Accept Pay at Service"
@@ -1286,6 +1355,11 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
               value={formik.values.pricingModel}
               onChange={formik.handleChange}
               row
+              sx={{
+                '& .MuiRadio-root.Mui-checked': {
+                  color: '#3D1560',
+                },
+              }}
             >
               <FormControlLabel 
                 value="flat" 
@@ -1445,10 +1519,16 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         ))}
                         
                         <Button
-                          startIcon={<AddIcon />}
+                          startIcon={<AddIcon sx={{ color: '#3D1560' }} />}
                           onClick={() => addFeature(tierIndex)}
                           size="small"
-                          sx={{ mt: 1 }}
+                          sx={{ 
+                            mt: 1,
+                            color: '#3D1560',
+                            '&:hover': {
+                              backgroundColor: '#E8E9ED',
+                            }
+                          }}
                         >
                           Add Feature
                         </Button>
@@ -1468,41 +1548,69 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     switch (step) {
       case 0:
         return (
-          <Stack spacing={3}>
-            {renderImageUpload()}
-            <StyledTextField
-              fullWidth
-              name="title"
-              label="Title"
-              value={formik.values.title}
-              onChange={formik.handleChange}
-              error={formik.touched.title && Boolean(formik.errors.title)}
-              helperText={formik.touched.title && formik.errors.title}
-            />
-            <StyledTextField
-              fullWidth
-              name="shortDescription"
-              label="Short Description"
-              value={formik.values.shortDescription}
-              onChange={formik.handleChange}
-              error={formik.touched.shortDescription && Boolean(formik.errors.shortDescription)}
-              helperText={formik.touched.shortDescription && formik.errors.shortDescription}
-              multiline
-              rows={2}
-            />
-            <StyledTextField
-              fullWidth
-              name="detailedDescription"
-              label="Detailed Description"
-              value={formik.values.detailedDescription}
-              onChange={formik.handleChange}
-              error={formik.touched.detailedDescription && Boolean(formik.errors.detailedDescription)}
-              helperText={formik.touched.detailedDescription && formik.errors.detailedDescription}
-              multiline
-              rows={4}
-            />
-            
-            {renderServiceAreaFields()}
+          <Stack spacing={1.5}>
+            <Accordion defaultExpanded sx={{ border: '1px solid #CDCED8', borderRadius: 1, boxShadow: 'none', '&:not(:last-child)': { mb: 1.5 } }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: '#F8F8FA', minHeight: 48 }}>
+                <Typography variant="subtitle1" sx={{ display: 'flex', alignItems: 'center', color: '#3D1560' }}>
+                  <InventoryIcon sx={{ mr: 1, color: '#3D1560' }} /> Images
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ p: 2 }}>
+                {renderImageUpload()}
+              </AccordionDetails>
+            </Accordion>
+            <Accordion defaultExpanded sx={{ border: '1px solid #CDCED8', borderRadius: 1, boxShadow: 'none', '&:not(:last-child)': { mb: 1.5 } }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: '#F8F8FA', minHeight: 48 }}>
+                <Typography variant="subtitle1" sx={{ display: 'flex', alignItems: 'center', color: '#3D1560' }}>
+                  <DescriptionIcon sx={{ mr: 1, color: '#3D1560' }} /> Basic Details
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ p: 2 }}>
+                <Stack spacing={2}>
+                  <StyledTextField
+                    fullWidth
+                    name="title"
+                    label="Title"
+                    value={formik.values.title}
+                    onChange={formik.handleChange}
+                    error={formik.touched.title && Boolean(formik.errors.title)}
+                    helperText={formik.touched.title && formik.errors.title}
+                  />
+                  <StyledTextField
+                    fullWidth
+                    name="shortDescription"
+                    label="Short Description"
+                    value={formik.values.shortDescription}
+                    onChange={formik.handleChange}
+                    error={formik.touched.shortDescription && Boolean(formik.errors.shortDescription)}
+                    helperText={formik.touched.shortDescription && formik.errors.shortDescription}
+                    multiline
+                    rows={2}
+                  />
+                  <StyledTextField
+                    fullWidth
+                    name="detailedDescription"
+                    label="Detailed Description"
+                    value={formik.values.detailedDescription}
+                    onChange={formik.handleChange}
+                    error={formik.touched.detailedDescription && Boolean(formik.errors.detailedDescription)}
+                    helperText={formik.touched.detailedDescription && formik.errors.detailedDescription}
+                    multiline
+                    rows={4}
+                  />
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
+            <Accordion defaultExpanded sx={{ border: '1px solid #CDCED8', borderRadius: 1, boxShadow: 'none', '&:not(:last-child)': { mb: 1.5 } }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: '#F8F8FA', minHeight: 48 }}>
+                <Typography variant="subtitle1" sx={{ display: 'flex', alignItems: 'center', color: '#3D1560' }}>
+                  <LocationOnIcon sx={{ mr: 1, color: '#3D1560' }} /> Service Locations
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ p: 2 }}>
+                {renderServiceAreaFields()}
+              </AccordionDetails>
+            </Accordion>
           </Stack>
         );
       case 1:
@@ -1571,10 +1679,10 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           sx={{ 
             mb: 4,
             '& .MuiStepLabel-root .Mui-completed': {
-              color: 'primary.main',
+              color: '#3D1560',
             },
             '& .MuiStepLabel-root .Mui-active': {
-              color: 'primary.main',
+              color: '#3D1560',
             },
           }}
         >
@@ -1594,11 +1702,12 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             {activeStep > 0 && (
               <Button 
                 onClick={handleBack}
-                startIcon={<ArrowBackIcon />}
+                startIcon={<ArrowBackIcon sx={{ color: '#3D1560' }} />}
                 sx={{ 
                   px: 3,
+                  color: '#3D1560',
                   '&:hover': {
-                    backgroundColor: 'action.hover',
+                    backgroundColor: '#E8E9ED',
                   },
                 }}
               >
@@ -1615,8 +1724,10 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 py: 1,
                 borderRadius: 2,
                 boxShadow: 2,
+                backgroundColor: '#3D1560',
                 '&:hover': {
                   boxShadow: 4,
+                  backgroundColor: '#6D26AB',
                 },
               }}
             >
