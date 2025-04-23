@@ -31,6 +31,7 @@ import { CartItem } from './context/CartContext';
 import { ShippingInfoPage } from './pages/ShippingInfoPage';
 import { AppointmentDashboard } from './components/appointments';
 import { Appointment } from './types';
+import { AppointmentDetailsModal } from './components/appointments';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<
@@ -2992,6 +2993,10 @@ function App() {
 
   // Seller Dashboard Appointments
   const SellerDashboardAppointments = () => {
+    // Add state for selected appointment and modal
+    const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+    const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+
     // Mock appointments data
     const mockAppointments = [
       {
@@ -3127,28 +3132,40 @@ function App() {
     ];
 
     const handleEditAppointment = (appointment: Appointment) => {
-      console.log('Edit appointment:', appointment);
-      // In a real app, you would handle the edit UI here
+      setSelectedAppointment(appointment);
+      setDetailsModalOpen(true);
     };
 
     const handleCancelAppointment = (appointment: Appointment) => {
       console.log('Cancel appointment:', appointment);
       // In a real app, you would show a confirmation dialog and then update the status
+      
+      // Close modal after action
+      setDetailsModalOpen(false);
     };
 
     const handleCompleteAppointment = (appointment: Appointment) => {
       console.log('Complete appointment:', appointment);
       // In a real app, you would update the status and maybe show a payment or review prompt
+      
+      // Close modal after action
+      setDetailsModalOpen(false);
     };
 
     const handleRescheduleAppointment = (appointment: Appointment) => {
       console.log('Reschedule appointment:', appointment);
       // In a real app, you would show a date picker to reschedule
+      
+      // Close modal after action
+      setDetailsModalOpen(false);
     };
 
     const handleMessageCustomer = (appointment: Appointment) => {
       console.log('Message customer:', appointment);
       // In a real app, you would open a messaging interface
+      
+      // Close modal after action
+      setDetailsModalOpen(false);
     };
 
     const handleDeleteAppointment = (appointment: Appointment) => {
@@ -3160,12 +3177,21 @@ function App() {
       console.log('Create new appointment');
       // In a real app, you would navigate to a creation form
     };
+    
+    const handleCloseDetailsModal = () => {
+      setDetailsModalOpen(false);
+      // Optional: Clear selected appointment when modal is closed
+      // setSelectedAppointment(null);
+    };
+
+    // Type assertion to resolve linter error with appointments
+    const typedAppointments = mockAppointments as Appointment[];
 
     return (
       <PlaceholderPage title="Appointments">
         {/* Import AppointmentDashboard from our components */}
         <AppointmentDashboard
-          appointments={mockAppointments}
+          appointments={typedAppointments}
           services={mockServices}
           onEdit={handleEditAppointment}
           onCancel={handleCancelAppointment}
@@ -3174,6 +3200,17 @@ function App() {
           onMessageCustomer={handleMessageCustomer}
           onDelete={handleDeleteAppointment}
           onCreateAppointment={handleCreateAppointment}
+        />
+        
+        {/* Appointment Details Modal */}
+        <AppointmentDetailsModal
+          open={detailsModalOpen}
+          onClose={handleCloseDetailsModal}
+          appointment={selectedAppointment}
+          onCancel={handleCancelAppointment}
+          onComplete={handleCompleteAppointment}
+          onReschedule={handleRescheduleAppointment}
+          onMessage={handleMessageCustomer}
         />
       </PlaceholderPage>
     );
