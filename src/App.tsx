@@ -29,6 +29,8 @@ import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderConfirmation } from './pages/OrderConfirmation';
 import { CartItem } from './context/CartContext';
 import { ShippingInfoPage } from './pages/ShippingInfoPage';
+import { AppointmentDashboard } from './components/appointments';
+import { Appointment } from './types';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<
@@ -1174,13 +1176,13 @@ function App() {
       const statusLower = status.toLowerCase();
       switch (statusLower) {
         case 'pending':
-          return 'bg-[#FFF8DD] text-[#DAA520]';
+          return 'bg-[#FFE5ED] text-[#DF678C]';
         case 'processing':
-          return 'bg-[#F3E8F9] text-[#C7A2E0]';
+          return 'bg-[#F3E8F9] text-[#6D26AB]';
         case 'new':
-          return 'bg-[#F3E8F9] text-[#C7A2E0]';
+          return 'bg-[#F3E8F9] text-[#3D1560]';
         case 'confirmed':
-          return 'bg-[#E8F5E9] text-[#4CAF50]';
+          return 'bg-[#EDD9FF] text-[#9B53D9]';
         default:
           return 'bg-[#E8E9ED] text-[#70727F]';
       }
@@ -1203,7 +1205,7 @@ function App() {
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
                   timeFilter === '24h' 
                     ? 'bg-[#3D1560] text-[#FFFFFF] shadow-md' 
-                    : 'bg-[#FFFFFF] text-[#70727F] border border-[#CDCED8] hover:bg-[#E8E9ED]'
+                    : 'bg-[#FFFFFF] text-[#70727F] border border-[#CDCED8] hover:bg-[#EDD9FF] hover:text-[#3D1560]'
                 }`}
               >
                 Last 24 Hours
@@ -1213,7 +1215,7 @@ function App() {
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
                   timeFilter === '7d' 
                     ? 'bg-[#3D1560] text-[#FFFFFF] shadow-md' 
-                    : 'bg-[#FFFFFF] text-[#70727F] border border-[#CDCED8] hover:bg-[#E8E9ED]'
+                    : 'bg-[#FFFFFF] text-[#70727F] border border-[#CDCED8] hover:bg-[#EDD9FF] hover:text-[#3D1560]'
                 }`}
               >
                 Weekly
@@ -1223,7 +1225,7 @@ function App() {
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
                   timeFilter === '30d' 
                     ? 'bg-[#3D1560] text-[#FFFFFF] shadow-md' 
-                    : 'bg-[#FFFFFF] text-[#70727F] border border-[#CDCED8] hover:bg-[#E8E9ED]'
+                    : 'bg-[#FFFFFF] text-[#70727F] border border-[#CDCED8] hover:bg-[#EDD9FF] hover:text-[#3D1560]'
                 }`}
               >
                 Monthly
@@ -1233,7 +1235,7 @@ function App() {
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
                   timeFilter === '90d' 
                     ? 'bg-[#3D1560] text-[#FFFFFF] shadow-md' 
-                    : 'bg-[#FFFFFF] text-[#70727F] border border-[#CDCED8] hover:bg-[#E8E9ED]'
+                    : 'bg-[#FFFFFF] text-[#70727F] border border-[#CDCED8] hover:bg-[#EDD9FF] hover:text-[#3D1560]'
                 }`}
               >
                 Quarterly
@@ -1245,114 +1247,114 @@ function App() {
         {/* Key metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6 mb-8">
           <div 
-            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow duration-300 border-t-4 border-green-500 cursor-pointer"
+            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow duration-300 border-t-4 border-[#3D1560] cursor-pointer"
             onClick={() => navigateTo('sellerDashboard_finance')}
           >
             <div className="flex justify-between items-start mb-2">
-              <h3 className="text-sm font-medium text-gray-500 flex items-center">
-                <DollarSign className="h-4 w-4 mr-1 text-green-500" />
+              <h3 className="text-sm font-medium text-[#383A47] flex items-center">
+                <DollarSign className="h-4 w-4 mr-1 text-[#3D1560]" />
                 Total Revenue
               </h3>
-              <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full flex items-center">
+              <span className="px-2 py-1 text-xs font-medium bg-[#F3E8F9] text-[#3D1560] rounded-full flex items-center">
                 <ArrowUp className="h-3 w-3 mr-1" />
                 +12%
               </span>
             </div>
-            <p className="text-3xl font-bold text-gray-800">$23,695</p>
+            <p className="text-3xl font-bold text-[#1B1C20]">$23,695</p>
             <div className="flex items-center mt-3">
-              <div className="w-full bg-gray-200 rounded-full h-1.5">
-                <div className="bg-green-600 h-1.5 rounded-full" style={{ width: '78%' }}></div>
+              <div className="w-full bg-[#E8E9ED] rounded-full h-1.5">
+                <div className="bg-[#3D1560] h-1.5 rounded-full" style={{ width: '78%' }}></div>
               </div>
-              <span className="text-xs text-gray-500 ml-2">78%</span>
+              <span className="text-xs text-[#70727F] ml-2">78%</span>
             </div>
-            <p className="text-xs text-gray-500 mt-2">78% of monthly target</p>
+            <p className="text-xs text-[#70727F] mt-2">78% of monthly target</p>
           </div>
           
           <div 
-            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow duration-300 border-t-4 border-teal-500 cursor-pointer"
+            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow duration-300 border-t-4 border-[#DF678C] cursor-pointer"
             onClick={() => navigateTo('sellerDashboard_orders')}
           >
             <div className="flex justify-between items-start mb-2">
-              <h3 className="text-sm font-medium text-gray-500 flex items-center">
-                <ShoppingCart className="h-4 w-4 mr-1 text-teal-500" />
+              <h3 className="text-sm font-medium text-[#383A47] flex items-center">
+                <ShoppingCart className="h-4 w-4 mr-1 text-[#DF678C]" />
                 Orders
               </h3>
-              <span className="px-2 py-1 text-xs font-medium bg-teal-100 text-teal-800 rounded-full flex items-center">
+              <span className="px-2 py-1 text-xs font-medium bg-[#FFE5ED] text-[#DF678C] rounded-full flex items-center">
                 <ArrowUp className="h-3 w-3 mr-1" />
                 +15%
               </span>
             </div>
-            <p className="text-3xl font-bold text-gray-800">248</p>
+            <p className="text-3xl font-bold text-[#1B1C20]">248</p>
             <div className="flex justify-between mt-3">
-              <div className="text-xs px-2 py-1 ${getStatusBadgeColor('new')} rounded-full">
+              <div className={`text-xs px-2 py-1 ${getStatusBadgeColor('new')} rounded-full`}>
                 New: 42
               </div>
-              <div className="text-xs px-2 py-1 ${getStatusBadgeColor('processing')} rounded-full">
+              <div className={`text-xs px-2 py-1 ${getStatusBadgeColor('processing')} rounded-full`}>
                 Processing: 17
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow duration-300 border-t-4 border-blue-500">
+          <div className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow duration-300 border-t-4 border-[#6D26AB]">
             <div className="flex justify-between items-start mb-2">
-              <h3 className="text-sm font-medium text-gray-500 flex items-center">
-                <Package className="h-4 w-4 mr-1 text-blue-500" />
+              <h3 className="text-sm font-medium text-[#383A47] flex items-center">
+                <Package className="h-4 w-4 mr-1 text-[#6D26AB]" />
                 Sales
               </h3>
-              <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full flex items-center">
+              <span className="px-2 py-1 text-xs font-medium bg-[#F3E8F9] text-[#6D26AB] rounded-full flex items-center">
                 <ArrowUp className="h-3 w-3 mr-1" />
                 +8%
               </span>
             </div>
-            <p className="text-3xl font-bold text-gray-800">215</p>
+            <p className="text-3xl font-bold text-[#1B1C20]">215</p>
             <div className="flex justify-between mt-3">
               <div className="text-xs">
-                <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1"></span>
-                <span className="text-gray-600">Products: 177</span>
+                <span className="inline-block w-3 h-3 bg-[#3D1560] rounded-full mr-1"></span>
+                <span className="text-[#383A47]">Products: 177</span>
               </div>
               <div className="text-xs">
-                <span className="inline-block w-3 h-3 bg-indigo-500 rounded-full mr-1"></span>
-                <span className="text-gray-600">Services: 38</span>
+                <span className="inline-block w-3 h-3 bg-[#9B53D9] rounded-full mr-1"></span>
+                <span className="text-[#383A47]">Services: 38</span>
               </div>
             </div>
           </div>
           
           <div 
-            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow duration-300 border-t-4 border-purple-500 cursor-pointer"
+            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow duration-300 border-t-4 border-[#9B53D9] cursor-pointer"
             onClick={() => navigateTo('sellerDashboard_appointments')}
           >
             <div className="flex justify-between items-start mb-2">
-              <h3 className="text-sm font-medium text-gray-500 flex items-center">
-                <Calendar className="h-4 w-4 mr-1 text-purple-500" />
+              <h3 className="text-sm font-medium text-[#383A47] flex items-center">
+                <Calendar className="h-4 w-4 mr-1 text-[#9B53D9]" />
                 Appointments
               </h3>
-              <span className="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full flex items-center">
+              <span className="px-2 py-1 text-xs font-medium bg-[#F3E8F9] text-[#9B53D9] rounded-full flex items-center">
                 <ArrowUp className="h-3 w-3 mr-1" />
                 +15%
               </span>
             </div>
-            <p className="text-3xl font-bold text-gray-800">42</p>
+            <p className="text-3xl font-bold text-[#1B1C20]">42</p>
             <div className="flex justify-between mt-3">
-              <div className="text-xs px-2 py-1 ${getStatusBadgeColor('pending')} rounded-full">
+              <div className={`text-xs px-2 py-1 ${getStatusBadgeColor('pending')} rounded-full`}>
                 Pending: 12
               </div>
-              <div className="text-xs px-2 py-1 ${getStatusBadgeColor('confirmed')} rounded-full">
+              <div className={`text-xs px-2 py-1 ${getStatusBadgeColor('confirmed')} rounded-full`}>
                 Confirmed: 30
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow duration-300 border-t-4 border-amber-500">
+          <div className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow duration-300 border-t-4 border-[#DF678C]">
             <div className="flex justify-between items-start mb-2">
-              <h3 className="text-sm font-medium text-gray-500 flex items-center">
-                <Wallet className="h-4 w-4 mr-1 text-amber-500" />
+              <h3 className="text-sm font-medium text-[#383A47] flex items-center">
+                <Wallet className="h-4 w-4 mr-1 text-[#DF678C]" />
                 Pending Payout
               </h3>
-              <span className="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded-full">2 days</span>
+              <span className="px-2 py-1 text-xs font-medium bg-[#FFE5ED] text-[#DF678C] rounded-full">2 days</span>
             </div>
-            <p className="text-3xl font-bold text-gray-800">$4,820</p>
-            <div className="flex items-center mt-3 text-sm text-gray-500">
-              <TrendingUp className="h-4 w-4 mr-1 text-amber-500" />
+            <p className="text-3xl font-bold text-[#1B1C20]">$4,820</p>
+            <div className="flex items-center mt-3 text-sm text-[#383A47]">
+              <TrendingUp className="h-4 w-4 mr-1 text-[#DF678C]" />
               Next payout: Apr 18
             </div>
           </div>
@@ -1362,19 +1364,19 @@ function App() {
         <div className="bg-white rounded-lg shadow p-6 mb-8 hover:shadow-md transition-all duration-300">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <div>
-              <h3 className="text-lg font-medium text-gray-900 flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <h3 className="text-lg font-medium text-[#1B1C20] flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-[#3D1560]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
                 </svg>
                 Revenue Trends
               </h3>
-              <p className="text-sm text-gray-500">Analysis for the selected period</p>
+              <p className="text-sm text-[#70727F]">Analysis for the selected period</p>
             </div>
             <div className="flex items-center">
-              <label htmlFor="chart-filter" className="text-sm text-gray-600 mr-2">Filter:</label>
+              <label htmlFor="chart-filter" className="text-sm text-[#383A47] mr-2">Filter:</label>
               <select 
                 id="chart-filter"
-                className="border border-gray-300 rounded-md text-sm p-1.5 bg-white hover:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:border-blue-500 focus:outline-none transition-all duration-200"
+                className="border border-[#CDCED8] rounded-md text-sm p-1.5 bg-white hover:border-[#3D1560] focus:ring-2 focus:ring-[#EDD9FF] focus:border-[#3D1560] focus:outline-none transition-all duration-200"
               >
                 <option>All Listings</option>
                 <option>Products Only</option>
@@ -1386,12 +1388,12 @@ function App() {
             {/* Chart background grid */}
             <div className="absolute inset-0 grid grid-cols-7 gap-4 pointer-events-none">
               {[...Array(7)].map((_, index) => (
-                <div key={index} className="h-full border-r border-gray-100 last:border-r-0"></div>
+                <div key={index} className="h-full border-r border-[#E8E9ED] last:border-r-0"></div>
               ))}
             </div>
             <div className="absolute inset-0 grid grid-rows-5 gap-4 pointer-events-none">
               {[...Array(5)].map((_, index) => (
-                <div key={index} className="w-full border-b border-gray-100 last:border-b-0"></div>
+                <div key={index} className="w-full border-b border-[#E8E9ED] last:border-b-0"></div>
               ))}
             </div>
             
@@ -1401,16 +1403,16 @@ function App() {
                 <div key={index} className="flex flex-col items-center group">
                   <div className="relative">
                     {/* Permanent value label on top of each bar */}
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 text-xs font-medium text-gray-600">
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 text-xs font-medium text-[#383A47]">
                       ${value.toLocaleString()}
                     </div>
                     
                     <div 
-                      className="w-12 md:w-16 bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-md transition-all duration-500 hover:from-blue-700 hover:to-blue-500 cursor-pointer" 
+                      className="w-12 md:w-16 bg-gradient-to-t from-[#3D1560] to-[#9B53D9] rounded-t-md transition-all duration-500 hover:from-[#6D26AB] hover:to-[#9B53D9] cursor-pointer" 
                       style={{ height: `${value / 100}px` }}
                     ></div>
                   </div>
-                  <span className="text-xs mt-2 text-gray-500">{getTimeLabels()[index]}</span>
+                  <span className="text-xs mt-2 text-[#70727F]">{getTimeLabels()[index]}</span>
                 </div>
               ))}
             </div>
@@ -2988,52 +2990,194 @@ function App() {
     </PlaceholderPage>
   );
 
-  // Seller Dashboard Appointments placeholder
-  const SellerDashboardAppointments = () => (
-    <PlaceholderPage title="Appointments">
-      <div className="mb-6 flex justify-between items-center">
-        <div>
-          <button className="bg-blue-600 text-white rounded-md px-4 py-2 mr-2">Today</button>
-          <button className="border border-gray-300 rounded-md px-4 py-2 mr-2">This Week</button>
-          <button className="border border-gray-300 rounded-md px-4 py-2">This Month</button>
-        </div>
-        <div>
-          <button className="border border-gray-300 rounded-md px-3 py-2">+ Add Appointment</button>
-        </div>
-      </div>
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Today's Appointments</h3>
-        <div className="space-y-4">
-          <div className="flex items-center p-4 border rounded-lg bg-blue-50 border-blue-100">
-            <div className="mr-4 text-center">
-              <p className="text-sm font-medium text-gray-500">10:00 AM</p>
-              <p className="text-xs text-gray-400">1 hour</p>
-            </div>
-            <div className="flex-grow">
-              <p className="font-medium">Premium Haircut & Styling</p>
-              <p className="text-sm text-gray-500">Client: Emma W.</p>
-            </div>
-            <div>
-              <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">Details</button>
-            </div>
-          </div>
-          <div className="flex items-center p-4 border rounded-lg">
-            <div className="mr-4 text-center">
-              <p className="text-sm font-medium text-gray-500">2:30 PM</p>
-              <p className="text-xs text-gray-400">45 min</p>
-            </div>
-            <div className="flex-grow">
-              <p className="font-medium">Hair Coloring</p>
-              <p className="text-sm text-gray-500">Client: Michael R.</p>
-            </div>
-            <div>
-              <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">Details</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </PlaceholderPage>
-  );
+  // Seller Dashboard Appointments
+  const SellerDashboardAppointments = () => {
+    // Mock appointments data
+    const mockAppointments = [
+      {
+        id: 'app-001',
+        service: mockServices[0],
+        provider: mockServices[0].provider,
+        customer: {
+          id: 'cust-001',
+          name: 'Emma W.',
+          email: 'emma@example.com',
+          phone: '(555) 123-4567',
+          avatar: 'https://randomuser.me/api/portraits/women/32.jpg'
+        },
+        start: new Date().toISOString(), // Today at current time
+        end: new Date(new Date().getTime() + 60 * 60 * 1000).toISOString(), // 1 hour later
+        status: 'confirmed',
+        paymentStatus: 'paid',
+        price: mockServices[0].price,
+        notes: 'Customer prefers minimal styling',
+        createdAt: new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 'app-002',
+        service: mockServices[1],
+        provider: mockServices[1].provider,
+        customer: {
+          id: 'cust-002',
+          name: 'Michael R.',
+          email: 'michael@example.com',
+          phone: '(555) 987-6543',
+        },
+        start: new Date(new Date().getTime() + 4 * 60 * 60 * 1000).toISOString(), // Today + 4 hours
+        end: new Date(new Date().getTime() + 5 * 60 * 60 * 1000).toISOString(), // 1 hour later
+        status: 'pending',
+        paymentStatus: 'unpaid',
+        price: mockServices[1].price,
+        notes: '',
+        createdAt: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 'app-003',
+        service: mockServices[2],
+        provider: mockServices[2].provider,
+        customer: {
+          id: 'cust-003',
+          name: 'Sarah J.',
+          email: 'sarah@example.com',
+          phone: '(555) 765-4321',
+          avatar: 'https://randomuser.me/api/portraits/women/45.jpg'
+        },
+        start: new Date(new Date().getTime() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
+        end: new Date(new Date().getTime() + 24 * 60 * 60 * 1000 + 120 * 60 * 1000).toISOString(), // 2 hours later
+        status: 'confirmed',
+        paymentStatus: 'paid',
+        price: mockServices[2].price,
+        notes: 'First-time customer, referred by Emma W.',
+        createdAt: new Date(new Date().getTime() - 3 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 'app-004',
+        service: mockServices[0],
+        provider: mockServices[0].provider,
+        customer: {
+          id: 'cust-004',
+          name: 'David L.',
+          email: 'david@example.com',
+          phone: '(555) 246-8101',
+        },
+        start: new Date(new Date().getTime() - 48 * 60 * 60 * 1000).toISOString(), // 2 days ago
+        end: new Date(new Date().getTime() - 48 * 60 * 60 * 1000 + 90 * 60 * 1000).toISOString(), // 1.5 hours later
+        status: 'completed',
+        paymentStatus: 'paid',
+        price: mockServices[0].price,
+        notes: 'Regular customer, prefers quick service',
+        createdAt: new Date(new Date().getTime() - 10 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 'app-005',
+        service: mockServices[3],
+        provider: mockServices[3].provider,
+        customer: {
+          id: 'cust-005',
+          name: 'Jennifer K.',
+          email: 'jennifer@example.com',
+          phone: '(555) 213-4567',
+          avatar: 'https://randomuser.me/api/portraits/women/17.jpg'
+        },
+        start: new Date(new Date().getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
+        end: new Date(new Date().getTime() + 3 * 24 * 60 * 60 * 1000 + 60 * 60 * 1000).toISOString(), // 1 hour later
+        status: 'confirmed',
+        paymentStatus: 'unpaid',
+        price: mockServices[3].price,
+        notes: '',
+        createdAt: new Date(new Date().getTime() - 1 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 'app-006',
+        service: mockServices[2],
+        provider: mockServices[2].provider,
+        customer: {
+          id: 'cust-006',
+          name: 'Thomas W.',
+          email: 'thomas@example.com',
+          phone: '(555) 876-5432',
+        },
+        start: new Date(new Date().getTime() - 24 * 60 * 60 * 1000).toISOString(), // Yesterday
+        end: new Date(new Date().getTime() - 24 * 60 * 60 * 1000 + 120 * 60 * 1000).toISOString(), // 2 hours later
+        status: 'canceled',
+        paymentStatus: 'refunded',
+        price: mockServices[2].price,
+        notes: 'Had to cancel due to emergency',
+        createdAt: new Date(new Date().getTime() - 5 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 'app-007',
+        service: mockServices[1],
+        provider: mockServices[1].provider,
+        customer: {
+          id: 'cust-007',
+          name: 'Maria G.',
+          email: 'maria@example.com',
+          phone: '(555) 789-0123',
+          avatar: 'https://randomuser.me/api/portraits/women/28.jpg'
+        },
+        start: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week from now
+        end: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000 + 90 * 60 * 1000).toISOString(), // 1.5 hours later
+        status: 'confirmed',
+        paymentStatus: 'paid',
+        price: mockServices[1].price,
+        notes: 'Birthday gift appointment',
+        createdAt: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    ];
+
+    const handleEditAppointment = (appointment: Appointment) => {
+      console.log('Edit appointment:', appointment);
+      // In a real app, you would handle the edit UI here
+    };
+
+    const handleCancelAppointment = (appointment: Appointment) => {
+      console.log('Cancel appointment:', appointment);
+      // In a real app, you would show a confirmation dialog and then update the status
+    };
+
+    const handleCompleteAppointment = (appointment: Appointment) => {
+      console.log('Complete appointment:', appointment);
+      // In a real app, you would update the status and maybe show a payment or review prompt
+    };
+
+    const handleRescheduleAppointment = (appointment: Appointment) => {
+      console.log('Reschedule appointment:', appointment);
+      // In a real app, you would show a date picker to reschedule
+    };
+
+    const handleMessageCustomer = (appointment: Appointment) => {
+      console.log('Message customer:', appointment);
+      // In a real app, you would open a messaging interface
+    };
+
+    const handleDeleteAppointment = (appointment: Appointment) => {
+      console.log('Delete appointment:', appointment);
+      // In a real app, you would show a confirmation dialog
+    };
+
+    const handleCreateAppointment = () => {
+      console.log('Create new appointment');
+      // In a real app, you would navigate to a creation form
+    };
+
+    return (
+      <PlaceholderPage title="Appointments">
+        {/* Import AppointmentDashboard from our components */}
+        <AppointmentDashboard
+          appointments={mockAppointments}
+          services={mockServices}
+          onEdit={handleEditAppointment}
+          onCancel={handleCancelAppointment}
+          onComplete={handleCompleteAppointment}
+          onReschedule={handleRescheduleAppointment}
+          onMessageCustomer={handleMessageCustomer}
+          onDelete={handleDeleteAppointment}
+          onCreateAppointment={handleCreateAppointment}
+        />
+      </PlaceholderPage>
+    );
+  };
 
   // Seller Dashboard Finance placeholder
   const SellerDashboardFinance = () => (

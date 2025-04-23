@@ -93,12 +93,24 @@ export interface TimeSlot {
 
 export interface Appointment {
   id: string;
-  serviceId: string;
-  customerName: string;
-  customerEmail: string;
-  date: Date;
-  status: 'pending' | 'confirmed' | 'cancelled';
+  service: Service;
+  provider: ServiceProvider;
+  customer: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+    avatar?: string;
+  };
+  start: string;       // ISO datetime
+  end: string;         // ISO datetime
+  status: 'pending' | 'confirmed' | 'completed' | 'canceled';
+  paymentStatus: 'paid' | 'unpaid' | 'refunded';
+  price: number;
   notes?: string;
+  location?: string;
+  createdAt: string;   // ISO datetime
+  updatedAt?: string;  // ISO datetime
 }
 
 export interface Review {
