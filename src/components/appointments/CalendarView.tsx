@@ -348,8 +348,18 @@ export default function CalendarView({
           eventDisplay="block" // Ensure events are displayed as blocks with full details
           displayEventEnd={true} // Show end time for events
           eventDurationEditable={false} // Prevent events from being resized to avoid spillover
+          eventDidMount={(info) => {
+            // Add a tooltip with full event details on hover
+            const appointment = info.event.extendedProps.appointment as Appointment;
+            const start = new Date(appointment.start);
+            const end = new Date(appointment.end);
+            const duration = Math.round((end.getTime() - start.getTime()) / (1000 * 60));
+            const tooltipText = `${info.event.title}\nTime: ${info.timeText}\nDuration: ${duration} min${appointment.location ? `\nLocation: ${appointment.location}` : ''}`;
+            info.el.setAttribute('title', tooltipText);
+          }}
           eventContent={(arg) => {
-            // Custom rendering to ensure event details are shown including duration and location
+            // Custom rendering with minimal details in month view for readability
+            const isMonthView = arg.view.type === 'dayGridMonth';
             const appointment = arg.event.extendedProps.appointment as Appointment;
             const start = new Date(appointment.start);
             const end = new Date(appointment.end);
@@ -358,8 +368,12 @@ export default function CalendarView({
               <div style={{ overflow: 'visible', whiteSpace: 'normal' }}>
                 <strong>{arg.timeText}</strong>
                 <div>{arg.event.title}</div>
-                <div style={{ fontSize: '0.8em', fontStyle: 'italic' }}>Duration: {duration} min</div>
-                {appointment.location && <div style={{ fontSize: '0.8em' }}>Location: {appointment.location}</div>}
+                {!isMonthView && (
+                  <>
+                    <div style={{ fontSize: '0.8em', fontStyle: 'italic' }}>Duration: {duration} min</div>
+                    {appointment.location && <div style={{ fontSize: '0.8em' }}>Location: {appointment.location}</div>}
+                  </>
+                )}
               </div>
             );
           }}
