@@ -32,6 +32,7 @@ interface AppointmentDetailsModalProps {
   onCancel: (appointment: Appointment) => void;
   onComplete: (appointment: Appointment) => void;
   onMessage: (appointment: Appointment) => void;
+  onConfirm?: (appointment: Appointment) => void;
 }
 
 const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
@@ -41,7 +42,8 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
   onReschedule,
   onCancel,
   onComplete,
-  onMessage
+  onMessage,
+  onConfirm = () => {}
 }) => {
   if (!appointment) return null;
 
@@ -72,6 +74,16 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
   });
   
   const formattedTimeRange = `${formattedTimeStart} - ${formattedTimeEnd}`;
+
+  // Format customer name to first name + last initial for privacy
+  const formatCustomerName = (fullName: string): string => {
+    if (!fullName) return '';
+    const nameParts = fullName.trim().split(' ');
+    if (nameParts.length === 1) return nameParts[0];
+    const firstName = nameParts[0];
+    const lastInitial = nameParts[nameParts.length - 1].charAt(0) + '.';
+    return `${firstName} ${lastInitial}`;
+  };
 
   // Get appropriate status color
   const getStatusColor = (status: string) => {
@@ -238,14 +250,14 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
             <Grid container spacing={2} alignItems="center">
               <Grid item>
                 <Avatar 
-                  alt={appointment.customer.name}
+                  alt={formatCustomerName(appointment.customer.name)}
                   src={appointment.customer.avatar || ''}
                   sx={{ width: 48, height: 48 }}
                 />
               </Grid>
               <Grid item xs>
                 <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                  {appointment.customer.name}
+                  {formatCustomerName(appointment.customer.name)}
                 </Typography>
                 <Typography variant="body2" color="#70727F">
                   {appointment.customer.email}
@@ -298,7 +310,9 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
               <Button 
                 variant="outlined" 
                 color="error" 
-                onClick={() => onCancel(appointment)}
+                onClick={() => {
+                  onCancel(appointment);
+                }}
                 disabled={['canceled', 'completed'].includes(appointment.status)}
                 sx={{ mr: 1 }}
               >
@@ -307,7 +321,9 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
               
               <Button 
                 variant="outlined"
-                onClick={() => onReschedule(appointment)} 
+                onClick={() => {
+                  onReschedule(appointment);
+                }} 
                 disabled={['canceled', 'completed'].includes(appointment.status)}
                 sx={{ 
                   borderColor: '#3D1560', 
@@ -325,7 +341,9 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
             <Box>
               <Button 
                 variant="outlined"
-                onClick={() => onMessage(appointment)}
+                onClick={() => {
+                  onMessage(appointment);
+                }}
                 sx={{ 
                   borderColor: '#3D1560', 
                   color: '#3D1560',
@@ -340,23 +358,43 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                 Message
               </Button>
               
-              <Button 
-                variant="contained" 
-                onClick={() => onComplete(appointment)}
-                disabled={['canceled', 'completed'].includes(appointment.status)}
-                sx={{ 
-                  backgroundColor: '#3D1560',
-                  '&:hover': {
-                    backgroundColor: '#6D26AB'
-                  },
-                  '&.Mui-disabled': {
-                    backgroundColor: '#CDCED8'
-                  }
-                }}
-                startIcon={<BadgeCheck size={18} />}
-              >
-                {appointment.status === 'completed' ? 'Completed' : 'Complete'}
-              </Button>
+              {appointment.status === 'pending' ? (
+                <Button 
+                  variant="contained" 
+                  onClick={() => {
+                    onConfirm(appointment);
+                  }}
+                  sx={{ 
+                    backgroundColor: '#3D1560',
+                    '&:hover': {
+                      backgroundColor: '#6D26AB'
+                    }
+                  }}
+                  startIcon={<BadgeCheck size={18} />}
+                >
+                  Confirm
+                </Button>
+              ) : (
+                <Button 
+                  variant="contained" 
+                  onClick={() => {
+                    onComplete(appointment);
+                  }}
+                  disabled={['canceled', 'completed'].includes(appointment.status)}
+                  sx={{ 
+                    backgroundColor: '#3D1560',
+                    '&:hover': {
+                      backgroundColor: '#6D26AB'
+                    },
+                    '&.Mui-disabled': {
+                      backgroundColor: '#CDCED8'
+                    }
+                  }}
+                  startIcon={<BadgeCheck size={18} />}
+                >
+                  {appointment.status === 'completed' ? 'Completed' : 'Complete'}
+                </Button>
+              )}
             </Box>
           </Box>
         </Box>
