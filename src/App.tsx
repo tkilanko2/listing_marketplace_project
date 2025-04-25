@@ -1637,154 +1637,40 @@ function App() {
 
   // Seller Dashboard My Shop placeholder
   const SellerDashboardMyShop = () => {
-    // Mock listing data
-    const mockListingsData = {
-      active: 8,
-      draft: 3,
-      inactive: 2,
-      pending: 2,
-      products: 5,
-      services: 8,
+    // Use mockServices and mockProducts instead of hardcoded data
+    // Calculate summary counts based on mockServices and mockProducts
+    // Check for status with a default value of 'active' if not present
+    const activeListings = [...mockServices, ...mockProducts].filter(item => (item.status || 'active') === 'active').length;
+    const draftListings = [...mockServices, ...mockProducts].filter(item => (item.status || 'active') === 'draft').length;
+    const pendingListings = [...mockServices, ...mockProducts].filter(item => (item.status || 'active') === 'pending').length;
+    const inactiveListings = [...mockServices, ...mockProducts].filter(item => (item.status || 'active') === 'inactive').length;
+    
+    // Create a compatible listings structure from mockServices and mockProducts
+    const combinedListings = [...mockServices, ...mockProducts].map(item => {
+      // Format the listing to match the expected structure
+      return {
+        id: item.id,
+        name: item.name,
+        type: item.type,
+        category: item.category,
+        price: item.price,
+        status: item.status || 'active',
+        createdAt: item.createdAt instanceof Date ? item.createdAt.toISOString() : new Date().toISOString(),
+        lastUpdated: item.createdAt instanceof Date ? item.createdAt.toISOString() : new Date().toISOString(),
+        views: item.views || 0,
+        saves: item.saves || 0,
+        orders: 0,
+        rating: 0,
+        location: item.location?.city || 'Location not specified',
+        image: item.images && item.images.length > 0 ? item.images[0] : 'https://placehold.co/100x100',
+        quantity: item.type === 'service' ? 'Unlimited' : '10'
+      };
+    });
+    
+    // Mock data for dashboard stats (keeping static data for these)
+    const dashboardStats = {
       revenue: 12495.75,
       visitorsThisMonth: 1248,
-      listings: [
-        {
-          id: 'lst-001',
-          name: 'Premium Haircut & Styling',
-          type: 'service',
-          category: 'Beauty & Wellness',
-          price: 85.00,
-          status: 'active',
-          createdAt: '2023-03-15',
-          lastUpdated: '2023-04-02',
-          views: 142,
-          saves: 23,
-          orders: 18,
-          rating: 4.8,
-          location: 'In-store only',
-          image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=100&h=100&q=80',
-          quantity: 'Unlimited'
-        },
-        {
-          id: 'lst-002',
-          name: 'Professional Hair Dryer',
-          type: 'product',
-          category: 'Beauty Products',
-          price: 129.99,
-          status: 'active',
-          createdAt: '2023-02-20',
-          lastUpdated: '2023-04-05',
-          views: 208,
-          saves: 42,
-          orders: 26,
-          rating: 4.6,
-          location: 'Shipping available',
-          image: 'https://images.unsplash.com/photo-1522338140262-f46f5913618a?auto=format&fit=crop&w=100&h=100&q=80',
-          quantity: 24
-        },
-        {
-          id: 'lst-003',
-          name: 'Hair Coloring Service',
-          type: 'service',
-          category: 'Beauty & Wellness',
-          price: 120.00,
-          status: 'active',
-          createdAt: '2023-03-18',
-          lastUpdated: '2023-04-10',
-          views: 98,
-          saves: 15,
-          orders: 12,
-          rating: 4.7,
-          location: 'In-store only',
-          image: 'https://images.unsplash.com/photo-1481068164146-e8beb686f4c2?auto=format&fit=crop&w=100&h=100&q=80',
-          quantity: 'Unlimited'
-        },
-        {
-          id: 'lst-004',
-          name: 'Styling Brush Set',
-          type: 'product',
-          category: 'Beauty Products',
-          price: 45.99,
-          status: 'active',
-          createdAt: '2023-01-15',
-          lastUpdated: '2023-03-28',
-          views: 175,
-          saves: 38,
-          orders: 32,
-          rating: 4.5,
-          location: 'Shipping available',
-          image: 'https://images.unsplash.com/photo-1643509750872-30cb25a6603e?auto=format&fit=crop&w=100&h=100&q=80',
-          quantity: 56
-        },
-        {
-          id: 'lst-005',
-          name: 'Hair Treatment Pack',
-          type: 'product',
-          category: 'Beauty Products',
-          price: 79.99,
-          status: 'draft',
-          createdAt: '2023-04-01',
-          lastUpdated: '2023-04-01',
-          views: 0,
-          saves: 0,
-          orders: 0,
-          rating: 0,
-          location: 'Shipping available',
-          image: 'https://images.unsplash.com/photo-1526947425960-945c6e72858f?auto=format&fit=crop&w=100&h=100&q=80',
-          quantity: 15
-        },
-        {
-          id: 'lst-006',
-          name: 'Spa Massage Therapy',
-          type: 'service',
-          category: 'Wellness',
-          price: 110.00,
-          status: 'inactive',
-          createdAt: '2022-11-12',
-          lastUpdated: '2023-03-01',
-          views: 320,
-          saves: 65,
-          orders: 48,
-          rating: 4.9,
-          location: 'In-store only',
-          image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=100&h=100&q=80',
-          quantity: 'Unlimited'
-        },
-        {
-          id: '6789',
-          name: 'Handmade Ceramic Vase',
-          type: 'product',
-          category: 'Home Decor',
-          price: 79,
-          status: 'pending',
-          createdAt: '2023-10-10T11:25:00',
-          lastUpdated: '2023-10-15T09:40:00',
-          views: 87,
-          saves: 14,
-          orders: 0,
-          rating: 0,
-          location: 'Chicago',
-          image: 'https://placehold.co/100x100',
-          quantity: 12
-        },
-        {
-          id: '7890',
-          name: 'Online Yoga Classes',
-          type: 'service',
-          category: 'Health & Wellness',
-          price: 25,
-          status: 'pending',
-          createdAt: '2023-10-08T14:15:00',
-          lastUpdated: '2023-10-12T16:30:00',
-          views: 56,
-          saves: 11,
-          orders: 0,
-          rating: 0,
-          location: 'Remote',
-          image: 'https://placehold.co/100x100',
-          quantity: 'Unlimited'
-        },
-      ]
     };
 
     // Status color mapping
@@ -1816,7 +1702,8 @@ function App() {
 
     // Handle Create New Listing button click
     const handleCreateListing = () => {
-      alert('This would navigate to the Create Listing page');
+      // Navigate to create listing page
+      setCurrentPage('createListing');
     };
     
     // State for menu dropdowns
@@ -1838,7 +1725,7 @@ function App() {
     // Handle menu item clicks
     const handleEdit = (id: string) => {
       // Find the listing details
-      const listing = mockListingsData.listings.find(item => item.id === id);
+      const listing = combinedListings.find(item => item.id === id);
       if (listing) {
         // Set the selected listing and navigate to edit page
         setSelectedListingForEdit(listing);
@@ -1874,10 +1761,10 @@ function App() {
     // Filter listings based on active tab
     const filteredListings = useMemo(() => {
       if (activeTab === 'all') {
-        return mockListingsData.listings;
+        return combinedListings;
       }
-      return mockListingsData.listings.filter(listing => listing.type === activeTab);
-    }, [activeTab, mockListingsData.listings]);
+      return combinedListings.filter(listing => listing.type === activeTab);
+    }, [activeTab, combinedListings]);
 
     return (
     <PlaceholderPage title="My Shop">
@@ -1888,10 +1775,10 @@ function App() {
             <div>
                 <p className="text-sm font-medium text-[#70727F]">Total Listings</p>
                 <h3 className="text-2xl font-bold mt-1 text-[#1B1C20]">
-                  {mockListingsData.active + mockListingsData.draft + mockListingsData.inactive}
+                  {activeListings + draftListings + inactiveListings + pendingListings}
                 </h3>
                 <p className="text-xs text-[#70727F] mt-1">
-                  <span className="text-[#3D1560] font-medium">+3</span> new this month
+                  <span className="text-[#3D1560] font-medium">+{mockServices.length > 5 ? mockServices.length - 5 : 0}</span> new this month
                 </p>
               </div>
               <div className="bg-[#EDD9FF] p-2 rounded-lg">
@@ -1899,53 +1786,50 @@ function App() {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#CDCED8] p-5 transition-all duration-300 hover:shadow-md">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-medium text-[#70727F]">Live Listings</p>
-                <h3 className="text-2xl font-bold mt-1 text-[#1B1C20]">{mockListingsData.active}</h3>
-                <div className="flex gap-3 mt-1">
-                  <p className="text-xs text-[#70727F]">
-                    <span className="font-medium text-[#3D1560]">{mockListingsData.products}</span> products
-                  </p>
-                  <p className="text-xs text-[#70727F]">
-                    <span className="font-medium text-[#DF678C]">{mockListingsData.services}</span> services
-                  </p>
+                <p className="text-sm font-medium text-[#70727F]">Active Listings</p>
+                <h3 className="text-2xl font-bold mt-1 text-[#1B1C20]">{activeListings}</h3>
+                <div className="flex flex-wrap gap-1 mt-1 text-xs">
+                  <span className="font-medium text-[#3D1560]">{mockProducts.length}</span> products
+                  <span className="mx-1">·</span>
+                  <span className="font-medium text-[#DF678C]">{mockServices.length}</span> services
                 </div>
               </div>
-              <div className="bg-[#EDD9FF] p-2 rounded-lg">
-                <CheckCircle className="w-6 h-6 text-[#3D1560]" />
+              <div className="bg-[#E8F5E9] p-2 rounded-lg">
+                <CheckCircle className="w-6 h-6 text-[#4CAF50]" />
               </div>
             </div>
           </div>
-          
+
           <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#CDCED8] p-5 transition-all duration-300 hover:shadow-md">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-medium text-[#70727F]">Monthly Revenue</p>
-                <h3 className="text-2xl font-bold mt-1 text-[#1B1C20]">{formatCurrency(mockListingsData.revenue)}</h3>
+                <p className="text-sm font-medium text-[#70727F]">Revenue</p>
+                <h3 className="text-2xl font-bold mt-1 text-[#1B1C20]">{formatCurrency(dashboardStats.revenue)}</h3>
                 <p className="text-xs text-[#70727F] mt-1">
-                  <span className="text-[#3D1560] font-medium">↑ 12.5%</span> vs last month
+                  <span className="text-[#4CAF50] font-medium">↑ 12%</span> vs last month
                 </p>
               </div>
-              <div className="bg-[#EDD9FF] p-2 rounded-lg">
-                <DollarSign className="w-6 h-6 text-[#3D1560]" />
+              <div className="bg-[#E8F5E9] p-2 rounded-lg">
+                <DollarSign className="w-6 h-6 text-[#4CAF50]" />
               </div>
             </div>
           </div>
-          
+
           <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#CDCED8] p-5 transition-all duration-300 hover:shadow-md">
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-[#70727F]">Shop Visitors</p>
-                <h3 className="text-2xl font-bold mt-1 text-[#1B1C20]">{mockListingsData.visitorsThisMonth}</h3>
+                <h3 className="text-2xl font-bold mt-1 text-[#1B1C20]">{dashboardStats.visitorsThisMonth}</h3>
                 <p className="text-xs text-[#70727F] mt-1">
-                  <span className="text-[#3D1560] font-medium">↑ 8.3%</span> vs last month
+                  <span className="text-[#4CAF50] font-medium">↑ 8%</span> vs last month
                 </p>
               </div>
-              <div className="bg-[#EDD9FF] p-2 rounded-lg">
-                <Users className="w-6 h-6 text-[#3D1560]" />
+              <div className="bg-[#E8F5E9] p-2 rounded-lg">
+                <Users className="w-6 h-6 text-[#4CAF50]" />
               </div>
             </div>
           </div>
@@ -2093,7 +1977,7 @@ function App() {
                     <div className="w-3 h-3 rounded-full bg-[#4CAF50] mr-2"></div>
                     <span className="text-sm text-gray-700">Live</span>
                   </div>
-                  <span className="text-sm font-medium">{mockListingsData.active}</span>
+                  <span className="text-sm font-medium">{activeListings}</span>
                 </div>
                 
                 <div className="flex items-center justify-between">
@@ -2101,7 +1985,7 @@ function App() {
                     <div className="w-3 h-3 rounded-full bg-[#C7A2E0] mr-2"></div>
                     <span className="text-sm text-gray-700">Draft</span>
                   </div>
-                  <span className="text-sm font-medium">{mockListingsData.draft}</span>
+                  <span className="text-sm font-medium">{draftListings}</span>
                 </div>
                 
                 <div className="flex items-center justify-between">
@@ -2109,7 +1993,7 @@ function App() {
                     <div className="w-3 h-3 rounded-full bg-[#FFD700] mr-2"></div>
                     <span className="text-sm text-gray-700">Pending</span>
                   </div>
-                  <span className="text-sm font-medium">{mockListingsData.pending}</span>
+                  <span className="text-sm font-medium">{pendingListings}</span>
                 </div>
                 
                 <div className="flex items-center justify-between">
@@ -2117,7 +2001,7 @@ function App() {
                     <div className="w-3 h-3 rounded-full bg-[#CDCED8] mr-2"></div>
                     <span className="text-sm text-gray-700">Inactive</span>
                   </div>
-                  <span className="text-sm font-medium">{mockListingsData.inactive}</span>
+                  <span className="text-sm font-medium">{inactiveListings}</span>
                 </div>
               </div>
               
@@ -2125,19 +2009,19 @@ function App() {
                 <div className="flex h-full">
                   <div 
                     className="bg-[#4CAF50] h-full" 
-                    style={{ width: `${(mockListingsData.active / (mockListingsData.active + mockListingsData.draft + mockListingsData.pending + mockListingsData.inactive)) * 100}%` }}
+                    style={{ width: `${(activeListings / (activeListings + draftListings + pendingListings + inactiveListings)) * 100}%` }}
                   ></div>
                   <div 
                     className="bg-[#C7A2E0] h-full" 
-                    style={{ width: `${(mockListingsData.draft / (mockListingsData.active + mockListingsData.draft + mockListingsData.pending + mockListingsData.inactive)) * 100}%` }}
+                    style={{ width: `${(draftListings / (activeListings + draftListings + pendingListings + inactiveListings)) * 100}%` }}
                   ></div>
                   <div 
                     className="bg-[#FFD700] h-full" 
-                    style={{ width: `${(mockListingsData.pending / (mockListingsData.active + mockListingsData.draft + mockListingsData.pending + mockListingsData.inactive)) * 100}%` }}
+                    style={{ width: `${(pendingListings / (activeListings + draftListings + pendingListings + inactiveListings)) * 100}%` }}
                   ></div>
                   <div 
                     className="bg-[#CDCED8] h-full" 
-                    style={{ width: `${(mockListingsData.inactive / (mockListingsData.active + mockListingsData.draft + mockListingsData.pending + mockListingsData.inactive)) * 100}%` }}
+                    style={{ width: `${(inactiveListings / (activeListings + draftListings + pendingListings + inactiveListings)) * 100}%` }}
                   ></div>
                 </div>
               </div>
@@ -2156,7 +2040,7 @@ function App() {
                     <div className="w-3 h-3 rounded-full bg-[#6D26AB] mr-2"></div>
                     <span className="text-sm text-gray-700">Products</span>
                   </div>
-                  <span className="text-sm font-medium">{mockListingsData.products}</span>
+                  <span className="text-sm font-medium">{mockProducts.length}</span>
                 </div>
                 
                 <div className="flex items-center justify-between">
@@ -2164,13 +2048,13 @@ function App() {
                     <div className="w-3 h-3 rounded-full bg-[#DF678C] mr-2"></div>
                     <span className="text-sm text-gray-700">Services</span>
                   </div>
-                  <span className="text-sm font-medium">{mockListingsData.services}</span>
+                  <span className="text-sm font-medium">{mockServices.length}</span>
                 </div>
               </div>
               
               <div className="mt-4 h-24 w-24 mx-auto relative">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-sm font-medium">{mockListingsData.products + mockListingsData.services}</span>
+                  <span className="text-sm font-medium">{mockProducts.length + mockServices.length}</span>
                 </div>
                 <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
                   <path
@@ -2180,7 +2064,7 @@ function App() {
                     fill="none"
                     stroke="#6D26AB"
                     strokeWidth="3"
-                    strokeDasharray={`${(mockListingsData.products / (mockListingsData.products + mockListingsData.services)) * 100}, 100`}
+                    strokeDasharray={`${(mockProducts.length / (mockProducts.length + mockServices.length)) * 100}, 100`}
                   />
                   <path
                     d="M18 2.0845
@@ -2189,8 +2073,8 @@ function App() {
                     fill="none"
                     stroke="#DF678C"
                     strokeWidth="3"
-                    strokeDasharray={`${(mockListingsData.services / (mockListingsData.products + mockListingsData.services)) * 100}, 100`}
-                    strokeDashoffset={`${-1 * (mockListingsData.products / (mockListingsData.products + mockListingsData.services)) * 100}`}
+                    strokeDasharray={`${(mockServices.length / (mockProducts.length + mockServices.length)) * 100}, 100`}
+                    strokeDashoffset={`${-1 * (mockProducts.length / (mockProducts.length + mockServices.length)) * 100}`}
                   />
                 </svg>
               </div>

@@ -35,6 +35,8 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -54,6 +56,7 @@ import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DescriptionIcon from '@mui/icons-material/Description';
+import { mockServices } from '../../mockData';
 
 const serviceCategories = [
   'Professional Services',
@@ -145,9 +148,7 @@ const categorySpecificFields: Record<string, FieldConfig[]> = {
     { name: 'experience', label: 'Years of Experience', type: 'number', required: true },
     { name: 'certifications', label: 'Professional Certifications', type: 'textarea' },
     { name: 'availability', label: 'Availability', type: 'multiselect', options: ['Weekdays', 'Weekends', 'Evenings', 'Remote', 'On-site'] },
-    { name: 'rateType', label: 'Rate Type', type: 'select', options: ['Hourly', 'Project-based', 'Retainer'], required: true },
-    { name: 'paymentOptions.payAtService', label: 'Accept Pay at Service', type: 'boolean' },
-    { name: 'paymentOptions.onlinePayment', label: 'Accept Online Payment', type: 'boolean' }
+    { name: 'rateType', label: 'Rate Type', type: 'select', options: ['Hourly', 'Project-based', 'Retainer'], required: true }
   ],
   'Home Services': [
     { name: 'serviceType', label: 'Service Type', type: 'select', options: ['Cleaning', 'Repairs', 'Landscaping', 'Moving', 'Interior Design'], required: true },
@@ -155,18 +156,14 @@ const categorySpecificFields: Record<string, FieldConfig[]> = {
     { name: 'equipment', label: 'Equipment Provided', type: 'boolean' },
     { name: 'insurance', label: 'Insurance Coverage', type: 'textarea', placeholder: 'Describe your insurance coverage' },
     { name: 'minimumBooking', label: 'Minimum Booking Duration', type: 'text', placeholder: 'e.g., 2 hours' },
-    { name: 'teamSize', label: 'Team Size', type: 'number', helperText: 'Number of workers for the service' },
-    { name: 'paymentOptions.payAtService', label: 'Accept Pay at Service', type: 'boolean' },
-    { name: 'paymentOptions.onlinePayment', label: 'Accept Online Payment', type: 'boolean' }
+    { name: 'teamSize', label: 'Team Size', type: 'number', helperText: 'Number of workers for the service' }
   ],
   'Personal Care': [
     { name: 'serviceType', label: 'Service Type', type: 'select', options: ['Hair Styling', 'Makeup', 'Massage', 'Nail Care', 'Personal Training'], required: true },
     { name: 'specializations', label: 'Specializations', type: 'multiselect', options: ['Wedding', 'Special Events', 'Sports Massage', 'Therapeutic', 'Wellness'] },
     { name: 'location', label: 'Service Location', type: 'select', options: ['At Home', 'At Studio', 'Mobile Service'], required: true },
     { name: 'duration', label: 'Session Duration', type: 'text', placeholder: 'e.g., 60 minutes', required: true },
-    { name: 'products', label: 'Products Used', type: 'textarea', placeholder: 'List the products/brands you use' },
-    { name: 'paymentOptions.payAtService', label: 'Accept Pay at Service', type: 'boolean' },
-    { name: 'paymentOptions.onlinePayment', label: 'Accept Online Payment', type: 'boolean' }
+    { name: 'products', label: 'Products Used', type: 'textarea', placeholder: 'List the products/brands you use' }
   ],
   'Education & Training': [
     { name: 'subject', label: 'Subject Area', type: 'select', options: ['Languages', 'Mathematics', 'Science', 'Arts', 'Technology'], required: true },
@@ -174,18 +171,14 @@ const categorySpecificFields: Record<string, FieldConfig[]> = {
     { name: 'format', label: 'Class Format', type: 'select', options: ['One-on-One', 'Group', 'Online', 'In-Person'], required: true },
     { name: 'materials', label: 'Learning Materials', type: 'textarea', placeholder: 'Describe the materials provided' },
     { name: 'prerequisites', label: 'Prerequisites', type: 'textarea' },
-    { name: 'classSize', label: 'Maximum Class Size', type: 'number', helperText: 'For group sessions' },
-    { name: 'paymentOptions.payAtService', label: 'Accept Pay at Service', type: 'boolean' },
-    { name: 'paymentOptions.onlinePayment', label: 'Accept Online Payment', type: 'boolean' }
+    { name: 'classSize', label: 'Maximum Class Size', type: 'number', helperText: 'For group sessions' }
   ],
   'Creative & Digital': [
     { name: 'serviceType', label: 'Service Type', type: 'select', options: ['Graphic Design', 'Web Development', 'Video Production', 'Content Writing'], required: true },
     { name: 'skills', label: 'Technical Skills', type: 'multiselect', options: ['Adobe Suite', 'WordPress', 'React', 'SEO', 'Video Editing'] },
     { name: 'deliverables', label: 'Deliverables', type: 'textarea', required: true },
     { name: 'revisions', label: 'Revision Policy', type: 'text', placeholder: 'e.g., 2 rounds of revisions included' },
-    { name: 'turnaround', label: 'Typical Turnaround Time', type: 'text', required: true },
-    { name: 'paymentOptions.payAtService', label: 'Accept Pay at Service', type: 'boolean' },
-    { name: 'paymentOptions.onlinePayment', label: 'Accept Online Payment', type: 'boolean' }
+    { name: 'turnaround', label: 'Typical Turnaround Time', type: 'text', required: true }
   ],
   'Events & Entertainment': [
     { name: 'serviceType', label: 'Service Type', type: 'select', options: ['DJ', 'Live Band', 'Photography', 'Catering', 'Event Planning'], required: true },
@@ -193,18 +186,14 @@ const categorySpecificFields: Record<string, FieldConfig[]> = {
     { name: 'equipment', label: 'Equipment Provided', type: 'textarea', required: true },
     { name: 'duration', label: 'Performance Duration', type: 'text', required: true },
     { name: 'setup', label: 'Setup Requirements', type: 'textarea' },
-    { name: 'travel', label: 'Travel Distance', type: 'text', placeholder: 'Maximum distance willing to travel' },
-    { name: 'paymentOptions.payAtService', label: 'Accept Pay at Service', type: 'boolean' },
-    { name: 'paymentOptions.onlinePayment', label: 'Accept Online Payment', type: 'boolean' }
+    { name: 'travel', label: 'Travel Distance', type: 'text', placeholder: 'Maximum distance willing to travel' }
   ],
   'Health & Wellness': [
     { name: 'serviceType', label: 'Service Type', type: 'select', options: ['Yoga', 'Nutrition', 'Counseling', 'Physical Therapy'], required: true },
     { name: 'specialization', label: 'Specialization', type: 'multiselect', options: ['Prenatal', 'Sports', 'Mental Health', 'Weight Management'] },
     { name: 'sessionType', label: 'Session Type', type: 'select', options: ['Individual', 'Group', 'Online', 'In-Person'], required: true },
     { name: 'duration', label: 'Session Duration', type: 'text', required: true },
-    { name: 'certification', label: 'Professional Certifications', type: 'textarea', required: true },
-    { name: 'paymentOptions.payAtService', label: 'Accept Pay at Service', type: 'boolean' },
-    { name: 'paymentOptions.onlinePayment', label: 'Accept Online Payment', type: 'boolean' }
+    { name: 'certification', label: 'Professional Certifications', type: 'textarea', required: true }
   ],
   'Transportation': [
     { name: 'serviceType', label: 'Service Type', type: 'select', options: ['Rideshare', 'Moving', 'Delivery', 'Chauffeur'], required: true },
@@ -212,27 +201,21 @@ const categorySpecificFields: Record<string, FieldConfig[]> = {
     { name: 'capacity', label: 'Vehicle Capacity', type: 'text', required: true },
     { name: 'coverage', label: 'Service Area', type: 'textarea', required: true },
     { name: 'availability', label: 'Availability', type: 'multiselect', options: ['Weekdays', 'Weekends', '24/7', 'By Appointment'] },
-    { name: 'insurance', label: 'Insurance Details', type: 'textarea' },
-    { name: 'paymentOptions.payAtService', label: 'Accept Pay at Service', type: 'boolean' },
-    { name: 'paymentOptions.onlinePayment', label: 'Accept Online Payment', type: 'boolean' }
+    { name: 'insurance', label: 'Insurance Details', type: 'textarea' }
   ],
   'Business Services': [
     { name: 'serviceType', label: 'Service Type', type: 'select', options: ['Consulting', 'Bookkeeping', 'Virtual Assistant', 'HR Services'], required: true },
     { name: 'expertise', label: 'Areas of Expertise', type: 'multiselect', options: ['Strategy', 'Finance', 'Operations', 'Marketing'] },
     { name: 'availability', label: 'Availability', type: 'multiselect', options: ['Full-time', 'Part-time', 'Project-based', 'On-call'] },
     { name: 'tools', label: 'Tools & Software', type: 'textarea', placeholder: 'List the tools and software you use' },
-    { name: 'languages', label: 'Languages', type: 'multiselect', options: ['English', 'Spanish', 'French', 'Mandarin', 'Other'] },
-    { name: 'paymentOptions.payAtService', label: 'Accept Pay at Service', type: 'boolean' },
-    { name: 'paymentOptions.onlinePayment', label: 'Accept Online Payment', type: 'boolean' }
+    { name: 'languages', label: 'Languages', type: 'multiselect', options: ['English', 'Spanish', 'French', 'Mandarin', 'Other'] }
   ],
   Other: [
     { name: 'serviceType', label: 'Service Type', type: 'text', required: true },
     { name: 'description', label: 'Detailed Description', type: 'textarea', required: true },
     { name: 'requirements', label: 'Special Requirements', type: 'textarea' },
     { name: 'availability', label: 'Availability', type: 'text' },
-    { name: 'additionalInfo', label: 'Additional Information', type: 'textarea' },
-    { name: 'paymentOptions.payAtService', label: 'Accept Pay at Service', type: 'boolean' },
-    { name: 'paymentOptions.onlinePayment', label: 'Accept Online Payment', type: 'boolean' }
+    { name: 'additionalInfo', label: 'Additional Information', type: 'textarea' }
   ]
 };
 
@@ -350,10 +333,26 @@ const StepIndicator = styled(Box)(({ theme }) => ({
   boxShadow: theme.shadows[1],
 }));
 
+// Add array of placeholder image URLs for mock data
+const placeholderImages = [
+  'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1488751045188-3c55bbf9a3fa?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1560523159-4a9692d222f9?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=800&q=80'
+];
+
 const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [availabilityTab, setAvailabilityTab] = useState<number>(0);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
   const steps = ['Basic Information', 'Category & Availability', 'Pricing Options'];
+
+  // Function to generate a unique ID for new listings
+  const generateUniqueId = (): string => {
+    return 'service-' + Math.random().toString(36).substr(2, 9);
+  };
 
   // Function to get availability preview text
   const getAvailabilityPreviewText = (availability: any) => {
@@ -463,6 +462,75 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         handleNext();
       } else {
         console.log('Final form submission:', values);
+        
+        // Create a new service listing from form values
+        const newServiceListing = {
+          id: generateUniqueId(),
+          name: values.title,
+          type: 'service' as const,
+          category: values.category,
+          price: values.pricingModel === 'flat' 
+            ? parseFloat(values.flatRatePrice) || 0 
+            : parseFloat(values.pricingTiers[0]?.price) || 0,
+          shortDescription: values.shortDescription,
+          description: values.detailedDescription,
+          longDescription: values.detailedDescription,
+          location: {
+            city: values.location,
+            country: values.country,
+          },
+          // Use placeholder images instead of URL.createObjectURL
+          images: values.images.length > 0 
+            ? placeholderImages.slice(0, Math.min(values.images.length, placeholderImages.length))
+            : [placeholderImages[0]],
+          provider: {
+            id: 'current-user', // This would normally be the logged-in user's ID
+            username: 'Your Shop Name', // This would be the current user's shop name
+            avatar: '', // This would be the current user's avatar
+            rating: 0,
+            totalBookings: 0,
+            joinedDate: new Date(),
+            isOnline: true,
+            location: {
+              city: values.location,
+              country: values.country,
+            },
+            reviews: [],
+            responseTime: '1 hour',
+            responseRate: '100%',
+          },
+          createdAt: new Date(),
+          trending: false,
+          recommended: false,
+          duration: 60, // Default duration in minutes
+          serviceType: values.serviceType,
+          serviceArea: values.serviceCities.length > 0 
+            ? `Multiple locations in ${values.serviceCities.length + 1} cities` 
+            : `Coverage area: ${values.coverageAreaKm || 'local'} km`,
+          availability: getAvailabilityPreviewText(values.availability),
+          pricingStructure: values.pricingModel === 'tiered' ? 'tiered' : 'fixed',
+          languagesSpoken: ['English'],
+          serviceMode: 'both' as const,
+          paymentOptions: {
+            onlinePayment: values.paymentOptions?.onlinePayment || false,
+            payAtService: values.paymentOptions?.payAtService || true
+          },
+          views: 0,
+          saves: 0,
+          status: 'active',
+        };
+        
+        // Add the new listing to mockServices
+        mockServices.push(newServiceListing);
+        
+        // Show success message
+        setSnackbarMessage('Service listing successfully created!');
+        setSnackbarOpen(true);
+        
+        // Reset form or navigate back to listings page after a delay
+        setTimeout(() => {
+          onBack();
+        }, 2000);
       }
     },
   });
@@ -1655,6 +1723,10 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     }
   };
 
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
   return (
     <FormContainer>
       <FormSection>
@@ -1794,7 +1866,7 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     : 'All week',
             pricingStructure: formik.values.pricingModel === 'tiered' ? 'tiered' : 'fixed',
             languagesSpoken: ['English'],
-            serviceMode: 'both',
+            serviceMode: 'both' as const,
             paymentOptions: {
               onlinePayment: formik.values.paymentOptions?.onlinePayment || false,
               payAtService: formik.values.paymentOptions?.payAtService || true
@@ -1803,6 +1875,22 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           type="service"
         />
       </PreviewSection>
+      
+      {/* Success message snackbar */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleSnackbarClose} 
+          severity="success" 
+          sx={{ width: '100%', backgroundColor: '#EDD9FF', color: '#3D1560' }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </FormContainer>
   );
 };
