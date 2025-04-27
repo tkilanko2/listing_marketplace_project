@@ -37,6 +37,11 @@ import {
   AccordionDetails,
   Snackbar,
   Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  CircularProgress,
 } from '@mui/material';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -56,6 +61,8 @@ import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DescriptionIcon from '@mui/icons-material/Description';
+import CloseIcon from '@mui/icons-material/Close';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { mockServices } from '../../mockData';
 
 const serviceCategories = [
@@ -127,6 +134,7 @@ interface FormValues extends Record<string, any> {
     description: string;
     features: string[];
   }>;
+  status: 'pending' | 'active' | 'draft' | 'inactive';
 }
 
 interface FieldConfig {
@@ -342,12 +350,27 @@ const placeholderImages = [
   'https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=800&q=80'
 ];
 
-const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => void }> = ({ onBack }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [availabilityTab, setAvailabilityTab] = useState<number>(0);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [isSellerInfoOpen, setIsSellerInfoOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [newListingId, setNewListingId] = useState('');
   const steps = ['Basic Information', 'Category & Availability', 'Pricing Options'];
+
+  // Seller info form state
+  const [sellerInfo, setSellerInfo] = useState({
+    shopPolicies: '',
+    returnsPolicy: '',
+    shippingInfo: '',
+    sellerBio: '',
+    customerServiceHours: '',
+    paymentMethods: ['Credit Card', 'PayPal']
+  });
+
+  const [showListingSuccessDialog, setShowListingSuccessDialog] = useState(false);
 
   // Function to generate a unique ID for new listings
   const generateUniqueId = (): string => {
@@ -432,29 +455,38 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           description: '',
           features: []
         }
-      ]
+      ],
+      status: 'pending'
     },
     validationSchema: Yup.object({
       title: Yup.string().required('Title is required'),
       shortDescription: Yup.string().required('Short description is required'),
       detailedDescription: Yup.string().required('Detailed description is required'),
-      location: Yup.string().required('City is required'),
-      country: Yup.string().required('Country is required'),
-      category: Yup.string().required('Category is required'),
-      pricingModel: Yup.string().required('Pricing model is required'),
+      // Make location and country optional to prevent validation blocking
+      location: Yup.string(),
+      country: Yup.string(),
+      category: Yup.string(),
+      // Make pricing model validation strict and required
+      pricingModel: Yup.string().required('Please select a pricing model'),
       flatRatePrice: Yup.string().when('pricingModel', {
         is: 'flat',
-        then: () => Yup.string().required('Price is required')
+        then: () => Yup.string()
+          .required('Please enter the price')
+          .test('is-valid-price', 'Price must be a valid number greater than 0', 
+            value => !isNaN(Number(value)) && Number(value) > 0)
       }),
       pricingTiers: Yup.array().when('pricingModel', {
         is: 'tiered',
         then: () => Yup.array().of(
           Yup.object().shape({
             name: Yup.string().required('Tier name is required'),
-            price: Yup.string().required('Tier price is required'),
+            price: Yup.string()
+              .required('Tier price is required')
+              .test('is-valid-price', 'Price must be a valid number greater than 0', 
+                value => !isNaN(Number(value)) && Number(value) > 0),
             description: Yup.string().required('Tier description is required')
           })
-        )
+        ).min(1, 'At least one pricing tier is required')
       })
     }),
     onSubmit: (values) => {
@@ -463,74 +495,149 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       } else {
         console.log('Final form submission:', values);
         
-        // Create a new service listing from form values
-        const newServiceListing = {
-          id: generateUniqueId(),
-          name: values.title,
-          type: 'service' as const,
-          category: values.category,
-          price: values.pricingModel === 'flat' 
-            ? parseFloat(values.flatRatePrice) || 0 
-            : parseFloat(values.pricingTiers[0]?.price) || 0,
-          shortDescription: values.shortDescription,
-          description: values.detailedDescription,
-          longDescription: values.detailedDescription,
-          location: {
-            city: values.location,
-            country: values.country,
-          },
-          // Use placeholder images instead of URL.createObjectURL
-          images: values.images.length > 0 
-            ? placeholderImages.slice(0, Math.min(values.images.length, placeholderImages.length))
-            : [placeholderImages[0]],
-          provider: {
-            id: 'current-user', // This would normally be the logged-in user's ID
-            username: 'Your Shop Name', // This would be the current user's shop name
-            avatar: '', // This would be the current user's avatar
-            rating: 0,
-            totalBookings: 0,
-            joinedDate: new Date(),
-            isOnline: true,
+        // Validate pricing information before submission
+        let pricingValid = false;
+        
+        if (values.pricingModel === 'flat') {
+          // For flat pricing, check if flatRatePrice is valid
+          const price = parseFloat(values.flatRatePrice);
+          pricingValid = !isNaN(price) && price > 0;
+          
+          if (!pricingValid) {
+            formik.setFieldError('flatRatePrice', 'Please enter a valid price greater than 0');
+            setSnackbarMessage('Please enter a valid price');
+            setSnackbarOpen(true);
+            return;
+          }
+        } else if (values.pricingModel === 'tiered') {
+          // For tiered pricing, check if at least one tier has a valid price
+          pricingValid = values.pricingTiers.length > 0 && 
+            values.pricingTiers.every(tier => {
+              const price = parseFloat(tier.price);
+              const hasValidPrice = !isNaN(price) && price > 0;
+              const hasName = !!tier.name;
+              const hasDescription = !!tier.description;
+              return hasValidPrice && hasName && hasDescription;
+            });
+          
+          if (!pricingValid) {
+            setSnackbarMessage('Please complete all pricing tier information');
+            setSnackbarOpen(true);
+            return;
+          }
+        } else {
+          // If no pricing model is selected
+          formik.setFieldError('pricingModel', 'Please select a pricing model');
+          setSnackbarMessage('Please select a pricing model');
+          setSnackbarOpen(true);
+          return;
+        }
+        
+        try {
+          setIsProcessing(true);
+          
+          // Create a new service listing from form values
+          const newId = generateUniqueId();
+          setNewListingId(newId);
+          
+          // Set default values for missing fields
+          const location = values.location || 'No location specified';
+          const country = values.country || 'No country specified';
+          const category = values.category || 'Other';
+          
+          // Fix for pricing - ensure a default price is set
+          let price = 99; // Default price if nothing is provided
+          if (values.pricingModel === 'flat' && values.flatRatePrice) {
+            const parsedPrice = parseFloat(values.flatRatePrice);
+            if (!isNaN(parsedPrice)) {
+              price = parsedPrice;
+            }
+          } else if (values.pricingModel === 'tiered' && values.pricingTiers.length > 0 && values.pricingTiers[0]?.price) {
+            const parsedPrice = parseFloat(values.pricingTiers[0].price);
+            if (!isNaN(parsedPrice)) {
+              price = parsedPrice;
+            }
+          }
+          
+          const newServiceListing = {
+            id: newId,
+            name: values.title || 'New Service',
+            type: 'service' as const,
+            category: category,
+            price: price,
+            shortDescription: values.shortDescription || 'No description provided',
+            description: values.detailedDescription || 'No detailed description provided',
+            longDescription: values.detailedDescription || 'No detailed description provided',
             location: {
-              city: values.location,
-              country: values.country,
+              city: location,
+              country: country,
             },
-            reviews: [],
-            responseTime: '1 hour',
-            responseRate: '100%',
-          },
-          createdAt: new Date(),
-          trending: false,
-          recommended: false,
-          duration: 60, // Default duration in minutes
-          serviceType: values.serviceType,
-          serviceArea: values.serviceCities.length > 0 
-            ? `Multiple locations in ${values.serviceCities.length + 1} cities` 
-            : `Coverage area: ${values.coverageAreaKm || 'local'} km`,
-          availability: getAvailabilityPreviewText(values.availability),
-          pricingStructure: values.pricingModel === 'tiered' ? 'tiered' : 'fixed',
-          languagesSpoken: ['English'],
-          serviceMode: 'both' as const,
-          paymentOptions: {
-            onlinePayment: values.paymentOptions?.onlinePayment || false,
-            payAtService: values.paymentOptions?.payAtService || true
-          },
-          views: 0,
-          saves: 0,
-          status: 'active',
-        };
-        
-        // Add the new listing to mockServices
-        mockServices.push(newServiceListing);
-        
-        // Show success message
-        setSnackbarMessage('Service listing successfully created!');
-        setSnackbarOpen(true);
-        
-        // Reset form or navigate back to listings page after a delay
-        setTimeout(() => {
-          onBack();
-        }, 2000);
+            // Use placeholder images instead of URL.createObjectURL
+            images: values.images.length > 0 
+              ? placeholderImages.slice(0, Math.min(values.images.length, placeholderImages.length))
+              : [placeholderImages[0]],
+            provider: {
+              id: 'current-user', // This would normally be the logged-in user's ID
+              username: 'Your Shop Name', // This would be the current user's shop name
+              avatar: '', // This would be the current user's avatar
+              rating: 0,
+              totalBookings: 0,
+              joinedDate: new Date(),
+              isOnline: true,
+              location: {
+                city: location,
+                country: country,
+              },
+              reviews: [],
+              responseTime: '1 hour',
+              responseRate: '100%',
+            },
+            createdAt: new Date(),
+            trending: false,
+            recommended: false,
+            duration: 60, // Default duration in minutes
+            serviceType: values.serviceType || 'general',
+            serviceArea: values.serviceCities.length > 0 
+              ? `Multiple locations in ${values.serviceCities.length + 1} cities` 
+              : `Coverage area: ${values.coverageAreaKm || 'local'} km`,
+            availability: getAvailabilityPreviewText(values.availability),
+            pricingStructure: values.pricingModel === 'tiered' ? 'tiered' : 'fixed',
+            languagesSpoken: ['English'],
+            serviceMode: 'both' as const,
+            paymentOptions: {
+              onlinePayment: values.paymentOptions?.onlinePayment || false,
+              payAtService: values.paymentOptions?.payAtService || true
+            },
+            views: 0,
+            saves: 0,
+            status: 'pending' as const,
+          };
+          
+          console.log('Adding new service listing:', newServiceListing);
+          
+          // Add the new listing to mockServices
+          mockServices.push(newServiceListing);
+          console.log('mockServices array updated, length:', mockServices.length);
+          
+          // Log all current pending listings to help debug
+          console.log('Current pending listings:', 
+            mockServices
+              .filter(service => service.status === 'pending')
+              .map(service => ({ id: service.id, name: service.name, status: service.status }))
+          );
+          
+          // Show success dialog directly
+          setTimeout(() => {
+            setIsProcessing(false);
+            setShowListingSuccessDialog(true);
+          }, 1000);
+        } catch (error) {
+          console.error('Error creating service listing:', error);
+          debugFormValues(); // Debug the form values to help troubleshoot
+          setSnackbarMessage('Error creating service listing. Please try again.');
+          setSnackbarOpen(true);
+          setIsProcessing(false);
+        }
       }
     },
   });
@@ -1398,217 +1505,236 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   
   const renderPricingSection = () => {
     const addFeature = (tierIndex: number) => {
-      const newTiers = [...formik.values.pricingTiers];
-      newTiers[tierIndex].features.push('');
-      formik.setFieldValue('pricingTiers', newTiers);
+      const newPricingTiers = [...formik.values.pricingTiers];
+      if (newPricingTiers[tierIndex]) {
+        newPricingTiers[tierIndex].features = [...(newPricingTiers[tierIndex].features || []), ''];
+        formik.setFieldValue('pricingTiers', newPricingTiers);
+      }
     };
-    
+
     const removeFeature = (tierIndex: number, featureIndex: number) => {
-      const newTiers = [...formik.values.pricingTiers];
-      newTiers[tierIndex].features.splice(featureIndex, 1);
-      formik.setFieldValue('pricingTiers', newTiers);
+      const newPricingTiers = [...formik.values.pricingTiers];
+      if (newPricingTiers[tierIndex] && newPricingTiers[tierIndex].features) {
+        newPricingTiers[tierIndex].features = newPricingTiers[tierIndex].features.filter((_, index) => index !== featureIndex);
+        formik.setFieldValue('pricingTiers', newPricingTiers);
+      }
     };
-    
+
+    // Helper to check if a field has an error
+    const hasError = (field: string) => {
+      return Boolean(
+        formik.touched[field as keyof typeof formik.touched] && 
+        formik.errors[field as keyof typeof formik.errors]
+      );
+    };
+
+    // Helper to get error message for a field
+    const getErrorMessage = (field: string) => {
+      return formik.touched[field as keyof typeof formik.touched] ? 
+        formik.errors[field as keyof typeof formik.errors] : '';
+    };
+
+    // Helper to check if a tier field has an error
+    const hasTierError = (tierIndex: number, field: string) => {
+      return Boolean(
+        formik.touched.pricingTiers && 
+        formik.touched.pricingTiers[tierIndex] && 
+        formik.touched.pricingTiers[tierIndex]?.[field] && 
+        formik.errors.pricingTiers && 
+        formik.errors.pricingTiers[tierIndex] && 
+        formik.errors.pricingTiers[tierIndex]?.[field]
+      );
+    };
+
+    // Helper to get error message for a tier field
+    const getTierErrorMessage = (tierIndex: number, field: string) => {
+      if (formik.touched.pricingTiers && 
+          formik.touched.pricingTiers[tierIndex] && 
+          formik.touched.pricingTiers[tierIndex]?.[field] && 
+          formik.errors.pricingTiers && 
+          formik.errors.pricingTiers[tierIndex]) {
+        return formik.errors.pricingTiers[tierIndex]?.[field];
+      }
+      return '';
+    };
+
     return (
-      <Card sx={{ p: 3, border: '1px solid', borderColor: 'divider' }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', color: '#3D1560' }}>
-            <MonetizationOnIcon sx={{ mr: 1 }} /> Pricing Options
-          </Typography>
-          
-          <FormControl component="fieldset" sx={{ mb: 3, width: '100%' }}>
-            <FormLabel component="legend">Pricing Model</FormLabel>
-            <RadioGroup
-              name="pricingModel"
-              value={formik.values.pricingModel}
+      <Box>
+        <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
+          Set Your Pricing Options
+        </Typography>
+
+        <FormControl component="fieldset" sx={{ mb: 4 }}>
+          <FormLabel component="legend" sx={{ color: '#383A47', mb: 1 }}>Pricing Model</FormLabel>
+          <RadioGroup
+            name="pricingModel"
+            value={formik.values.pricingModel}
+            onChange={formik.handleChange}
+            row
+          >
+            <FormControlLabel 
+              value="flat" 
+              control={<Radio sx={{ color: '#3D1560', '&.Mui-checked': { color: '#3D1560' } }} />} 
+              label="Flat Rate" 
+            />
+            <FormControlLabel 
+              value="tiered" 
+              control={<Radio sx={{ color: '#3D1560', '&.Mui-checked': { color: '#3D1560' } }} />} 
+              label="Tiered Packages" 
+            />
+          </RadioGroup>
+          {hasError('pricingModel') && (
+            <Typography color="error" variant="caption" sx={{ mt: 0.5 }}>
+              {getErrorMessage('pricingModel')}
+            </Typography>
+          )}
+        </FormControl>
+
+        {formik.values.pricingModel === 'flat' ? (
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Flat Rate Price
+            </Typography>
+            <StyledTextField
+              name="flatRatePrice"
+              label="Service Price"
+              type="number"
+              placeholder="Enter price"
+              value={formik.values.flatRatePrice}
               onChange={formik.handleChange}
-              row
-              sx={{
-                '& .MuiRadio-root.Mui-checked': {
-                  color: '#3D1560',
-                },
+              onBlur={formik.handleBlur}
+              InputProps={{
+                startAdornment: <InputAdornment position="start">$</InputAdornment>,
               }}
-            >
-              <FormControlLabel 
-                value="flat" 
-                control={<Radio />} 
-                label="Flat Rate" 
-              />
-              <FormControlLabel 
-                value="tiered" 
-                control={<Radio />} 
-                label="Tiered Packages" 
-              />
-            </RadioGroup>
-          </FormControl>
-          
-          {formik.values.pricingModel === 'flat' ? (
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Set Your Flat Rate Price
-              </Typography>
-              <TextField
-                name="flatRatePrice"
-                label="Price"
-                type="number"
-                value={formik.values.flatRatePrice}
-                onChange={formik.handleChange}
-                fullWidth
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">$</InputAdornment>,
+              fullWidth
+              error={hasError('flatRatePrice')}
+              helperText={getErrorMessage('flatRatePrice')}
+            />
+          </Box>
+        ) : (
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="subtitle1" gutterBottom sx={{ mb: 2 }}>
+              Pricing Tiers
+            </Typography>
+            
+            {formik.values.pricingTiers.map((tier, tierIndex) => (
+              <Paper 
+                key={tier.id} 
+                sx={{ 
+                  p: 3, 
+                  mb: 3, 
+                  border: '1px solid #CDCED8',
+                  borderRadius: 2
                 }}
-                error={formik.touched.flatRatePrice && Boolean(formik.errors.flatRatePrice)}
-                helperText={formik.touched.flatRatePrice && formik.errors.flatRatePrice}
-              />
-            </Box>
-          ) : (
-            <Box>
-              <Typography variant="subtitle1" gutterBottom>
-                Configure Your Service Tiers
-              </Typography>
-              <Typography variant="body2" color="text.secondary" paragraph>
-                Create tiered packages with different prices and features. Customers can choose the package that best fits their needs.
-              </Typography>
-              
-              <Grid container spacing={3}>
-                {formik.values.pricingTiers.map((tier, tierIndex) => (
-                  <Grid item xs={12} md={4} key={tier.id}>
-                    <Card 
-                      elevation={2} 
+              >
+                <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
+                  {tier.name || `Tier ${tierIndex + 1}`}
+                </Typography>
+                
+                <Grid container spacing={3}>
+                  <Grid item xs={12} sm={6}>
+                    <StyledTextField
+                      name={`pricingTiers.${tierIndex}.name`}
+                      label="Tier Name"
+                      placeholder="e.g., Basic, Standard, Premium"
+                      value={tier.name}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      fullWidth
+                      error={hasTierError(tierIndex, 'name')}
+                      helperText={getTierErrorMessage(tierIndex, 'name')}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <StyledTextField
+                      name={`pricingTiers.${tierIndex}.price`}
+                      label="Price"
+                      type="number"
+                      placeholder="Enter price"
+                      value={tier.price}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      InputProps={{
+                        startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                      }}
+                      fullWidth
+                      error={hasTierError(tierIndex, 'price')}
+                      helperText={getTierErrorMessage(tierIndex, 'price')}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <StyledTextField
+                      name={`pricingTiers.${tierIndex}.description`}
+                      label="Description"
+                      multiline
+                      rows={2}
+                      placeholder="Describe what's included in this tier"
+                      value={tier.description}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      fullWidth
+                      error={hasTierError(tierIndex, 'description')}
+                      helperText={getTierErrorMessage(tierIndex, 'description')}
+                    />
+                  </Grid>
+                </Grid>
+                
+                <Box sx={{ mt: 3 }}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Key Features
+                  </Typography>
+                  
+                  {tier.features && tier.features.map((feature, featureIndex) => (
+                    <Box 
+                      key={`${tier.id}-feature-${featureIndex}`} 
                       sx={{ 
-                        height: '100%', 
                         display: 'flex', 
-                        flexDirection: 'column',
-                        border: tierIndex === 1 ? '2px solid #3D1560' : 'none',
-                        position: 'relative'
+                        alignItems: 'center',
+                        mb: 1
                       }}
                     >
-                      {tierIndex === 1 && (
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            top: -12,
-                            left: 0,
-                            right: 0,
-                            textAlign: 'center'
-                          }}
-                        >
-                          <Chip 
-                            label="MOST POPULAR" 
-                            size="small" 
-                            sx={{ 
-                              bgcolor: '#3D1560', 
-                              color: 'white',
-                              fontWeight: 'bold'
-                            }} 
-                          />
-                        </Box>
-                      )}
-                      
-                      <CardContent sx={{ flexGrow: 1 }}>
-                        <TextField
-                          label="Package Name"
-                          value={tier.name}
-                          onChange={(e) => {
-                            const newTiers = [...formik.values.pricingTiers];
-                            newTiers[tierIndex].name = e.target.value;
-                            formik.setFieldValue('pricingTiers', newTiers);
-                          }}
-                          fullWidth
-                          margin="normal"
-                          placeholder={`e.g., ${tier.name}`}
-                          InputProps={{
-                            sx: { fontWeight: 'bold', color: '#3D1560' }
-                          }}
-                        />
-                        
-                        <TextField
-                          label="Price"
-                          type="number"
-                          value={tier.price}
-                          onChange={(e) => {
-                            const newTiers = [...formik.values.pricingTiers];
-                            newTiers[tierIndex].price = e.target.value;
-                            formik.setFieldValue('pricingTiers', newTiers);
-                          }}
-                          fullWidth
-                          margin="normal"
-                          InputProps={{
-                            startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                          }}
-                        />
-                        
-                        <TextField
-                          label="Description"
-                          value={tier.description}
-                          onChange={(e) => {
-                            const newTiers = [...formik.values.pricingTiers];
-                            newTiers[tierIndex].description = e.target.value;
-                            formik.setFieldValue('pricingTiers', newTiers);
-                          }}
-                          fullWidth
-                          margin="normal"
-                          multiline
-                          rows={2}
-                          placeholder="Brief description of this package"
-                        />
-                        
-                        <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
-                          Features Included
-                        </Typography>
-                        
-                        {tier.features.map((feature, featureIndex) => (
-                          <Box key={featureIndex} sx={{ display: 'flex', mb: 1 }}>
-                            <TextField
-                              size="small"
-                              fullWidth
-                              value={feature}
-                              onChange={(e) => {
-                                const newTiers = [...formik.values.pricingTiers];
-                                newTiers[tierIndex].features[featureIndex] = e.target.value;
-                                formik.setFieldValue('pricingTiers', newTiers);
-                              }}
-                              placeholder={`Feature ${featureIndex + 1}`}
-                              InputProps={{
-                                startAdornment: (
-                                  <InputAdornment position="start">
-                                    <CheckIcon fontSize="small" color="success" />
-                                  </InputAdornment>
-                                ),
-                              }}
-                            />
-                            <IconButton 
-                              size="small" 
-                              onClick={() => removeFeature(tierIndex, featureIndex)}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Box>
-                        ))}
-                        
-                        <Button
-                          startIcon={<AddIcon sx={{ color: '#3D1560' }} />}
-                          onClick={() => addFeature(tierIndex)}
-                          size="small"
-                          sx={{ 
-                            mt: 1,
-                            color: '#3D1560',
-                            '&:hover': {
-                              backgroundColor: '#E8E9ED',
-                            }
-                          }}
-                        >
-                          Add Feature
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          )}
-        </CardContent>
-      </Card>
+                      <StyledTextField
+                        name={`pricingTiers.${tierIndex}.features.${featureIndex}`}
+                        placeholder="e.g., Free delivery, 24/7 support"
+                        value={feature}
+                        onChange={formik.handleChange}
+                        size="small"
+                        fullWidth
+                        sx={{ mr: 1 }}
+                      />
+                      <IconButton 
+                        size="small" 
+                        onClick={() => removeFeature(tierIndex, featureIndex)}
+                        sx={{ color: '#F44336' }}
+                      >
+                        <DeleteOutlineIcon />
+                      </IconButton>
+                    </Box>
+                  ))}
+                  
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<AddIcon />}
+                    onClick={() => addFeature(tierIndex)}
+                    sx={{ 
+                      mt: 1,
+                      color: '#3D1560',
+                      borderColor: '#3D1560',
+                      '&:hover': {
+                        borderColor: '#6D26AB',
+                        color: '#6D26AB',
+                      },
+                    }}
+                  >
+                    Add Feature
+                  </Button>
+                </Box>
+              </Paper>
+            ))}
+          </Box>
+        )}
+      </Box>
     );
   };
 
@@ -1723,8 +1849,72 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     }
   };
 
+  const handleSellerInfoClose = () => {
+    // When seller info dialog is closed
+    setIsSellerInfoOpen(false);
+    
+    // Show success dialog instead of just a snackbar
+    setShowListingSuccessDialog(true);
+    
+    // Log the new listing ID for verification
+    console.log('New listing created with ID:', newListingId);
+    console.log('mockServices length after adding:', mockServices.length);
+    console.log('Current listings:', mockServices.filter(service => service.id === newListingId));
+  };
+  
+  const handleSuccessDialogClose = () => {
+    setShowListingSuccessDialog(false);
+    
+    // Show success message
+    setSnackbarMessage('Service listing successfully created and pending approval! It will appear in your listings soon.');
+    setSnackbarOpen(true);
+    
+    // Navigate to seller dashboard by passing true to onBack()
+    console.log('Navigating to seller dashboard...');
+    onBack(true);
+  };
+
+  const handleSellerInfoSubmit = () => {
+    // Here you would typically save the seller info
+    console.log('Seller info submitted:', sellerInfo);
+    
+    // Close the dialog and show success
+    setIsSellerInfoOpen(false);
+    setShowListingSuccessDialog(true);
+  };
+
+  const handleSellerInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setSellerInfo(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
+  };
+
+  // Add debug method to help troubleshoot
+  const debugFormValues = () => {
+    console.log('DEBUG - Form Values:', formik.values);
+    console.log('DEBUG - Form Errors:', formik.errors);
+    console.log('DEBUG - Form Touched:', formik.touched);
+    console.log('DEBUG - Form isSubmitting:', formik.isSubmitting);
+    console.log('DEBUG - Form isValid:', formik.isValid);
+    
+    // Check specific critical fields
+    console.log('DEBUG - title:', formik.values.title, 'Error:', formik.errors.title);
+    console.log('DEBUG - pricingModel:', formik.values.pricingModel);
+    
+    if (formik.values.pricingModel === 'flat') {
+      console.log('DEBUG - flatRatePrice:', formik.values.flatRatePrice, 'Error:', formik.errors.flatRatePrice);
+    } else {
+      console.log('DEBUG - pricingTiers:', formik.values.pricingTiers);
+      if (formik.errors.pricingTiers) {
+        console.log('DEBUG - pricingTiers errors:', formik.errors.pricingTiers);
+      }
+    }
   };
 
   return (
@@ -1786,6 +1976,20 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 Back
               </Button>
             )}
+            {/* Add a debug button in development */}
+            <Button
+              variant="outlined"
+              onClick={debugFormValues}
+              sx={{ 
+                px: 3,
+                color: '#3D1560',
+                borderColor: '#3D1560',
+                // Always display for now - in a real app, you would use process.env.NODE_ENV
+                display: 'inline-flex'
+              }}
+            >
+              Debug Form
+            </Button>
             <Button
               variant="contained"
               type={activeStep === steps.length - 1 ? 'submit' : 'button'}
@@ -1876,21 +2080,269 @@ const ServiceListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         />
       </PreviewSection>
       
-      {/* Success message snackbar */}
+      {/* Success message snackbar - make more prominent */}
       <Snackbar
         open={snackbarOpen}
-        autoHideDuration={6000}
+        autoHideDuration={10000} // Increased from 6000ms to 10000ms
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }} // Changed from bottom to top for better visibility
       >
         <Alert 
           onClose={handleSnackbarClose} 
           severity="success" 
-          sx={{ width: '100%', backgroundColor: '#EDD9FF', color: '#3D1560' }}
+          sx={{ 
+            width: '100%', 
+            backgroundColor: '#EDD9FF', 
+            color: '#3D1560',
+            fontSize: '1rem',
+            fontWeight: 'bold',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+          }}
         >
           {snackbarMessage}
         </Alert>
       </Snackbar>
+
+      {/* Processing Dialog */}
+      <Dialog open={isProcessing} aria-labelledby="processing-dialog-title">
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 4, minWidth: '300px' }}>
+          <CircularProgress sx={{ color: '#3D1560', mb: 2 }} />
+          <Typography variant="body1">Creating your listing...</Typography>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Seller Information Dialog */}
+      <Dialog 
+        open={isSellerInfoOpen} 
+        onClose={() => setIsSellerInfoOpen(false)}
+        maxWidth="md"
+        fullWidth
+        aria-labelledby="seller-info-dialog-title"
+      >
+        <DialogTitle id="seller-info-dialog-title" sx={{ bgcolor: '#F8F8FA', borderBottom: '1px solid #CDCED8', position: 'relative' }}>
+          <Typography variant="h6" component="div" sx={{ color: '#1B1C20', fontWeight: 'bold' }}>
+            Additional Seller Information
+          </Typography>
+          <IconButton
+            aria-label="close"
+            onClick={() => setIsSellerInfoOpen(false)}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: '#70727F',
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ p: 3 }}>
+          <Typography variant="body1" paragraph sx={{ color: '#383A47', mb: 3 }}>
+            Your listing has been created and is pending approval. While you wait, please provide some additional information about your shop and services.
+          </Typography>
+          
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', color: '#1B1C20' }}>
+                Shop Policies
+              </Typography>
+              <TextField
+                name="shopPolicies"
+                multiline
+                rows={3}
+                placeholder="Describe your shop policies, including cancellations, rescheduling, etc."
+                value={sellerInfo.shopPolicies}
+                onChange={handleSellerInfoChange}
+                fullWidth
+                sx={{ mb: 2 }}
+              />
+            </Grid>
+            
+            <Grid item xs={12} md={6}>
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', color: '#1B1C20' }}>
+                Returns Policy
+              </Typography>
+              <TextField
+                name="returnsPolicy"
+                multiline
+                rows={2}
+                placeholder="Describe your returns policy (if applicable)"
+                value={sellerInfo.returnsPolicy}
+                onChange={handleSellerInfoChange}
+                fullWidth
+              />
+            </Grid>
+            
+            <Grid item xs={12} md={6}>
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', color: '#1B1C20' }}>
+                Shipping Information
+              </Typography>
+              <TextField
+                name="shippingInfo"
+                multiline
+                rows={2}
+                placeholder="If you ship products, provide details about shipping options (if applicable)"
+                value={sellerInfo.shippingInfo}
+                onChange={handleSellerInfoChange}
+                fullWidth
+              />
+            </Grid>
+            
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', color: '#1B1C20' }}>
+                About You (Seller Bio)
+              </Typography>
+              <TextField
+                name="sellerBio"
+                multiline
+                rows={3}
+                placeholder="Tell customers about yourself, your experience, and why they should choose your services"
+                value={sellerInfo.sellerBio}
+                onChange={handleSellerInfoChange}
+                fullWidth
+              />
+            </Grid>
+            
+            <Grid item xs={12} md={6}>
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', color: '#1B1C20' }}>
+                Customer Service Hours
+              </Typography>
+              <TextField
+                name="customerServiceHours"
+                placeholder="E.g., Mon-Fri: 9AM-5PM, Weekends: Closed"
+                value={sellerInfo.customerServiceHours}
+                onChange={handleSellerInfoChange}
+                fullWidth
+              />
+            </Grid>
+            
+            <Grid item xs={12} md={6}>
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', color: '#1B1C20' }}>
+                Accepted Payment Methods
+              </Typography>
+              <FormGroup row>
+                <FormControlLabel 
+                  control={<Checkbox defaultChecked />} 
+                  label="Credit Card" 
+                  sx={{ '& .MuiCheckbox-root.Mui-checked': { color: '#3D1560' } }}
+                />
+                <FormControlLabel 
+                  control={<Checkbox defaultChecked />} 
+                  label="PayPal" 
+                  sx={{ '& .MuiCheckbox-root.Mui-checked': { color: '#3D1560' } }}
+                />
+                <FormControlLabel 
+                  control={<Checkbox />} 
+                  label="Bank Transfer" 
+                  sx={{ '& .MuiCheckbox-root.Mui-checked': { color: '#3D1560' } }}
+                />
+              </FormGroup>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, borderTop: '1px solid #CDCED8', justifyContent: 'space-between' }}>
+          <Button 
+            onClick={() => setIsSellerInfoOpen(false)} 
+            sx={{ color: '#70727F' }}
+          >
+            Skip for Now
+          </Button>
+          <Button
+            onClick={handleSellerInfoSubmit}
+            variant="contained"
+            sx={{ 
+              bgcolor: '#3D1560', 
+              color: 'white',
+              '&:hover': { bgcolor: '#6D26AB' } 
+            }}
+          >
+            Save Information
+          </Button>
+        </DialogActions>
+      </Dialog>
+      
+      {/* Listing Success Dialog */}
+      <Dialog
+        open={showListingSuccessDialog}
+        onClose={handleSuccessDialogClose}
+        maxWidth="sm"
+        fullWidth
+        aria-labelledby="listing-success-dialog-title"
+      >
+        <DialogTitle id="listing-success-dialog-title" sx={{ bgcolor: '#F8F8FA', borderBottom: '1px solid #CDCED8' }}>
+          <Typography variant="h6" component="div" sx={{ color: '#1B1C20', fontWeight: 'bold' }}>
+            Listing Created Successfully
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 4, pb: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+            <CheckIcon sx={{ fontSize: 60, color: '#3D1560', bgcolor: '#EDD9FF', p: 1, borderRadius: '50%' }} />
+            <Typography variant="h6" align="center" color="#3D1560">
+              Your service listing has been submitted!
+            </Typography>
+            <Typography variant="body1" align="center" paragraph sx={{ mb: 3 }}>
+              Your listing is now pending approval and will appear in your listings soon. 
+              The approval process usually takes 24-48 hours.
+            </Typography>
+            <Typography variant="body2" align="center" color="text.secondary">
+              Listing ID: {newListingId}
+            </Typography>
+            
+            {/* Display current pending listings */}
+            <Box sx={{ mt: 2, width: '100%', bgcolor: '#F8F8FA', p: 2, borderRadius: 1 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Your Pending Listings:
+              </Typography>
+              <Box component="ul" sx={{ listStyleType: 'none', p: 0, m: 0 }}>
+                {mockServices
+                  .filter(service => service.status === 'pending')
+                  .map(service => (
+                    <Box 
+                      component="li" 
+                      key={service.id}
+                      sx={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between',
+                        alignItems: 'center', 
+                        py: 1,
+                        borderBottom: '1px solid #E8E9ED'
+                      }}
+                    >
+                      <Typography variant="body2">
+                        {service.name}
+                      </Typography>
+                      <Chip 
+                        label="PENDING" 
+                        size="small"
+                        sx={{ 
+                          bgcolor: '#FFF8DD', 
+                          color: '#DAA520',
+                          fontWeight: 'bold'
+                        }} 
+                      />
+                    </Box>
+                  ))
+                }
+              </Box>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, borderTop: '1px solid #CDCED8', display: 'flex', justifyContent: 'center' }}>
+          <Button
+            onClick={handleSuccessDialogClose}
+            variant="contained"
+            startIcon={<CheckIcon />}
+            sx={{ 
+              bgcolor: '#3D1560', 
+              color: 'white',
+              px: 4,
+              '&:hover': { bgcolor: '#6D26AB' } 
+            }}
+          >
+            View My Listings
+          </Button>
+        </DialogActions>
+      </Dialog>
     </FormContainer>
   );
 };

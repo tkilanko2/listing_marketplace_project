@@ -13,8 +13,15 @@ const CreateListingPage: React.FC = () => {
   const [selectedType, setSelectedType] = useState<ListingType>(null);
   const theme = useTheme();
 
-  const handleBack = () => {
-    setSelectedType(null);
+  const handleBack = (fromFormSubmission?: boolean) => {
+    if (fromFormSubmission) {
+      const navigateEvent = new CustomEvent('navigate', { 
+        detail: { page: 'sellerDashboard_myShop' } 
+      });
+      window.dispatchEvent(navigateEvent);
+    } else {
+      setSelectedType(null);
+    }
   };
 
   const OptionBox = ({ type, icon, title, description, color }: {

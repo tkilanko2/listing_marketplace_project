@@ -55,13 +55,12 @@ export interface Service extends BaseItem {
     onlinePayment: boolean;
     payAtService: boolean;
   };
+  status?: 'pending' | 'active' | 'draft' | 'inactive';
 }
 
 export interface Product extends BaseItem {
   type: 'product';
   condition: 'new' | 'used' | 'refurbished';
-  brand?: string;
-  model?: string;
   sku?: string;
   warranty?: string;
   dimensions?: {
@@ -81,6 +80,7 @@ export interface Product extends BaseItem {
   features?: string[];
   specifications?: Record<string, string>;
   dateSaved?: string;
+  status?: 'pending' | 'active' | 'draft' | 'inactive';
 }
 
 export type ListingItem = Service | Product;

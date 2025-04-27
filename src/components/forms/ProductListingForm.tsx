@@ -252,7 +252,7 @@ const StepIndicator = styled(Box)(({ theme }) => ({
   boxShadow: theme.shadows[1],
 }));
 
-const ProductListingForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+const ProductListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => void }> = ({ onBack }) => {
   const [activeStep, setActiveStep] = useState(0);
   const steps = ['Basic Details', 'Product Category', 'Specific Details'];
 

@@ -3971,6 +3971,21 @@ function App() {
     setCheckoutStep(step);
   };
 
+  // Add an effect to listen for navigation events
+  useEffect(() => {
+    const handleNavigationEvent = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail && customEvent.detail.page) {
+        setCurrentPage(customEvent.detail.page);
+      }
+    };
+
+    window.addEventListener('navigate', handleNavigationEvent);
+    return () => {
+      window.removeEventListener('navigate', handleNavigationEvent);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar
