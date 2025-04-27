@@ -64,6 +64,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { mockServices } from '../../mockData';
+import SellerVerificationModal from '../SellerVerificationModal';
 
 const serviceCategories = [
   'Professional Services',
@@ -358,6 +359,9 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
   const [isSellerInfoOpen, setIsSellerInfoOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [newListingId, setNewListingId] = useState('');
+  const [showListingSuccessDialog, setShowListingSuccessDialog] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [verificationType, setVerificationType] = useState<'individual' | 'business' | undefined>(undefined);
   const steps = ['Basic Information', 'Category & Availability', 'Pricing Options'];
 
   // Seller info form state
@@ -369,28 +373,6 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
     customerServiceHours: '',
     paymentMethods: ['Credit Card', 'PayPal']
   });
-
-  const [showListingSuccessDialog, setShowListingSuccessDialog] = useState(false);
-
-  // Function to generate a unique ID for new listings
-  const generateUniqueId = (): string => {
-    return 'service-' + Math.random().toString(36).substr(2, 9);
-  };
-
-  // Function to get availability preview text
-  const getAvailabilityPreviewText = (availability: any) => {
-    if (availability.scheduleType === 'dateRange') {
-      return 'Available on specific dates';
-    } else if (availability.type === 'custom') {
-      return 'Custom weekly schedule';
-    } else if (availability.type === 'weekdays') {
-      return 'Weekdays, 9AM-5PM';
-    } else if (availability.type === 'weekends') {
-      return 'Weekends';
-    } else {
-      return 'All week';
-    }
-  };
 
   const formik = useFormik<FormValues>({
     initialValues: {
@@ -1865,13 +1847,8 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
   const handleSuccessDialogClose = () => {
     setShowListingSuccessDialog(false);
     
-    // Show success message
-    setSnackbarMessage('Service listing successfully created and pending approval! It will appear in your listings soon.');
-    setSnackbarOpen(true);
-    
-    // Navigate to seller dashboard by passing true to onBack()
-    console.log('Navigating to seller dashboard...');
-    onBack(true);
+    // Show seller verification modal
+    setShowVerificationModal(true);
   };
 
   const handleSellerInfoSubmit = () => {
@@ -1915,6 +1892,65 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
         console.log('DEBUG - pricingTiers errors:', formik.errors.pricingTiers);
       }
     }
+  };
+
+  // Function to generate a unique ID for new listings
+  const generateUniqueId = (): string => {
+    return 'service-' + Math.random().toString(36).substr(2, 9);
+  };
+
+  // Function to get availability preview text
+  const getAvailabilityPreviewText = (availability: any) => {
+    if (availability.scheduleType === 'dateRange') {
+      return 'Available on specific dates';
+    } else if (availability.type === 'custom') {
+      return 'Custom weekly schedule';
+    } else if (availability.type === 'weekdays') {
+      return 'Weekdays, 9AM-5PM';
+    } else if (availability.type === 'weekends') {
+      return 'Weekends';
+    } else {
+      return 'All week';
+    }
+  };
+
+  // Handle seller verification modal close
+  const handleVerificationModalClose = () => {
+    setShowVerificationModal(false);
+    
+    // Navigate to seller dashboard
+    setSnackbarMessage('Your listing will remain pending until you complete seller verification.');
+    setSnackbarOpen(true);
+    onBack(true);
+  };
+
+  // Handle completing verification now
+  const handleCompleteVerificationNow = (type: 'individual' | 'business') => {
+    setShowVerificationModal(false);
+    
+    // Navigate to verification flow
+    const navigateEvent = new CustomEvent('navigate', { 
+      detail: { 
+        page: 'sellerDashboard_verification', 
+        params: { verificationType: type } 
+      } 
+    });
+    window.dispatchEvent(navigateEvent);
+    
+    // Close success dialog and navigate
+    onBack(true);
+  };
+
+  // Handle completing verification later
+  const handleCompleteVerificationLater = () => {
+    setShowVerificationModal(false);
+    
+    // Show a message about pending verification
+    setSnackbarMessage('Your listing will remain pending until you complete seller verification.');
+    setSnackbarOpen(true);
+    
+    // Navigate to seller dashboard
+    onBack(true);
   };
 
   return (
@@ -2343,6 +2379,35 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
           </Button>
         </DialogActions>
       </Dialog>
+      
+      {/* Seller Verification Modal */}
+      <SellerVerificationModal
+        open={showVerificationModal}
+        onClose={() => {
+          setShowVerificationModal(false);
+          setSnackbarMessage('Your listing will remain pending until you complete seller verification.');
+          setSnackbarOpen(true);
+          onBack(true);
+        }}
+        onCompleteNow={(type) => {
+          setShowVerificationModal(false);
+          // Navigate to verification flow
+          const navigateEvent = new CustomEvent('navigate', { 
+            detail: { 
+              page: 'sellerDashboard_verification', 
+              params: { verificationType: type } 
+            } 
+          });
+          window.dispatchEvent(navigateEvent);
+          onBack(true);
+        }}
+        onCompleteLater={() => {
+          setShowVerificationModal(false);
+          setSnackbarMessage('Your listing will remain pending until you complete seller verification.');
+          setSnackbarOpen(true);
+          onBack(true);
+        }}
+      />
     </FormContainer>
   );
 };

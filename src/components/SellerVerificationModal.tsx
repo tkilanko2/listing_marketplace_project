@@ -92,7 +92,7 @@ const SellerVerificationModal: React.FC<SellerVerificationModalProps> = ({
         }}>
           <VerifiedUserIcon fontSize="small" />
           <Typography variant="body2">
-            <strong>Verified sellers</strong> receive <strong>2.5x more orders</strong> and are <strong>ranked higher</strong> in search results.
+            <strong>Your listings will remain pending until verification is completed.</strong> Verification is required for your listings to become visible to customers.
           </Typography>
         </Box>
 

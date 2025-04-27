@@ -199,7 +199,7 @@ const VerificationStatusCard: React.FC<VerificationStatusCardProps> = ({
           >
             <VerifiedUserIcon sx={{ color: '#3D1560' }} />
             <Typography variant="body2">
-              Verified sellers receive 2.5x more orders and are ranked higher in search results.
+              Your listings will remain pending until verification is completed. Verification is required for your listings to become visible to customers.
             </Typography>
           </Box>
         </>
