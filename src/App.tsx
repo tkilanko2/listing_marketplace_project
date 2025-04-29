@@ -1659,8 +1659,8 @@ function App() {
         lastUpdated: item.createdAt instanceof Date ? item.createdAt.toISOString() : new Date().toISOString(),
         views: item.views || 0,
         saves: item.saves || 0,
-        orders: 0,
-        rating: 0,
+          orders: 0,
+          rating: 0,
         location: item.location?.city || 'Location not specified',
         image: item.images && item.images.length > 0 ? item.images[0] : 'https://placehold.co/100x100',
         quantity: item.type === 'service' ? 'Unlimited' : '10'
@@ -1786,7 +1786,7 @@ function App() {
               </div>
             </div>
           </div>
-
+          
           <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#CDCED8] p-5 transition-all duration-300 hover:shadow-md">
             <div className="flex justify-between items-start">
               <div>
@@ -1803,7 +1803,7 @@ function App() {
               </div>
             </div>
           </div>
-
+          
           <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#CDCED8] p-5 transition-all duration-300 hover:shadow-md">
             <div className="flex justify-between items-start">
               <div>
@@ -1818,7 +1818,7 @@ function App() {
               </div>
             </div>
           </div>
-
+          
           <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#CDCED8] p-5 transition-all duration-300 hover:shadow-md">
             <div className="flex justify-between items-start">
               <div>

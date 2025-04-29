@@ -65,6 +65,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { mockServices } from '../../mockData';
 import SellerVerificationModal from '../SellerVerificationModal';
+import VerificationFlowModal from '../verification/VerificationFlowModal';
 
 const serviceCategories = [
   'Professional Services',
@@ -361,6 +362,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
   const [newListingId, setNewListingId] = useState('');
   const [showListingSuccessDialog, setShowListingSuccessDialog] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [showVerificationFlow, setShowVerificationFlow] = useState(false);
   const [verificationType, setVerificationType] = useState<'individual' | 'business' | undefined>(undefined);
   const steps = ['Basic Information', 'Category & Availability', 'Pricing Options'];
 
@@ -1493,7 +1495,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
         formik.setFieldValue('pricingTiers', newPricingTiers);
       }
     };
-
+    
     const removeFeature = (tierIndex: number, featureIndex: number) => {
       const newPricingTiers = [...formik.values.pricingTiers];
       if (newPricingTiers[tierIndex] && newPricingTiers[tierIndex].features) {
@@ -1539,70 +1541,70 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
       }
       return '';
     };
-
+    
     return (
       <Box>
         <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
           Set Your Pricing Options
-        </Typography>
-
+          </Typography>
+          
         <FormControl component="fieldset" sx={{ mb: 4 }}>
           <FormLabel component="legend" sx={{ color: '#383A47', mb: 1 }}>Pricing Model</FormLabel>
-          <RadioGroup
-            name="pricingModel"
-            value={formik.values.pricingModel}
-            onChange={formik.handleChange}
-            row
-          >
-            <FormControlLabel 
-              value="flat" 
+            <RadioGroup
+              name="pricingModel"
+              value={formik.values.pricingModel}
+              onChange={formik.handleChange}
+              row
+            >
+              <FormControlLabel 
+                value="flat" 
               control={<Radio sx={{ color: '#3D1560', '&.Mui-checked': { color: '#3D1560' } }} />} 
-              label="Flat Rate" 
-            />
-            <FormControlLabel 
-              value="tiered" 
+                label="Flat Rate" 
+              />
+              <FormControlLabel 
+                value="tiered" 
               control={<Radio sx={{ color: '#3D1560', '&.Mui-checked': { color: '#3D1560' } }} />} 
-              label="Tiered Packages" 
-            />
-          </RadioGroup>
+                label="Tiered Packages" 
+              />
+            </RadioGroup>
           {hasError('pricingModel') && (
             <Typography color="error" variant="caption" sx={{ mt: 0.5 }}>
               {getErrorMessage('pricingModel')}
             </Typography>
           )}
-        </FormControl>
-
-        {formik.values.pricingModel === 'flat' ? (
+          </FormControl>
+          
+          {formik.values.pricingModel === 'flat' ? (
           <Box sx={{ mb: 4 }}>
-            <Typography variant="subtitle1" gutterBottom>
+              <Typography variant="subtitle1" gutterBottom>
               Flat Rate Price
-            </Typography>
+              </Typography>
             <StyledTextField
-              name="flatRatePrice"
+                name="flatRatePrice"
               label="Service Price"
-              type="number"
+                type="number"
               placeholder="Enter price"
-              value={formik.values.flatRatePrice}
-              onChange={formik.handleChange}
+                value={formik.values.flatRatePrice}
+                onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              InputProps={{
-                startAdornment: <InputAdornment position="start">$</InputAdornment>,
-              }}
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                }}
               fullWidth
               error={hasError('flatRatePrice')}
               helperText={getErrorMessage('flatRatePrice')}
-            />
-          </Box>
-        ) : (
+              />
+            </Box>
+          ) : (
           <Box sx={{ mb: 4 }}>
             <Typography variant="subtitle1" gutterBottom sx={{ mb: 2 }}>
               Pricing Tiers
-            </Typography>
-            
-            {formik.values.pricingTiers.map((tier, tierIndex) => (
+              </Typography>
+              
+                {formik.values.pricingTiers.map((tier, tierIndex) => (
               <Paper 
                 key={tier.id} 
-                sx={{ 
+                      sx={{ 
                   p: 3, 
                   mb: 3, 
                   border: '1px solid #CDCED8',
@@ -1619,10 +1621,10 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                       name={`pricingTiers.${tierIndex}.name`}
                       label="Tier Name"
                       placeholder="e.g., Basic, Standard, Premium"
-                      value={tier.name}
+                          value={tier.name}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
-                      fullWidth
+                          fullWidth
                       error={hasTierError(tierIndex, 'name')}
                       helperText={getTierErrorMessage(tierIndex, 'name')}
                     />
@@ -1630,15 +1632,15 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                   <Grid item xs={12} sm={6}>
                     <StyledTextField
                       name={`pricingTiers.${tierIndex}.price`}
-                      label="Price"
-                      type="number"
+                          label="Price"
+                          type="number"
                       placeholder="Enter price"
-                      value={tier.price}
+                          value={tier.price}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
-                      InputProps={{
-                        startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                      }}
+                          InputProps={{
+                            startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                          }}
                       fullWidth
                       error={hasTierError(tierIndex, 'price')}
                       helperText={getTierErrorMessage(tierIndex, 'price')}
@@ -1647,9 +1649,9 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                   <Grid item xs={12}>
                     <StyledTextField
                       name={`pricingTiers.${tierIndex}.description`}
-                      label="Description"
-                      multiline
-                      rows={2}
+                          label="Description"
+                          multiline
+                          rows={2}
                       placeholder="Describe what's included in this tier"
                       value={tier.description}
                       onChange={formik.handleChange}
@@ -1664,8 +1666,8 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                 <Box sx={{ mt: 3 }}>
                   <Typography variant="subtitle2" gutterBottom>
                     Key Features
-                  </Typography>
-                  
+                        </Typography>
+                        
                   {tier.features && tier.features.map((feature, featureIndex) => (
                     <Box 
                       key={`${tier.id}-feature-${featureIndex}`} 
@@ -1680,42 +1682,42 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                         placeholder="e.g., Free delivery, 24/7 support"
                         value={feature}
                         onChange={formik.handleChange}
-                        size="small"
-                        fullWidth
+                              size="small"
+                              fullWidth
                         sx={{ mr: 1 }}
-                      />
-                      <IconButton 
-                        size="small" 
-                        onClick={() => removeFeature(tierIndex, featureIndex)}
+                            />
+                            <IconButton 
+                              size="small" 
+                              onClick={() => removeFeature(tierIndex, featureIndex)}
                         sx={{ color: '#F44336' }}
-                      >
+                            >
                         <DeleteOutlineIcon />
-                      </IconButton>
-                    </Box>
-                  ))}
-                  
-                  <Button
+                            </IconButton>
+                          </Box>
+                        ))}
+                        
+                        <Button
                     variant="outlined"
-                    size="small"
+                          size="small"
                     startIcon={<AddIcon />}
                     onClick={() => addFeature(tierIndex)}
-                    sx={{ 
-                      mt: 1,
-                      color: '#3D1560',
+                          sx={{ 
+                            mt: 1,
+                            color: '#3D1560',
                       borderColor: '#3D1560',
-                      '&:hover': {
+                            '&:hover': {
                         borderColor: '#6D26AB',
                         color: '#6D26AB',
                       },
-                    }}
-                  >
-                    Add Feature
-                  </Button>
+                          }}
+                        >
+                          Add Feature
+                        </Button>
                 </Box>
               </Paper>
-            ))}
-          </Box>
-        )}
+                ))}
+            </Box>
+          )}
       </Box>
     );
   };
@@ -1926,19 +1928,9 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
 
   // Handle completing verification now
   const handleCompleteVerificationNow = (type: 'individual' | 'business') => {
+    setVerificationType(type);
     setShowVerificationModal(false);
-    
-    // Navigate to verification flow
-    const navigateEvent = new CustomEvent('navigate', { 
-      detail: { 
-        page: 'sellerDashboard_verification', 
-        params: { verificationType: type } 
-      } 
-    });
-    window.dispatchEvent(navigateEvent);
-    
-    // Close success dialog and navigate
-    onBack(true);
+    setShowVerificationFlow(true);
   };
 
   // Handle completing verification later
@@ -1947,6 +1939,18 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
     
     // Show a message about pending verification
     setSnackbarMessage('Your listing will remain pending until you complete seller verification.');
+    setSnackbarOpen(true);
+    
+    // Navigate to seller dashboard
+    onBack(true);
+  };
+
+  // Handle verification flow completion
+  const handleVerificationComplete = () => {
+    setShowVerificationFlow(false);
+    
+    // Show success message
+    setSnackbarMessage('Verification submitted successfully. You will be notified when your verification is approved.');
     setSnackbarOpen(true);
     
     // Navigate to seller dashboard
@@ -2389,24 +2393,16 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
           setSnackbarOpen(true);
           onBack(true);
         }}
-        onCompleteNow={(type) => {
-          setShowVerificationModal(false);
-          // Navigate to verification flow
-          const navigateEvent = new CustomEvent('navigate', { 
-            detail: { 
-              page: 'sellerDashboard_verification', 
-              params: { verificationType: type } 
-            } 
-          });
-          window.dispatchEvent(navigateEvent);
-          onBack(true);
-        }}
-        onCompleteLater={() => {
-          setShowVerificationModal(false);
-          setSnackbarMessage('Your listing will remain pending until you complete seller verification.');
-          setSnackbarOpen(true);
-          onBack(true);
-        }}
+        onCompleteNow={handleCompleteVerificationNow}
+        onCompleteLater={handleCompleteVerificationLater}
+      />
+      
+      {/* Verification Flow Modal */}
+      <VerificationFlowModal
+        open={showVerificationFlow}
+        onClose={() => setShowVerificationFlow(false)}
+        onComplete={handleVerificationComplete}
+        verificationType={verificationType}
       />
     </FormContainer>
   );
