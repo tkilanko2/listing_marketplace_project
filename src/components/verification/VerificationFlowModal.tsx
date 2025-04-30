@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, DialogContent } from '@mui/material';
+import { Dialog, DialogContent, useTheme } from '@mui/material';
 import IndividualVerificationFlow from './IndividualVerificationFlow';
 import BusinessVerificationFlow from './BusinessVerificationFlow';
 
@@ -16,6 +16,8 @@ const VerificationFlowModal: React.FC<VerificationFlowModalProps> = ({
   onComplete,
   verificationType
 }) => {
+  const theme = useTheme();
+  
   if (!verificationType) {
     return null;
   }
@@ -31,11 +33,28 @@ const VerificationFlowModal: React.FC<VerificationFlowModalProps> = ({
           borderRadius: 2,
           overflow: 'hidden',
           maxHeight: '90vh',
-          height: 'auto'
+          height: 'auto',
+          boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+          '&::-webkit-scrollbar': {
+            width: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            backgroundColor: '#F8F8FA',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: '#CDCED8',
+            borderRadius: '4px',
+          },
         }
       }}
     >
-      <DialogContent sx={{ p: 0 }}>
+      <DialogContent sx={{ 
+        p: 0, 
+        bgcolor: '#F8F8FA', 
+        '&:first-of-type': { 
+          pt: 0 
+        }
+      }}>
         {verificationType === 'individual' ? (
           <IndividualVerificationFlow 
             onCancel={onClose} 

@@ -7,11 +7,6 @@ import {
   StepLabel,
   Typography,
   Grid,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Paper,
   Autocomplete,
   FormControlLabel,
@@ -23,6 +18,7 @@ import {
   Divider,
   IconButton
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import QrCodeIcon from '@mui/icons-material/QrCode';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -48,6 +44,114 @@ interface DocumentFile {
   type: string;
 }
 
+// Styled components to match the design system
+const StyledTextField = styled(Box)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    transition: 'all 0.2s ease-in-out',
+    '&:hover': {
+      backgroundColor: '#F8F8FA',
+    },
+    '&.Mui-focused': {
+      backgroundColor: '#FFFFFF',
+      boxShadow: '0 0 0 2px #EDD9FF',
+      borderColor: '#3D1560',
+    },
+  },
+  '& .MuiOutlinedInput-notchedOutline': {
+    borderColor: '#CDCED8',
+  },
+  '& .MuiInputLabel-root': {
+    color: '#383A47',
+  },
+  '& .MuiInputLabel-root.Mui-focused': {
+    color: '#3D1560',
+  },
+  '& .MuiInputBase-input': {
+    padding: '14px 16px',
+  },
+}));
+
+const StyledFormControl = styled(Box)(({ theme }) => ({
+  '& .MuiFormControl-root': {
+    width: '100%',
+  },
+  '& .MuiOutlinedInput-root': {
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    transition: 'all 0.2s ease-in-out',
+    '&:hover': {
+      backgroundColor: '#F8F8FA',
+    },
+    '&.Mui-focused': {
+      backgroundColor: '#FFFFFF',
+      boxShadow: '0 0 0 2px #EDD9FF',
+      borderColor: '#3D1560',
+    },
+  },
+  '& .MuiOutlinedInput-notchedOutline': {
+    borderColor: '#CDCED8',
+  },
+  '& .MuiInputLabel-root': {
+    color: '#383A47',
+  },
+  '& .MuiInputLabel-root.Mui-focused': {
+    color: '#3D1560',
+  },
+}));
+
+const StyledCard = styled(Card)(({ theme }) => ({
+  borderRadius: 8,
+  boxShadow: 'none',
+  border: '1px solid #CDCED8',
+  padding: 16,
+  marginBottom: 16,
+  backgroundColor: '#FFFFFF',
+  transition: 'all 0.2s ease-in-out',
+  '&:hover': {
+    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+  },
+}));
+
+const UploadButton = styled(Button)(({ theme }) => ({
+  backgroundColor: '#F8F8FA',
+  color: '#3D1560',
+  '&:hover': {
+    backgroundColor: '#EDD9FF',
+  },
+}));
+
+const UploadInput = styled('input')({
+  display: 'none',
+});
+
+// Create a styled label wrapper to replace button with component="span"
+const StyledUploadLabel = styled('label')(({ theme }) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  cursor: 'pointer',
+}));
+
+const ActionButton = styled(Button)(({ theme }) => ({
+  backgroundColor: '#3D1560',
+  color: '#FFFFFF',
+  '&:hover': {
+    backgroundColor: '#6D26AB',
+    boxShadow: '0 4px 12px rgba(61, 21, 96, 0.2)'
+  },
+  padding: '10px 24px',
+  borderRadius: 8,
+  fontWeight: 500,
+}));
+
+const SecondaryButton = styled(Button)(({ theme }) => ({
+  color: '#70727F',
+  '&:hover': {
+    backgroundColor: '#E8E9ED',
+  },
+}));
+
 const BusinessVerificationFlow: React.FC<BusinessVerificationFlowProps> = ({ 
   onComplete, 
   onCancel 
@@ -72,7 +176,8 @@ const BusinessVerificationFlow: React.FC<BusinessVerificationFlowProps> = ({
     phoneNumber: '',
     personalEmail: '',
     hasTeamMembers: false,
-    teamMembersCount: ''
+    teamMembersCount: '',
+    taxIdNumber: ''
   });
 
   const [documents, setDocuments] = useState({
@@ -100,7 +205,7 @@ const BusinessVerificationFlow: React.FC<BusinessVerificationFlowProps> = ({
     businessPhone: ''
   });
 
-  const handleBusinessInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleBusinessInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setBusinessInfo(prev => ({ ...prev, [name]: value }));
   };
@@ -110,12 +215,12 @@ const BusinessVerificationFlow: React.FC<BusinessVerificationFlowProps> = ({
     setBusinessInfo(prev => ({ ...prev, [name]: checked }));
   };
 
-  const handleListingInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleListingInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setListingInfo(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleOwnerInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleOwnerInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setOwnerInfo(prev => ({ ...prev, [name]: value }));
   };
@@ -152,12 +257,15 @@ const BusinessVerificationFlow: React.FC<BusinessVerificationFlowProps> = ({
   };
 
   const handleComplete = () => {
-    // Submit verification data
+    // Open external verification URL in new tab
+    window.open('https://verify.expats.com', '_blank');
+    
+    // Notify parent that the verification flow is complete
     onComplete();
   };
 
   const renderBusinessInformation = () => (
-    <Paper elevation={0} sx={{ p: 3, border: '1px solid #CDCED8', borderRadius: 2 }}>
+    <Paper elevation={0} sx={{ p: 3, border: '1px solid #CDCED8', borderRadius: 2, backgroundColor: '#FFFFFF' }}>
       <Typography variant="h6" gutterBottom color="#1B1C20" fontWeight="bold">
         Business Details
       </Typography>
@@ -167,55 +275,215 @@ const BusinessVerificationFlow: React.FC<BusinessVerificationFlowProps> = ({
       
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-          <TextField
-            name="businessName"
-            label="Registered Business Name"
-            fullWidth
-            required
-            value={businessInfo.businessName}
-            onChange={handleBusinessInfoChange}
-          />
+          <StyledTextField>
+            <Typography variant="subtitle2" gutterBottom sx={{ color: '#383A47', mb: 1 }}>
+              Registered Business Name*
+            </Typography>
+            <input
+              type="text"
+              name="businessName"
+              value={businessInfo.businessName}
+              onChange={handleBusinessInfoChange}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: '8px',
+                border: '1px solid #CDCED8',
+                outline: 'none',
+                fontSize: '16px',
+                transition: 'all 0.2s',
+                backgroundColor: '#FFFFFF',
+              }}
+              required
+            />
+          </StyledTextField>
         </Grid>
         
         <Grid item xs={12} md={6}>
-          <TextField
-            name="brandName"
-            label="Trading/Brand Name (if different)"
-            fullWidth
-            value={businessInfo.brandName}
-            onChange={handleBusinessInfoChange}
-          />
+          <StyledTextField>
+            <Typography variant="subtitle2" gutterBottom sx={{ color: '#383A47', mb: 1 }}>
+              Brand/Trading Name (if different)
+            </Typography>
+            <input
+              type="text"
+              name="brandName"
+              value={businessInfo.brandName}
+              onChange={handleBusinessInfoChange}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: '8px',
+                border: '1px solid #CDCED8',
+                outline: 'none',
+                fontSize: '16px',
+                transition: 'all 0.2s',
+                backgroundColor: '#FFFFFF',
+              }}
+            />
+          </StyledTextField>
         </Grid>
         
         <Grid item xs={12} md={6}>
-          <TextField
-            name="registrationNumber"
-            label="Business Registration Number"
-            fullWidth
-            required
-            value={businessInfo.registrationNumber}
-            onChange={handleBusinessInfoChange}
-          />
+          <StyledTextField>
+            <Typography variant="subtitle2" gutterBottom sx={{ color: '#383A47', mb: 1 }}>
+              Registration/License Number*
+            </Typography>
+            <input
+              type="text"
+              name="registrationNumber"
+              value={businessInfo.registrationNumber}
+              onChange={handleBusinessInfoChange}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: '8px',
+                border: '1px solid #CDCED8',
+                outline: 'none',
+                fontSize: '16px',
+                transition: 'all 0.2s',
+                backgroundColor: '#FFFFFF',
+              }}
+              required
+            />
+          </StyledTextField>
         </Grid>
         
         <Grid item xs={12} md={6}>
-          <FormControl fullWidth required>
-            <InputLabel>Business Type</InputLabel>
-            <Select
+          <StyledTextField>
+            <Typography variant="subtitle2" gutterBottom sx={{ color: '#383A47', mb: 1 }}>
+              Business Type*
+            </Typography>
+            <select
               name="businessType"
               value={businessInfo.businessType}
-              label="Business Type"
-              onChange={(e) => setBusinessInfo({...businessInfo, businessType: e.target.value})}
+              onChange={handleBusinessInfoChange}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: '8px',
+                border: '1px solid #CDCED8',
+                outline: 'none',
+                fontSize: '16px',
+                transition: 'all 0.2s',
+                backgroundColor: '#FFFFFF',
+              }}
+              required
             >
+              <option value="">Select Business Type</option>
               {businessTypes.map((type) => (
-                <MenuItem key={type} value={type}>{type}</MenuItem>
+                <option key={type} value={type}>{type}</option>
               ))}
-            </Select>
-          </FormControl>
+            </select>
+          </StyledTextField>
         </Grid>
         
         <Grid item xs={12}>
-          <Typography variant="subtitle2" gutterBottom fontWeight="bold">
+          <Typography variant="subtitle2" gutterBottom sx={{ color: '#1B1C20', fontWeight: 'bold', mt: 2 }}>
+            Business Address
+          </Typography>
+        </Grid>
+        
+        <Grid item xs={12}>
+          <StyledTextField>
+            <Typography variant="subtitle2" gutterBottom sx={{ color: '#383A47', mb: 1 }}>
+              Street Address*
+            </Typography>
+            <input
+              type="text"
+              name="addressLine1"
+              value={businessInfo.addressLine1}
+              onChange={handleBusinessInfoChange}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: '8px',
+                border: '1px solid #CDCED8',
+                outline: 'none',
+                fontSize: '16px',
+                transition: 'all 0.2s',
+                backgroundColor: '#FFFFFF',
+              }}
+              required
+            />
+          </StyledTextField>
+        </Grid>
+        
+        <Grid item xs={12}>
+          <StyledTextField>
+            <Typography variant="subtitle2" gutterBottom sx={{ color: '#383A47', mb: 1 }}>
+              Suite/Unit/Floor (Optional)
+            </Typography>
+            <input
+              type="text"
+              name="addressLine2"
+              value={businessInfo.addressLine2}
+              onChange={handleBusinessInfoChange}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: '8px',
+                border: '1px solid #CDCED8',
+                outline: 'none',
+                fontSize: '16px',
+                transition: 'all 0.2s',
+                backgroundColor: '#FFFFFF',
+              }}
+            />
+          </StyledTextField>
+        </Grid>
+        
+        <Grid item xs={12} md={6}>
+          <StyledTextField>
+            <Typography variant="subtitle2" gutterBottom sx={{ color: '#383A47', mb: 1 }}>
+              City*
+            </Typography>
+            <input
+              type="text"
+              name="city"
+              value={businessInfo.city}
+              onChange={handleBusinessInfoChange}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: '8px',
+                border: '1px solid #CDCED8',
+                outline: 'none',
+                fontSize: '16px',
+                transition: 'all 0.2s',
+                backgroundColor: '#FFFFFF',
+              }}
+              required
+            />
+          </StyledTextField>
+        </Grid>
+        
+        <Grid item xs={12} md={6}>
+          <StyledTextField>
+            <Typography variant="subtitle2" gutterBottom sx={{ color: '#383A47', mb: 1 }}>
+              State/Province*
+            </Typography>
+            <input
+              type="text"
+              name="state"
+              value={businessInfo.state}
+              onChange={handleBusinessInfoChange}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: '8px',
+                border: '1px solid #CDCED8',
+                outline: 'none',
+                fontSize: '16px',
+                transition: 'all 0.2s',
+                backgroundColor: '#FFFFFF',
+              }}
+              required
+            />
+          </StyledTextField>
+        </Grid>
+        
+        <Grid item xs={12}>
+          <Typography variant="subtitle2" gutterBottom fontWeight="bold" sx={{ color: '#1B1C20' }}>
             Document Upload
           </Typography>
           <Typography variant="body2" color="#70727F" paragraph>
@@ -224,10 +492,10 @@ const BusinessVerificationFlow: React.FC<BusinessVerificationFlowProps> = ({
         </Grid>
         
         <Grid item xs={12}>
-          <Card sx={{ p: 2, mb: 2, border: '1px solid #CDCED8', borderRadius: 2 }}>
+          <StyledCard>
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={12} sm={3}>
-                <Typography variant="subtitle2">
+                <Typography variant="subtitle2" sx={{ color: '#1B1C20' }}>
                   Business Registration
                 </Typography>
               </Grid>
@@ -235,8 +503,8 @@ const BusinessVerificationFlow: React.FC<BusinessVerificationFlowProps> = ({
                 {documents.businessRegistration ? (
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <AttachFileIcon color="primary" />
-                      <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
+                      <AttachFileIcon sx={{ color: '#3D1560' }} />
+                      <Typography variant="body2" noWrap sx={{ maxWidth: 200, color: '#383A47' }}>
                         {documents.businessRegistration.name}
                       </Typography>
                     </Box>
@@ -249,42 +517,40 @@ const BusinessVerificationFlow: React.FC<BusinessVerificationFlowProps> = ({
                     </IconButton>
                   </Box>
                 ) : (
-                  <Button
-                    component="label"
-                    variant="outlined"
-                    startIcon={<CloudUploadIcon />}
-                    sx={{ 
-                      color: '#3D1560',
-                      borderColor: '#3D1560',
-                      '&:hover': { borderColor: '#6D26AB', color: '#6D26AB' }
-                    }}
-                  >
-                    Upload Certificate
-                    <input
-                      type="file"
-                      hidden
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={handleDocumentUpload('businessRegistration')}
-                    />
-                  </Button>
+                  <>
+                    <StyledUploadLabel htmlFor="business-registration-upload">
+                      <UploadInput
+                        id="business-registration-upload"
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={handleDocumentUpload('businessRegistration')}
+                      />
+                      <UploadButton
+                        startIcon={<CloudUploadIcon />}
+                        variant="outlined"
+                      >
+                        Upload Certificate
+                      </UploadButton>
+                    </StyledUploadLabel>
+                  </>
                 )}
               </Grid>
             </Grid>
-          </Card>
+          </StyledCard>
           
-          <Card sx={{ p: 2, mb: 2, border: '1px solid #CDCED8', borderRadius: 2 }}>
+          <StyledCard>
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={12} sm={3}>
-                <Typography variant="subtitle2">
-                  Tax ID Document
+                <Typography variant="subtitle2" sx={{ color: '#1B1C20' }}>
+                  Tax ID
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={9}>
                 {documents.taxId ? (
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <AttachFileIcon color="primary" />
-                      <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
+                      <AttachFileIcon sx={{ color: '#3D1560' }} />
+                      <Typography variant="body2" noWrap sx={{ maxWidth: 200, color: '#383A47' }}>
                         {documents.taxId.name}
                       </Typography>
                     </Box>
@@ -297,42 +563,67 @@ const BusinessVerificationFlow: React.FC<BusinessVerificationFlowProps> = ({
                     </IconButton>
                   </Box>
                 ) : (
-                  <Button
-                    component="label"
-                    variant="outlined"
-                    startIcon={<CloudUploadIcon />}
-                    sx={{ 
-                      color: '#3D1560',
-                      borderColor: '#3D1560',
-                      '&:hover': { borderColor: '#6D26AB', color: '#6D26AB' }
-                    }}
-                  >
-                    Upload Tax ID
-                    <input
-                      type="file"
-                      hidden
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={handleDocumentUpload('taxId')}
-                    />
-                  </Button>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <StyledTextField>
+                      <Typography variant="body2" gutterBottom sx={{ color: '#383A47', mb: 1 }}>
+                        Tax ID Number
+                      </Typography>
+                      <input
+                        type="text"
+                        name="taxIdNumber"
+                        value={businessInfo.taxIdNumber || ''}
+                        onChange={handleBusinessInfoChange}
+                        placeholder="Enter your Tax ID number (optional)"
+                        style={{
+                          width: '100%',
+                          padding: '14px 16px',
+                          borderRadius: '8px',
+                          border: '1px solid #CDCED8',
+                          outline: 'none',
+                          fontSize: '16px',
+                          transition: 'all 0.2s',
+                          backgroundColor: '#FFFFFF',
+                        }}
+                      />
+                    </StyledTextField>
+                    
+                    <Typography variant="body2" sx={{ color: '#70727F', mt: 1 }}>
+                      - OR -
+                    </Typography>
+                    
+                    <StyledUploadLabel htmlFor="tax-id-upload">
+                      <UploadInput
+                        id="tax-id-upload"
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={handleDocumentUpload('taxId')}
+                      />
+                      <UploadButton
+                        startIcon={<CloudUploadIcon />}
+                        variant="outlined"
+                      >
+                        Upload Tax Document
+                      </UploadButton>
+                    </StyledUploadLabel>
+                  </Box>
                 )}
               </Grid>
             </Grid>
-          </Card>
+          </StyledCard>
           
-          <Card sx={{ p: 2, mb: 2, border: '1px solid #CDCED8', borderRadius: 2 }}>
+          <StyledCard>
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={12} sm={3}>
-                <Typography variant="subtitle2">
-                  Proof of Address
+                <Typography variant="subtitle2" sx={{ color: '#1B1C20' }}>
+                  Address Proof
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={9}>
                 {documents.addressProof ? (
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <AttachFileIcon color="primary" />
-                      <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
+                      <AttachFileIcon sx={{ color: '#3D1560' }} />
+                      <Typography variant="body2" noWrap sx={{ maxWidth: 200, color: '#383A47' }}>
                         {documents.addressProof.name}
                       </Typography>
                     </Box>
@@ -345,186 +636,33 @@ const BusinessVerificationFlow: React.FC<BusinessVerificationFlowProps> = ({
                     </IconButton>
                   </Box>
                 ) : (
-                  <Button
-                    component="label"
-                    variant="outlined"
-                    startIcon={<CloudUploadIcon />}
-                    sx={{ 
-                      color: '#3D1560',
-                      borderColor: '#3D1560',
-                      '&:hover': { borderColor: '#6D26AB', color: '#6D26AB' }
-                    }}
-                  >
-                    Upload Address Proof
-                    <input
-                      type="file"
-                      hidden
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={handleDocumentUpload('addressProof')}
-                    />
-                  </Button>
+                  <>
+                    <StyledUploadLabel htmlFor="address-proof-upload">
+                      <UploadInput
+                        id="address-proof-upload"
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={handleDocumentUpload('addressProof')}
+                      />
+                      <UploadButton
+                        startIcon={<CloudUploadIcon />}
+                        variant="outlined"
+                      >
+                        Upload Utility Bill
+                      </UploadButton>
+                    </StyledUploadLabel>
+                  </>
                 )}
               </Grid>
             </Grid>
-          </Card>
+          </StyledCard>
         </Grid>
-        
-        <Grid item xs={12}>
-          <Typography variant="subtitle2" gutterBottom fontWeight="bold">
-            Business Address
-          </Typography>
-        </Grid>
-        
-        <Grid item xs={12}>
-          <TextField
-            name="addressLine1"
-            label="Street Address"
-            fullWidth
-            required
-            value={businessInfo.addressLine1}
-            onChange={handleBusinessInfoChange}
-          />
-        </Grid>
-        
-        <Grid item xs={12}>
-          <TextField
-            name="addressLine2"
-            label="Building/Suite Number (optional)"
-            fullWidth
-            value={businessInfo.addressLine2}
-            onChange={handleBusinessInfoChange}
-          />
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <TextField
-            name="city"
-            label="City"
-            fullWidth
-            required
-            value={businessInfo.city}
-            onChange={handleBusinessInfoChange}
-          />
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <TextField
-            name="state"
-            label="State/Region"
-            fullWidth
-            required
-            value={businessInfo.state}
-            onChange={handleBusinessInfoChange}
-          />
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <FormControl fullWidth required>
-            <InputLabel>Country</InputLabel>
-            <Select
-              name="country"
-              value={businessInfo.country}
-              label="Country"
-              onChange={(e) => setBusinessInfo({...businessInfo, country: e.target.value})}
-            >
-              {countries.map((country) => (
-                <MenuItem key={country} value={country}>{country}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <TextField
-            name="postalCode"
-            label="Postal/Zip Code"
-            fullWidth
-            required
-            value={businessInfo.postalCode}
-            onChange={handleBusinessInfoChange}
-          />
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <TextField
-            name="website"
-            label="Business Website (optional)"
-            fullWidth
-            value={businessInfo.website}
-            onChange={handleBusinessInfoChange}
-          />
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <TextField
-            name="socialMedia"
-            label="Social Media Handles (optional)"
-            fullWidth
-            value={businessInfo.socialMedia}
-            onChange={handleBusinessInfoChange}
-          />
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <TextField
-            name="phoneNumber"
-            label="Business Phone Number"
-            fullWidth
-            required
-            value={businessInfo.phoneNumber}
-            onChange={handleBusinessInfoChange}
-          />
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <TextField
-            name="personalEmail"
-            label="Personal Email"
-            fullWidth
-            required
-            value={businessInfo.personalEmail}
-            onChange={handleBusinessInfoChange}
-            helperText="For account recovery and personal communications"
-          />
-        </Grid>
-        
-        <Grid item xs={12}>
-          <FormControlLabel
-            control={
-              <Checkbox 
-                checked={businessInfo.hasTeamMembers}
-                onChange={handleCheckboxChange}
-                name="hasTeamMembers"
-                sx={{ 
-                  color: '#3D1560',
-                  '&.Mui-checked': {
-                    color: '#3D1560',
-                  },
-                }}
-              />
-            }
-            label="Will other team members from your business join you to sell on this platform?"
-          />
-        </Grid>
-        
-        {businessInfo.hasTeamMembers && (
-          <Grid item xs={12} md={6}>
-            <TextField
-              name="teamMembersCount"
-              label="Estimated number of team members"
-              type="number"
-              fullWidth
-              value={businessInfo.teamMembersCount}
-              onChange={handleBusinessInfoChange}
-            />
-          </Grid>
-        )}
       </Grid>
     </Paper>
   );
 
   const renderListingInformation = () => (
-    <Paper elevation={0} sx={{ p: 3, border: '1px solid #CDCED8', borderRadius: 2 }}>
+    <Paper elevation={0} sx={{ p: 3, border: '1px solid #CDCED8', borderRadius: 2, backgroundColor: '#FFFFFF' }}>
       <Typography variant="h6" gutterBottom color="#1B1C20" fontWeight="bold">
         Service/Product Details
       </Typography>
@@ -534,13 +672,38 @@ const BusinessVerificationFlow: React.FC<BusinessVerificationFlowProps> = ({
       
       <Grid container spacing={3}>
         <Grid item xs={12}>
+          <Typography variant="subtitle2" gutterBottom sx={{ color: '#383A47' }}>
+            Industries
+          </Typography>
           <Autocomplete
             multiple
-            options={['Retail', 'Technology', 'Healthcare', 'Education', 'Finance', 'Hospitality', 'Manufacturing', 'Real Estate']}
-            renderInput={(params) => <TextField {...params} label="Industries" />}
+            options={['Technology', 'Healthcare', 'Education', 'Finance', 'Retail', 'Hospitality', 'Manufacturing', 'Construction', 'Transportation', 'Entertainment']}
+            renderInput={(params) => (
+              <Box component="div" {...params} 
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '8px',
+                    border: '1px solid #CDCED8',
+                  }
+                }} 
+              />
+            )}
             renderTags={(value, getTagProps) =>
               value.map((option, index) => (
-                <Chip label={option} {...getTagProps({ index })} />
+                <Chip 
+                  label={option} 
+                  {...getTagProps({ index })} 
+                  sx={{ 
+                    bgcolor: '#EDD9FF', 
+                    color: '#3D1560',
+                    '& .MuiChip-deleteIcon': {
+                      color: '#3D1560',
+                      '&:hover': {
+                        color: '#6D26AB',
+                      },
+                    },
+                  }}
+                />
               ))
             }
             onChange={(_, newValue) => {
@@ -551,13 +714,38 @@ const BusinessVerificationFlow: React.FC<BusinessVerificationFlowProps> = ({
         </Grid>
         
         <Grid item xs={12}>
+          <Typography variant="subtitle2" gutterBottom sx={{ color: '#383A47' }}>
+            Service Types
+          </Typography>
           <Autocomplete
             multiple
-            options={['Consultation', 'Design', 'Maintenance', 'Software', 'Hardware', 'Training', 'Manufacturing', 'Retail Products']}
-            renderInput={(params) => <TextField {...params} label="Service/Product Types" />}
+            options={['Consulting', 'Design', 'Development', 'Maintenance', 'Training', 'Support', 'Installation', 'Repair', 'Custom Manufacturing', 'Wholesale']}
+            renderInput={(params) => (
+              <Box component="div" {...params} 
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '8px',
+                    border: '1px solid #CDCED8',
+                  }
+                }} 
+              />
+            )}
             renderTags={(value, getTagProps) =>
               value.map((option, index) => (
-                <Chip label={option} {...getTagProps({ index })} />
+                <Chip 
+                  label={option} 
+                  {...getTagProps({ index })} 
+                  sx={{ 
+                    bgcolor: '#EDD9FF', 
+                    color: '#3D1560',
+                    '& .MuiChip-deleteIcon': {
+                      color: '#3D1560',
+                      '&:hover': {
+                        color: '#6D26AB',
+                      },
+                    },
+                  }}
+                />
               ))
             }
             onChange={(_, newValue) => {
@@ -568,42 +756,87 @@ const BusinessVerificationFlow: React.FC<BusinessVerificationFlowProps> = ({
         </Grid>
         
         <Grid item xs={12}>
-          <TextField
+          <Typography variant="subtitle2" gutterBottom sx={{ color: '#383A47' }}>
+            Specific Services/Products Description
+          </Typography>
+          <textarea
             name="specificServices"
-            label="Specific Services/Products Offered"
-            multiline
-            rows={3}
-            fullWidth
-            placeholder="Please describe the specific services or products your business plans to offer"
             value={listingInfo.specificServices}
             onChange={handleListingInfoChange}
+            style={{
+              width: '100%',
+              padding: '14px 16px',
+              borderRadius: '8px',
+              border: '1px solid #CDCED8',
+              outline: 'none',
+              fontSize: '16px',
+              transition: 'all 0.2s',
+              backgroundColor: '#FFFFFF',
+              minHeight: '120px',
+              resize: 'vertical',
+            }}
+            placeholder="Please describe the specific services or products your business offers"
           />
         </Grid>
         
         <Grid item xs={12} md={6}>
-          <FormControl fullWidth required>
-            <InputLabel>Preferred Currency</InputLabel>
-            <Select
-              name="preferredCurrency"
-              value={listingInfo.preferredCurrency}
-              label="Preferred Currency"
-              onChange={(e) => setListingInfo({...listingInfo, preferredCurrency: e.target.value})}
-            >
-              {currencies.map((currency) => (
-                <MenuItem key={currency} value={currency}>{currency}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Typography variant="subtitle2" gutterBottom sx={{ color: '#383A47' }}>
+            Preferred Currency
+          </Typography>
+          <select
+            name="preferredCurrency"
+            value={listingInfo.preferredCurrency}
+            onChange={handleListingInfoChange}
+            style={{
+              width: '100%',
+              padding: '14px 16px',
+              borderRadius: '8px',
+              border: '1px solid #CDCED8',
+              outline: 'none',
+              fontSize: '16px',
+              transition: 'all 0.2s',
+              backgroundColor: '#FFFFFF',
+            }}
+          >
+            {currencies.map((currency) => (
+              <option key={currency} value={currency}>{currency}</option>
+            ))}
+          </select>
         </Grid>
         
         <Grid item xs={12} md={6}>
+          <Typography variant="subtitle2" gutterBottom sx={{ color: '#383A47' }}>
+            Languages Spoken
+          </Typography>
           <Autocomplete
             multiple
             options={languages}
-            renderInput={(params) => <TextField {...params} label="Language(s) Used for Business" />}
+            renderInput={(params) => (
+              <Box component="div" {...params} 
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '8px',
+                    border: '1px solid #CDCED8',
+                  }
+                }} 
+              />
+            )}
             renderTags={(value, getTagProps) =>
               value.map((option, index) => (
-                <Chip label={option} {...getTagProps({ index })} />
+                <Chip 
+                  label={option} 
+                  {...getTagProps({ index })} 
+                  sx={{ 
+                    bgcolor: '#EDD9FF', 
+                    color: '#3D1560',
+                    '& .MuiChip-deleteIcon': {
+                      color: '#3D1560',
+                      '&:hover': {
+                        color: '#6D26AB',
+                      },
+                    },
+                  }}
+                />
               ))
             }
             onChange={(_, newValue) => {
@@ -612,74 +845,12 @@ const BusinessVerificationFlow: React.FC<BusinessVerificationFlowProps> = ({
             value={listingInfo.languages}
           />
         </Grid>
-        
-        <Grid item xs={12}>
-          <Typography variant="subtitle2" gutterBottom fontWeight="bold">
-            Service Area Coverage
-          </Typography>
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <Autocomplete
-            multiple
-            options={countries}
-            renderInput={(params) => <TextField {...params} label="Countries" />}
-            renderTags={(value, getTagProps) =>
-              value.map((option, index) => (
-                <Chip label={option} {...getTagProps({ index })} />
-              ))
-            }
-            onChange={(_, newValue) => {
-              setListingInfo({...listingInfo, countries: newValue});
-            }}
-            value={listingInfo.countries}
-          />
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <Autocomplete
-            multiple
-            options={['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'London', 'Paris', 'Berlin', 'Tokyo', 'Sydney']}
-            renderInput={(params) => <TextField {...params} label="Cities" />}
-            renderTags={(value, getTagProps) =>
-              value.map((option, index) => (
-                <Chip label={option} {...getTagProps({ index })} />
-              ))
-            }
-            onChange={(_, newValue) => {
-              setListingInfo({...listingInfo, cities: newValue});
-            }}
-            value={listingInfo.cities}
-          />
-        </Grid>
-        
-        <Grid item xs={12}>
-          <TextField
-            name="businessHours"
-            label="Business Hours"
-            fullWidth
-            placeholder="e.g., Monday-Friday: 9AM-5PM, Weekends: Closed"
-            value={listingInfo.businessHours}
-            onChange={handleListingInfoChange}
-          />
-        </Grid>
-        
-        <Grid item xs={12}>
-          <TextField
-            name="shippingOptions"
-            label="Shipping/Delivery Options (if applicable)"
-            fullWidth
-            placeholder="e.g., Free shipping over $50, International shipping available"
-            value={listingInfo.shippingOptions}
-            onChange={handleListingInfoChange}
-          />
-        </Grid>
       </Grid>
     </Paper>
   );
 
   const renderOwnerVerification = () => (
-    <Paper elevation={0} sx={{ p: 3, border: '1px solid #CDCED8', borderRadius: 2 }}>
+    <Paper elevation={0} sx={{ p: 3, border: '1px solid #CDCED8', borderRadius: 2, backgroundColor: '#FFFFFF' }}>
       <Typography variant="h6" gutterBottom color="#1B1C20" fontWeight="bold">
         Verify Business Representative
       </Typography>
@@ -687,68 +858,118 @@ const BusinessVerificationFlow: React.FC<BusinessVerificationFlowProps> = ({
         As a final step, we need to verify your identity as an authorized representative of the business.
       </Typography>
       
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12}>
-          <Typography variant="subtitle2" gutterBottom fontWeight="bold">
-            Representative Personal Information
-          </Typography>
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={6}>
+          <StyledTextField>
+            <Typography variant="subtitle2" gutterBottom sx={{ color: '#383A47', mb: 1 }}>
+              Full Name*
+            </Typography>
+            <input
+              type="text"
+              name="fullName"
+              value={ownerInfo.fullName}
+              onChange={handleOwnerInfoChange}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: '8px',
+                border: '1px solid #CDCED8',
+                outline: 'none',
+                fontSize: '16px',
+                transition: 'all 0.2s',
+                backgroundColor: '#FFFFFF',
+              }}
+              required
+            />
+          </StyledTextField>
         </Grid>
         
         <Grid item xs={12} md={6}>
-          <TextField
-            name="fullName"
-            label="Full Name"
-            fullWidth
-            required
-            value={ownerInfo.fullName}
-            onChange={handleOwnerInfoChange}
-          />
+          <StyledTextField>
+            <Typography variant="subtitle2" gutterBottom sx={{ color: '#383A47', mb: 1 }}>
+              Position/Title*
+            </Typography>
+            <input
+              type="text"
+              name="position"
+              value={ownerInfo.position}
+              onChange={handleOwnerInfoChange}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: '8px',
+                border: '1px solid #CDCED8',
+                outline: 'none',
+                fontSize: '16px',
+                transition: 'all 0.2s',
+                backgroundColor: '#FFFFFF',
+              }}
+              required
+            />
+          </StyledTextField>
         </Grid>
         
         <Grid item xs={12} md={6}>
-          <TextField
-            name="position"
-            label="Position/Title in Company"
-            fullWidth
-            required
-            value={ownerInfo.position}
-            onChange={handleOwnerInfoChange}
-          />
+          <StyledTextField>
+            <Typography variant="subtitle2" gutterBottom sx={{ color: '#383A47', mb: 1 }}>
+              Business Email*
+            </Typography>
+            <input
+              type="email"
+              name="businessEmail"
+              value={ownerInfo.businessEmail}
+              onChange={handleOwnerInfoChange}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: '8px',
+                border: '1px solid #CDCED8',
+                outline: 'none',
+                fontSize: '16px',
+                transition: 'all 0.2s',
+                backgroundColor: '#FFFFFF',
+              }}
+              required
+            />
+          </StyledTextField>
         </Grid>
         
         <Grid item xs={12} md={6}>
-          <TextField
-            name="businessEmail"
-            label="Business Email"
-            fullWidth
-            required
-            value={ownerInfo.businessEmail}
-            onChange={handleOwnerInfoChange}
-          />
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <TextField
-            name="businessPhone"
-            label="Business Phone"
-            fullWidth
-            required
-            value={ownerInfo.businessPhone}
-            onChange={handleOwnerInfoChange}
-          />
+          <StyledTextField>
+            <Typography variant="subtitle2" gutterBottom sx={{ color: '#383A47', mb: 1 }}>
+              Business Phone*
+            </Typography>
+            <input
+              type="tel"
+              name="businessPhone"
+              value={ownerInfo.businessPhone}
+              onChange={handleOwnerInfoChange}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: '8px',
+                border: '1px solid #CDCED8',
+                outline: 'none',
+                fontSize: '16px',
+                transition: 'all 0.2s',
+                backgroundColor: '#FFFFFF',
+              }}
+              required
+            />
+          </StyledTextField>
         </Grid>
       </Grid>
       
-      <Box sx={{ bgcolor: '#F8F8FA', p: 3, borderRadius: 2, mb: 4 }}>
-        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+      <Box sx={{ bgcolor: '#F8F8FA', p: 3, borderRadius: 2, mb: 4, mt: 4 }}>
+        <Typography variant="subtitle1" gutterBottom fontWeight="bold" sx={{ color: '#1B1C20' }}>
           KYC Verification Only
         </Typography>
-        <Typography variant="body2" paragraph>
+        <Typography variant="body2" paragraph sx={{ color: '#383A47' }}>
           The following step will only verify your personal identity through our third-party service. Your business documents will be reviewed separately by our team.
         </Typography>
         
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', my: 3 }}>
-          <Card sx={{ width: '100%', maxWidth: 450, mb: 3 }}>
+          <StyledCard sx={{ width: '100%', maxWidth: 450, mb: 3 }}>
             <CardContent sx={{ textAlign: 'center' }}>
               <Box 
                 sx={{ 
@@ -767,38 +988,32 @@ const BusinessVerificationFlow: React.FC<BusinessVerificationFlowProps> = ({
                 </Typography>
               </Box>
               
-              <Typography variant="subtitle2" gutterBottom>
+              <Typography variant="subtitle2" gutterBottom sx={{ color: '#1B1C20' }}>
                 Or continue on this device
               </Typography>
               
-              <Button
+              <ActionButton
                 variant="contained"
                 size="large"
-                sx={{ 
-                  mt: 1,
-                  bgcolor: '#3D1560', 
-                  color: 'white',
-                  '&:hover': { bgcolor: '#6D26AB' } 
-                }}
                 onClick={handleComplete}
               >
                 Continue to Verification
-              </Button>
+              </ActionButton>
             </CardContent>
-          </Card>
+          </StyledCard>
         </Box>
         
         <Stack spacing={2}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <SecurityIcon sx={{ color: '#3D1560' }} />
-            <Typography variant="body2">
+            <Typography variant="body2" sx={{ color: '#383A47' }}>
               Your personal information is securely transmitted with end-to-end encryption.
             </Typography>
           </Box>
           
           <Divider />
           
-          <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
+          <Typography variant="body2" sx={{ fontStyle: 'italic', color: '#70727F' }}>
             The personal identity verification typically takes 1-2 business days. Business document verification may take 2-3 additional business days. You'll receive an email notification once your verification is complete.
           </Typography>
         </Stack>
@@ -820,16 +1035,15 @@ const BusinessVerificationFlow: React.FC<BusinessVerificationFlowProps> = ({
   };
 
   return (
-    <Box sx={{ width: '100%', p: { xs: 2, md: 3 } }}>
+    <Box sx={{ width: '100%', p: { xs: 2, md: 3 }, backgroundColor: '#F8F8FA' }}>
       <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Button 
+        <SecondaryButton 
           startIcon={<ArrowBackIcon />} 
           onClick={onCancel}
-          sx={{ color: '#70727F' }}
         >
           Cancel
-        </Button>
-        <Typography variant="h5" component="h1" fontWeight="bold">
+        </SecondaryButton>
+        <Typography variant="h5" component="h1" fontWeight="bold" sx={{ color: '#1B1C20' }}>
           Business Account Verification
         </Typography>
       </Box>
@@ -837,7 +1051,15 @@ const BusinessVerificationFlow: React.FC<BusinessVerificationFlowProps> = ({
       <Stepper 
         activeStep={activeStep} 
         alternativeLabel 
-        sx={{ mb: 4 }}
+        sx={{ 
+          mb: 4,
+          '& .MuiStepLabel-root .Mui-completed': {
+            color: '#3D1560',
+          },
+          '& .MuiStepLabel-root .Mui-active': {
+            color: '#3D1560',
+          },
+        }}
       >
         {steps.map((label) => (
           <Step key={label}>
@@ -849,45 +1071,35 @@ const BusinessVerificationFlow: React.FC<BusinessVerificationFlowProps> = ({
       {renderStepContent(activeStep)}
       
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
-        <Button
+        <SecondaryButton
           disabled={activeStep === 0}
           onClick={handleBack}
           startIcon={<ArrowBackIcon />}
           sx={{ visibility: activeStep === 0 ? 'hidden' : 'visible' }}
         >
           Back
-        </Button>
+        </SecondaryButton>
         
         {activeStep === steps.length - 1 ? (
-          <Button
+          <ActionButton
             variant="contained"
             onClick={handleComplete}
             endIcon={<CheckCircleIcon />}
-            sx={{ 
-              bgcolor: '#3D1560', 
-              color: 'white',
-              '&:hover': { bgcolor: '#6D26AB' } 
-            }}
           >
             Submit Verification
-          </Button>
+          </ActionButton>
         ) : (
-          <Button
+          <ActionButton
             variant="contained"
             onClick={handleNext}
             endIcon={<ArrowForwardIcon />}
-            sx={{ 
-              bgcolor: '#3D1560', 
-              color: 'white',
-              '&:hover': { bgcolor: '#6D26AB' } 
-            }}
           >
             Next Step
-          </Button>
+          </ActionButton>
         )}
       </Box>
     </Box>
   );
 };
 
-export default BusinessVerificationFlow; 
+export default BusinessVerificationFlow;

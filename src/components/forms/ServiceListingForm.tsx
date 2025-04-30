@@ -617,7 +617,6 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
           }, 1000);
         } catch (error) {
           console.error('Error creating service listing:', error);
-          debugFormValues(); // Debug the form values to help troubleshoot
           setSnackbarMessage('Error creating service listing. Please try again.');
           setSnackbarOpen(true);
           setIsProcessing(false);
@@ -791,16 +790,8 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
 
     return (
       <Box sx={{ mt: 2 }}>
-        <Typography variant="subtitle1" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-          <LocationOnIcon sx={{ mr: 1 }} /> Service Locations
-        </Typography>
-        
-        {/* Primary Service Location */}
+        {/* Service Location */}
         <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle2" gutterBottom>
-            Primary Service Location
-          </Typography>
-          
           <Card sx={{ 
             mb: 2, 
             p: 1.5, 
@@ -861,161 +852,6 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
             </Grid>
           </Card>
         </Box>
-        
-        {/* Additional Service Locations */}
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="subtitle2" gutterBottom>
-            Additional Service Locations
-          </Typography>
-          
-          {formik.values.serviceCities.length === 0 && (
-            <Box sx={{ p: 2, bgcolor: '#F8F8FA', borderRadius: 1, mb: 2 }}>
-              <Typography variant="body2" color="text.secondary" align="center">
-                No additional locations added. Add a location if you serve multiple cities.
-              </Typography>
-            </Box>
-          )}
-          
-          {formik.values.serviceCities.map((cityData, index) => (
-            <Card key={index} sx={{ 
-              mb: 2, 
-              p: 1.5, 
-              border: '1px solid', 
-              borderColor: '#CDCED8', 
-              boxShadow: 'none',
-              borderRadius: '8px' 
-            }}>
-              <Grid container spacing={1.5} alignItems="center">
-                <Grid item xs={12} md={4}>
-                  <StyledFormControl fullWidth>
-                    <InputLabel>Country</InputLabel>
-                    <Select
-                      value={cityData.country || ''}
-                      onChange={(e) => {
-                        const newCities = [...formik.values.serviceCities];
-                        newCities[index].country = e.target.value;
-                        formik.setFieldValue('serviceCities', newCities);
-                      }}
-                    >
-                      {countries.map((country) => (
-                        <MenuItem key={country} value={country}>
-                          {country}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </StyledFormControl>
-                </Grid>
-                <Grid item xs={12} md={3}>
-                  <StyledTextField 
-                    fullWidth
-                    placeholder="Enter city name"
-                    label="City"
-                    value={cityData.city}
-                    onChange={(e) => {
-                      const newCities = [...formik.values.serviceCities];
-                      newCities[index].city = e.target.value;
-                      formik.setFieldValue('serviceCities', newCities);
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <StyledTextField 
-                    fullWidth
-                    label="Coverage Radius"
-                    type="number"
-                    defaultValue="10"
-                    placeholder="10"
-                    InputProps={{
-                      endAdornment: <InputAdornment position="end">km</InputAdornment>,
-                    }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '4px',
-                      }
-                    }}
-                    value={cityData.radius}
-                    onChange={(e) => {
-                      const newCities = [...formik.values.serviceCities];
-                      newCities[index].radius = e.target.value;
-                      formik.setFieldValue('serviceCities', newCities);
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={1} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <IconButton 
-                    color="error"
-                    onClick={() => {
-                      const newCities = [...formik.values.serviceCities];
-                      newCities.splice(index, 1);
-                      formik.setFieldValue('serviceCities', newCities);
-                    }}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Grid>
-              </Grid>
-            </Card>
-          ))}
-          
-          <Button 
-            variant="outlined" 
-            startIcon={<AddIcon />}
-            onClick={() => {
-              formik.setFieldValue('serviceCities', [
-                ...formik.values.serviceCities,
-                { country: formik.values.country || '', city: '', radius: '10' }
-              ]);
-            }}
-            sx={{ 
-              mt: 1, 
-              backgroundColor: '#F8F8FA',
-              borderColor: '#CDCED8',
-              color: '#383A47',
-              '&:hover': {
-                backgroundColor: '#E8E9ED',
-                borderColor: '#70727F',
-              }
-            }}
-          >
-            Add Another Location
-          </Button>
-        </Box>
-        
-        {/* General service areas (optional) */}
-        <Grid item xs={12}>
-          <Autocomplete
-            multiple
-            id="service-areas"
-            options={[
-              'Downtown', 'Suburbs', 'Urban Area', 'Rural Area', 'Entire City',
-              'Remote Service', 'Nationwide', 'International'
-            ]}
-            freeSolo
-            value={formik.values.serviceAreas}
-            onChange={(_, newValue) => {
-              formik.setFieldValue('serviceAreas', newValue);
-            }}
-            renderTags={(value, getTagProps) =>
-              value.map((option, index) => (
-                <Chip
-                  variant="outlined"
-                  label={option}
-                  size="small"
-                  {...getTagProps({ index })}
-                />
-              ))
-            }
-            renderInput={(params) => (
-              <StyledTextField
-                {...params}
-                variant="outlined"
-                label="Additional Service Areas"
-                placeholder="Add general areas you cover"
-                helperText="Add regions, neighborhoods or service types (e.g., Remote Only)"
-              />
-            )}
-          />
-        </Grid>
       </Box>
     );
   };
@@ -1782,7 +1618,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
             <Accordion defaultExpanded sx={{ border: '1px solid #CDCED8', borderRadius: 1, boxShadow: 'none', '&:not(:last-child)': { mb: 1.5 } }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: '#F8F8FA', minHeight: 48 }}>
                 <Typography variant="subtitle1" sx={{ display: 'flex', alignItems: 'center', color: '#3D1560' }}>
-                  <LocationOnIcon sx={{ mr: 1, color: '#3D1560' }} /> Service Locations
+                  <LocationOnIcon sx={{ mr: 1, color: '#3D1560' }} /> Service Location
                 </Typography>
               </AccordionSummary>
               <AccordionDetails sx={{ p: 2 }}>
@@ -1872,28 +1708,6 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
 
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
-  };
-
-  // Add debug method to help troubleshoot
-  const debugFormValues = () => {
-    console.log('DEBUG - Form Values:', formik.values);
-    console.log('DEBUG - Form Errors:', formik.errors);
-    console.log('DEBUG - Form Touched:', formik.touched);
-    console.log('DEBUG - Form isSubmitting:', formik.isSubmitting);
-    console.log('DEBUG - Form isValid:', formik.isValid);
-    
-    // Check specific critical fields
-    console.log('DEBUG - title:', formik.values.title, 'Error:', formik.errors.title);
-    console.log('DEBUG - pricingModel:', formik.values.pricingModel);
-    
-    if (formik.values.pricingModel === 'flat') {
-      console.log('DEBUG - flatRatePrice:', formik.values.flatRatePrice, 'Error:', formik.errors.flatRatePrice);
-    } else {
-      console.log('DEBUG - pricingTiers:', formik.values.pricingTiers);
-      if (formik.errors.pricingTiers) {
-        console.log('DEBUG - pricingTiers errors:', formik.errors.pricingTiers);
-      }
-    }
   };
 
   // Function to generate a unique ID for new listings
@@ -2016,20 +1830,6 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                 Back
               </Button>
             )}
-            {/* Add a debug button in development */}
-            <Button
-              variant="outlined"
-              onClick={debugFormValues}
-              sx={{ 
-                px: 3,
-                color: '#3D1560',
-                borderColor: '#3D1560',
-                // Always display for now - in a real app, you would use process.env.NODE_ENV
-                display: 'inline-flex'
-              }}
-            >
-              Debug Form
-            </Button>
             <Button
               variant="contained"
               type={activeStep === steps.length - 1 ? 'submit' : 'button'}
