@@ -42,6 +42,9 @@ import {
   DialogContent,
   DialogActions,
   CircularProgress,
+  ListItemText,
+  FormHelperText,
+  Tooltip,
 } from '@mui/material';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -63,6 +66,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DescriptionIcon from '@mui/icons-material/Description';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import InfoIcon from '@mui/icons-material/Info';
 import { mockServices } from '../../mockData';
 import SellerVerificationModal from '../SellerVerificationModal';
 import VerificationFlowModal from '../verification/VerificationFlowModal';
@@ -85,7 +89,7 @@ interface FormValues extends Record<string, any> {
   shortDescription: string;
   detailedDescription: string;
   price: string;
-  location: string;
+  location: string | string[]; // Updated to allow string or string array
   country: string;
   coverageAreaKm: string;
   serviceAreas: string[];
@@ -253,6 +257,7 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
   marginBottom: theme.spacing(2),
   '& .MuiOutlinedInput-root': {
     transition: 'all 0.2s ease-in-out',
+    height: '56px', // Standardizing input height
     '&:hover fieldset': {
       borderColor: '#6D26AB',
     },
@@ -260,9 +265,19 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
       boxShadow: '0 0 0 0.3px #9B53D9',
       borderColor: '#3D1560',
     },
+    '&.MuiInputBase-multiline': {
+      height: 'auto', // Allow multiline fields to expand
+    },
   },
   '& .MuiInputLabel-root.Mui-focused': {
     color: '#3D1560',
+  },
+  '& .MuiInputLabel-root': {
+    fontSize: '0.9rem', // Standardize label size
+    transform: 'translate(14px, 16px) scale(1)',
+  },
+  '& .MuiInputLabel-shrink': {
+    transform: 'translate(14px, -6px) scale(0.75)',
   },
 }));
 
@@ -270,6 +285,7 @@ const StyledFormControl = styled(FormControl)(({ theme }) => ({
   marginBottom: theme.spacing(2),
   '& .MuiOutlinedInput-root': {
     transition: 'all 0.2s ease-in-out',
+    height: '56px', // Standardizing select height
     '&:hover fieldset': {
       borderColor: '#6D26AB',
     },
@@ -280,6 +296,17 @@ const StyledFormControl = styled(FormControl)(({ theme }) => ({
   },
   '& .MuiInputLabel-root.Mui-focused': {
     color: '#3D1560',
+  },
+  '& .MuiInputLabel-root': {
+    fontSize: '0.9rem', // Standardize label size
+    transform: 'translate(14px, 16px) scale(1)',
+  },
+  '& .MuiInputLabel-shrink': {
+    transform: 'translate(14px, -6px) scale(0.75)',
+  },
+  '& .MuiFormHelperText-root': {
+    marginLeft: 0,
+    fontSize: '0.75rem',
   },
 }));
 
@@ -354,7 +381,7 @@ const placeholderImages = [
 
 const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => void }> = ({ onBack }) => {
   const [activeStep, setActiveStep] = useState(0);
-  const [availabilityTab, setAvailabilityTab] = useState<number>(0);
+  const [availabilityTab, setAvailabilityTab] = useState(0); // 0 for weekly, 1 for date range
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [isSellerInfoOpen, setIsSellerInfoOpen] = useState(false);
@@ -363,7 +390,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
   const [showListingSuccessDialog, setShowListingSuccessDialog] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [showVerificationFlow, setShowVerificationFlow] = useState(false);
-  const [verificationType, setVerificationType] = useState<'individual' | 'business' | undefined>(undefined);
+  const [verificationType, setVerificationType] = useState<'individual' | 'business'>('individual');
   const steps = ['Basic Information', 'Category & Availability', 'Pricing Options'];
 
   // Seller info form state
@@ -384,15 +411,15 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
       price: '',
       location: '',
       country: '',
-      coverageAreaKm: '',
+      coverageAreaKm: '', // Changed from 'Entire City' to empty string
       serviceAreas: [],
       serviceCities: [],
       images: [],
       category: '',
       serviceType: '',
       paymentOptions: {
-        onlinePayment: false,
-        payAtService: true
+        onlinePayment: true,
+        payAtService: true,
       },
       availability: {
         type: 'weekdays',
@@ -445,7 +472,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
     validationSchema: Yup.object({
       title: Yup.string().required('Title is required'),
       shortDescription: Yup.string().required('Short description is required'),
-      detailedDescription: Yup.string().required('Detailed description is required'),
+      detailedDescription: Yup.string(),
       // Make location and country optional to prevent validation blocking
       location: Yup.string(),
       country: Yup.string(),
@@ -553,7 +580,9 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
             description: values.detailedDescription || 'No detailed description provided',
             longDescription: values.detailedDescription || 'No detailed description provided',
             location: {
-              city: location,
+              city: Array.isArray(values.location) 
+                ? values.location.join(', ')
+                : values.location,
               country: country,
             },
             // Use placeholder images instead of URL.createObjectURL
@@ -569,7 +598,9 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
               joinedDate: new Date(),
               isOnline: true,
               location: {
-                city: location,
+                city: Array.isArray(values.location)
+                  ? values.location.join(', ')
+                  : values.location,
                 country: country,
               },
               reviews: [],
@@ -771,87 +802,211 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
   );
 
   const renderServiceAreaFields = () => {
-    // List of countries - you can expand this list as needed
-    const countries = [
-      'United States',
-      'Canada',
-      'United Kingdom',
-      'Australia',
-      'Germany',
-      'France',
-      'Italy',
-      'Japan',
-      'China',
-      'India',
-      'Brazil',
-      'Mexico',
-      // Add more countries as needed
+    // Comprehensive list of countries
+    const allCountries = [
+      'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria', 
+      'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 
+      'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia', 
+      'Cameroon', 'Canada', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica', 
+      'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'Ecuador', 'Egypt', 
+      'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Eswatini', 'Ethiopia', 'Fiji', 'Finland', 'France', 'Gabon', 
+      'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 
+      'Haiti', 'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 
+      'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'Korea, North', 'Korea, South', 'Kosovo', 
+      'Kuwait', 'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 
+      'Luxembourg', 'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 
+      'Mexico', 'Micronesia', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 
+      'Nauru', 'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'North Macedonia', 'Norway', 'Oman', 
+      'Pakistan', 'Palau', 'Palestine', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 
+      'Qatar', 'Romania', 'Russia', 'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe', 
+      'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia', 
+      'South Africa', 'South Sudan', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Sweden', 'Switzerland', 'Syria', 'Taiwan', 
+      'Tajikistan', 'Tanzania', 'Thailand', 'Timor-Leste', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 
+      'Tuvalu', 'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay', 'Uzbekistan', 'Vanuatu', 'Vatican City', 
+      'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe'
     ];
+
+    // Cities based on country selection
+    const getCitiesByCountry = (country: string) => {
+      const citiesMap: Record<string, string[]> = {
+        'United States': ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'San Jose', 'Austin', 'Jacksonville', 'Fort Worth', 'Columbus', 'Charlotte', 'San Francisco', 'Indianapolis', 'Seattle', 'Denver', 'Boston'],
+        'United Kingdom': ['London', 'Birmingham', 'Manchester', 'Glasgow', 'Liverpool', 'Bristol', 'Leeds', 'Sheffield', 'Edinburgh', 'Newcastle', 'Cardiff', 'Belfast', 'Nottingham', 'Leicester', 'Aberdeen', 'Cambridge', 'Oxford', 'Brighton', 'York', 'Southampton'],
+        'Canada': ['Toronto', 'Montreal', 'Vancouver', 'Calgary', 'Edmonton', 'Ottawa', 'Winnipeg', 'Quebec City', 'Hamilton', 'Halifax', 'Victoria', 'Saskatoon', 'Regina', 'St. John\'s', 'Kelowna', 'London', 'Windsor', 'Oshawa', 'Gatineau', 'Kitchener'],
+        'Australia': ['Sydney', 'Melbourne', 'Brisbane', 'Perth', 'Adelaide', 'Canberra', 'Gold Coast', 'Newcastle', 'Wollongong', 'Hobart', 'Geelong', 'Townsville', 'Cairns', 'Darwin', 'Toowoomba', 'Ballarat', 'Bendigo', 'Launceston', 'Mackay', 'Rockhampton'],
+        'Germany': ['Berlin', 'Hamburg', 'Munich', 'Cologne', 'Frankfurt', 'Stuttgart', 'Düsseldorf', 'Leipzig', 'Dortmund', 'Essen', 'Bremen', 'Dresden', 'Hanover', 'Nuremberg', 'Duisburg', 'Bochum', 'Wuppertal', 'Bielefeld', 'Bonn', 'Münster'],
+        'France': ['Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice', 'Nantes', 'Strasbourg', 'Montpellier', 'Bordeaux', 'Lille', 'Rennes', 'Reims', 'Le Havre', 'Saint-Étienne', 'Toulon', 'Grenoble', 'Dijon', 'Angers', 'Nîmes', 'Villeurbanne'],
+        'India': ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai', 'Kolkata', 'Ahmedabad', 'Pune', 'Surat', 'Jaipur', 'Lucknow', 'Kanpur', 'Nagpur', 'Indore', 'Thane', 'Bhopal', 'Visakhapatnam', 'Patna', 'Vadodara', 'Ludhiana'],
+        'China': ['Shanghai', 'Beijing', 'Guangzhou', 'Shenzhen', 'Chongqing', 'Tianjin', 'Hangzhou', 'Wuhan', 'Chengdu', 'Nanjing', 'Xi\'an', 'Shenyang', 'Harbin', 'Qingdao', 'Jinan', 'Dalian', 'Zhengzhou', 'Changsha', 'Fuzhou', 'Kunming'],
+        'Japan': ['Tokyo', 'Yokohama', 'Osaka', 'Nagoya', 'Sapporo', 'Kobe', 'Kyoto', 'Fukuoka', 'Kawasaki', 'Saitama', 'Hiroshima', 'Sendai', 'Kitakyushu', 'Chiba', 'Sakai', 'Niigata', 'Hamamatsu', 'Kumamoto', 'Sagamihara', 'Okayama'],
+        'Brazil': ['São Paulo', 'Rio de Janeiro', 'Brasília', 'Salvador', 'Fortaleza', 'Belo Horizonte', 'Manaus', 'Curitiba', 'Recife', 'Goiânia', 'Belém', 'Porto Alegre', 'Campinas', 'São Luís', 'Maceió', 'Duque de Caxias', 'Natal', 'Teresina', 'Campo Grande', 'Jaboatão dos Guararapes'],
+        'Italy': ['Rome', 'Milan', 'Naples', 'Turin', 'Palermo', 'Genoa', 'Bologna', 'Florence', 'Bari', 'Catania', 'Venice', 'Verona', 'Messina', 'Padua', 'Trieste', 'Taranto', 'Brescia', 'Prato', 'Modena', 'Reggio Calabria'],
+        'Spain': ['Madrid', 'Barcelona', 'Valencia', 'Seville', 'Zaragoza', 'Málaga', 'Murcia', 'Palma', 'Las Palmas', 'Bilbao', 'Alicante', 'Córdoba', 'Valladolid', 'Vigo', 'Gijón', 'L\'Hospitalet de Llobregat', 'A Coruña', 'Vitoria-Gasteiz', 'Granada', 'Elche'],
+        'Russia': ['Moscow', 'Saint Petersburg', 'Novosibirsk', 'Yekaterinburg', 'Kazan', 'Nizhny Novgorod', 'Chelyabinsk', 'Samara', 'Omsk', 'Rostov-on-Don', 'Ufa', 'Krasnoyarsk', 'Voronezh', 'Perm', 'Volgograd', 'Krasnodar', 'Saratov', 'Tyumen', 'Tolyatti', 'Izhevsk'],
+        'Mexico': ['Mexico City', 'Guadalajara', 'Monterrey', 'Puebla', 'Tijuana', 'Toluca', 'León', 'Juárez', 'Torreón', 'Querétaro', 'San Luis Potosí', 'Mérida', 'Aguascalientes', 'Cuernavaca', 'Acapulco', 'Tampico', 'Chihuahua', 'Saltillo', 'Morelia', 'Veracruz'],
+        'South Africa': ['Johannesburg', 'Cape Town', 'Durban', 'Pretoria', 'Port Elizabeth', 'Bloemfontein', 'East London', 'Polokwane', 'Nelspruit', 'Kimberley', 'Rustenburg', 'Pietermaritzburg', 'Welkom', 'George', 'Vereeniging', 'Uitenhage', 'Mthatha', 'Soweto', 'Tembisa', 'Katlehong'],
+        'Netherlands': ['Amsterdam', 'Rotterdam', 'The Hague', 'Utrecht', 'Eindhoven', 'Tilburg', 'Groningen', 'Almere', 'Breda', 'Nijmegen', 'Enschede', 'Haarlem', 'Arnhem', 'Zaanstad', 'Amersfoort', 'Apeldoorn', 'Hoofddorp', 'Maastricht', 'Leiden', 'Dordrecht'],
+        'Sweden': ['Stockholm', 'Gothenburg', 'Malmö', 'Uppsala', 'Linköping', 'Örebro', 'Västerås', 'Helsingborg', 'Norrköping', 'Jönköping', 'Umeå', 'Lund', 'Borås', 'Sundsvall', 'Gävle', 'Eskilstuna', 'Södertälje', 'Karlstad', 'Täby', 'Växjö'],
+        'Switzerland': ['Zurich', 'Geneva', 'Basel', 'Lausanne', 'Bern', 'Winterthur', 'Lucerne', 'St. Gallen', 'Lugano', 'Biel/Bienne', 'Thun', 'Köniz', 'La Chaux-de-Fonds', 'Fribourg', 'Schaffhausen', 'Chur', 'Vernier', 'Neuchâtel', 'Uster', 'Sion'],
+        'Turkey': ['Istanbul', 'Ankara', 'Izmir', 'Bursa', 'Adana', 'Gaziantep', 'Konya', 'Antalya', 'Kayseri', 'Eskişehir', 'Diyarbakır', 'Samsun', 'Denizli', 'Şanlıurfa', 'Adapazarı', 'Malatya', 'Kahramanmaraş', 'Erzurum', 'Van', 'Batman'],
+        'Argentina': ['Buenos Aires', 'Córdoba', 'Rosario', 'Mendoza', 'San Miguel de Tucumán', 'La Plata', 'Mar del Plata', 'Salta', 'Santa Fe', 'San Juan', 'Resistencia', 'Santiago del Estero', 'Corrientes', 'Posadas', 'Morón', 'Quilmes', 'Avellaneda', 'Lanús', 'Tandil', 'Bahía Blanca'],
+        'Egypt': ['Cairo', 'Alexandria', 'Giza', 'Shubra El Kheima', 'Port Said', 'Suez', 'Luxor', 'Mansoura', 'El-Mahalla El-Kubra', 'Tanta', 'Asyut', 'Ismailia', 'Fayyum', 'Zagazig', 'Aswan', 'Damietta', 'Damanhur', 'Minya', 'Beni Suef', 'Qena'],
+        'Nigeria': ['Lagos', 'Kano', 'Ibadan', 'Kaduna', 'Port Harcourt', 'Benin City', 'Maiduguri', 'Zaria', 'Aba', 'Jos', 'Ilorin', 'Oyo', 'Enugu', 'Abeokuta', 'Abuja', 'Sokoto', 'Onitsha', 'Warri', 'Ebute Ikorodu', 'Okene'],
+        'Pakistan': ['Karachi', 'Lahore', 'Faisalabad', 'Rawalpindi', 'Gujranwala', 'Peshawar', 'Multan', 'Hyderabad', 'Islamabad', 'Quetta', 'Bahawalpur', 'Sargodha', 'Sialkot', 'Sukkur', 'Larkana', 'Sheikhupura', 'Rahim Yar Khan', 'Jhang', 'Dera Ghazi Khan', 'Gujrat'],
+        'Indonesia': ['Jakarta', 'Surabaya', 'Bandung', 'Medan', 'Bekasi', 'Palembang', 'Tangerang', 'Makassar', 'South Tangerang', 'Semarang', 'Depok', 'Padang', 'Denpasar', 'Bandar Lampung', 'Bogor', 'Malang', 'Pekanbaru', 'Yogyakarta', 'Banjarmasin', 'Pontianak'],
+        'Philippines': ['Manila', 'Quezon City', 'Caloocan', 'Davao City', 'Cebu City', 'Zamboanga City', 'Taguig', 'Pasig', 'Antipolo', 'Cagayan de Oro', 'Parañaque', 'Makati', 'Las Piñas', 'Muntinlupa', 'Bacolod', 'Mandaue', 'Iloilo City', 'Marikina', 'Calamba', 'Angeles City'],
+        'Vietnam': ['Ho Chi Minh City', 'Hanoi', 'Da Nang', 'Hai Phong', 'Can Tho', 'Bien Hoa', 'Hue', 'Nha Trang', 'Vung Tau', 'Quy Nhon', 'Long Xuyen', 'Thai Nguyen', 'Buon Ma Thuot', 'Da Lat', 'Phan Thiet', 'Cam Pha', 'My Tho', 'Soc Trang', 'Pleiku', 'Vinh'],
+        'Thailand': ['Bangkok', 'Nonthaburi', 'Nakhon Ratchasima', 'Chiang Mai', 'Hat Yai', 'Udon Thani', 'Pak Kret', 'Khon Kaen', 'Ubon Ratchathani', 'Nakhon Si Thammarat', 'Chon Buri', 'Lampang', 'Phitsanulok', 'Songkhla', 'Samut Prakan', 'Yala', 'Surat Thani', 'Nakhon Pathom', 'Phuket', 'Chiang Rai'],
+        'South Korea': ['Seoul', 'Busan', 'Incheon', 'Daegu', 'Daejeon', 'Gwangju', 'Suwon', 'Ulsan', 'Changwon', 'Seongnam', 'Goyang', 'Yongin', 'Bucheon', 'Ansan', 'Cheongju', 'Jeonju', 'Cheonan', 'Gimhae', 'Pohang', 'Jinju'],
+        'Malaysia': ['Kuala Lumpur', 'George Town', 'Ipoh', 'Shah Alam', 'Petaling Jaya', 'Johor Bahru', 'Malacca City', 'Kota Kinabalu', 'Kuantan', 'Kajang', 'Sungai Petani', 'Klang', 'Ampang Jaya', 'Subang Jaya', 'Sandakan', 'Seremban', 'Kuching', 'Tawau', 'Miri', 'Alor Setar'],
+        'Singapore': ['Singapore', 'Woodlands', 'Jurong West', 'Tampines', 'Hougang', 'Sengkang', 'Yishun', 'Choa Chu Kang', 'Punggol', 'Ang Mo Kio', 'Bukit Batok', 'Bedok', 'Toa Payoh', 'Bishan', 'Serangoon', 'Pasir Ris', 'Bukit Merah', 'Bukit Panjang', 'Geylang', 'Clementi'],
+        'United Arab Emirates': ['Dubai', 'Abu Dhabi', 'Sharjah', 'Al Ain', 'Ajman', 'Ras Al Khaimah', 'Fujairah', 'Umm Al Quwain', 'Khor Fakkan', 'Jebel Ali', 'Madinat Zayed', 'Ruwais', 'Liwa Oasis', 'Dhaid', 'Ghayathi', 'Ar-Rams', 'Dibba Al-Hisn', 'Hatta', 'Kalba', 'Masfut'],
+        'Saudi Arabia': ['Riyadh', 'Jeddah', 'Mecca', 'Medina', 'Dammam', 'Khobar', 'Tabuk', 'Buraydah', 'Khamis Mushait', 'Al Hufuf', 'Al Mubarraz', 'Hail', 'Najran', 'Al Jubail', 'Abha', 'Yanbu', 'Al Qatif', 'Al Kharj', 'Arar', 'Hafar Al-Batin'],
+        'Estonia': ['Tallinn', 'Tartu', 'Narva', 'Pärnu', 'Kohtla-Järve', 'Viljandi', 'Rakvere', 'Sillamäe', 'Maardu', 'Kuressaare', 'Võru', 'Valga', 'Haapsalu', 'Jõhvi', 'Paide', 'Keila', 'Kiviõli', 'Tapa', 'Põlva', 'Türi'],
+        'Gambia': ['Banjul', 'Serekunda', 'Brikama', 'Bakau', 'Farafenni', 'Lamin', 'Sukuta', 'Basse Santa Su', 'Gunjur', 'Brufut', 'Soma', 'Kanifing', 'Essau', 'Kerewan', 'Mansakonko', 'Janjanbureh', 'Kuntaur', 'Bansang', 'Sabi', 'Kiang'],
+        'Ghana': ['Accra', 'Kumasi', 'Tamale', 'Takoradi', 'Sekondi', 'Cape Coast', 'Obuasi', 'Teshie', 'Tema', 'Koforidua', 'Wa', 'Ho', 'Sunyani', 'Bolgatanga', 'Kasoa', 'Ashaiman', 'Nkawkaw', 'Winneba', 'Hohoe', 'Dunkwa'],
+        'Kenya': ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Thika', 'Malindi', 'Kitale', 'Garissa', 'Kakamega', 'Kapenguria', 'Bungoma', 'Busia', 'Nyeri', 'Machakos', 'Meru', 'Embu', 'Nanyuki', 'Isiolo', 'Lamu'],
+        'Rwanda': ['Kigali', 'Butare', 'Gitarama', 'Ruhengeri', 'Gisenyi', 'Byumba', 'Cyangugu', 'Kibuye', 'Rwamagana', 'Kibungo', 'Nzega', 'Kayonza', 'Muhanga', 'Huye', 'Musanze', 'Rubavu', 'Gicumbi', 'Nyagatare', 'Rusizi', 'Kirehe'],
+        // Add more countries as needed
+      };
+      
+      // Return a default list with a message for countries not in our map
+      return citiesMap[country] || ['City selection will be available soon', 'Please select another country or check back later'];
+    };
+
+    // Service coverage options
+    const serviceCoverageOptions = ['Entire City', 'Remote Service', 'Nationwide', 'Global'];
 
     return (
       <Box sx={{ mt: 2 }}>
-        {/* Service Location */}
-        <Box sx={{ mb: 3 }}>
+        {/* Service Location Section */}
           <Card sx={{ 
             mb: 2, 
-            p: 1.5, 
             border: '1px solid', 
             borderColor: '#CDCED8', 
             boxShadow: 'none',
             borderRadius: '8px' 
           }}>
-            <Grid container spacing={1.5} alignItems="center">
+          <CardContent sx={{ p: 3 }}>
+            <Grid container spacing={3}>
               <Grid item xs={12} sm={4}>
-                <StyledFormControl fullWidth>
-                  <InputLabel>Country</InputLabel>
-                  <Select
-                    name="country"
-                    value={formik.values.country}
-                    onChange={formik.handleChange}
-                    error={formik.touched.country && Boolean(formik.errors.country)}
-                  >
-                    {countries.map((country) => (
-                      <MenuItem key={country} value={country}>
-                        {country}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </StyledFormControl>
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <StyledTextField
-                  fullWidth
-                  name="location"
-                  label="City"
-                  value={formik.values.location}
-                  onChange={formik.handleChange}
-                  error={formik.touched.location && Boolean(formik.errors.location)}
-                  helperText={formik.touched.location && formik.errors.location}
-                />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <StyledTextField 
-                  fullWidth
-                  name="coverageAreaKm"
-                  label="Coverage Radius"
-                  type="number"
-                  defaultValue="10"
-                  placeholder="10"
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">km</InputAdornment>,
+                <Autocomplete
+                  id="country-select"
+                  options={allCountries}
+                  autoHighlight
+                  value={formik.values.country || null}
+                  onChange={(event, newValue) => {
+                    formik.setFieldValue('country', newValue || '');
+                    formik.setFieldValue('location', '');
                   }}
+                  renderInput={(params) => (
+                <StyledTextField
+                      {...params}
+                      label="Country"
+                      error={formik.touched.country && Boolean(formik.errors.country)}
+                      helperText={formik.touched.country && formik.errors.country}
+                      placeholder="Select a country"
+                  fullWidth
+                  InputProps={{
+                        ...params.InputProps,
+                        sx: { height: '56px' },
+                  }}
+                    />
+                  )}
                   sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '4px',
+                    '& .MuiAutocomplete-inputRoot': {
+                      height: '56px',
                     }
                   }}
-                  value={formik.values.coverageAreaKm}
-                  onChange={formik.handleChange}
                 />
               </Grid>
+              <Grid item xs={12} sm={4}>
+                <Autocomplete
+                  id="city-select"
+                  options={getCitiesByCountry(formik.values.country || '')}
+                  value={
+                    typeof formik.values.location === 'string' && formik.values.location
+                      ? formik.values.location
+                      : null
+                  }
+                  onChange={(event, newValue) => {
+                    formik.setFieldValue('location', newValue || '');
+                  }}
+                  disabled={!formik.values.country}
+                  renderInput={(params) => (
+                  <StyledTextField 
+                      {...params}
+                    label="City"
+                      error={formik.touched.location && Boolean(formik.errors.location)}
+                      helperText={
+                        (formik.touched.location && formik.errors.location) || 
+                        (!formik.values.country ? 'Select a country first' : '')
+                      }
+                      placeholder={formik.values.country ? "Select a city" : "Select a country first"}
+                    fullWidth
+                    InputProps={{
+                        ...params.InputProps,
+                        sx: { height: '56px' },
+                    }}
+                    />
+                  )}
+                    sx={{
+                    '& .MuiAutocomplete-inputRoot': {
+                      height: '56px',
+                    }
+                  }}
+                  />
+                </Grid>
+              <Grid item xs={12} sm={4}>
+                <StyledFormControl fullWidth>
+                  <Autocomplete
+                    id="service-coverage-select"
+                    options={serviceCoverageOptions}
+                    value={formik.values.coverageAreaKm || null}
+                    onChange={(event, newValue) => {
+                      formik.setFieldValue('coverageAreaKm', newValue || '');
+                    }}
+                    renderInput={(params) => (
+                      <StyledTextField
+                        {...params}
+                        label="Service Coverage"
+                        error={formik.touched.coverageAreaKm && Boolean(formik.errors.coverageAreaKm)}
+                        helperText={formik.touched.coverageAreaKm && formik.errors.coverageAreaKm}
+                        placeholder="Select coverage area"
+                        fullWidth
+                        InputProps={{
+                          ...params.InputProps,
+                          sx: { height: '56px' },
+                        }}
+                      />
+                    )}
+                    sx={{
+                      '& .MuiAutocomplete-inputRoot': {
+                        height: '56px',
+                      }
+                    }}
+                  />
+                  {/* Adjusted layout to prevent text overlap */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                    <Tooltip
+                      title="Specify how far you're willing to provide your service from your selected location"
+                      arrow
+                      placement="top"
+                    >
+                      <InfoIcon sx={{ fontSize: '0.9rem', mr: 0.5, color: '#70727F' }} />
+                    </Tooltip>
+                    <Typography 
+                      variant="caption" 
+                      color="text.secondary" 
+                      sx={{ fontSize: '0.75rem' }}
+                    >
+                      Service area coverage
+                    </Typography>
+                  </Box>
+                </StyledFormControl>
+              </Grid>
             </Grid>
-          </Card>
-        </Box>
+          </CardContent>
+        </Card>
       </Box>
     );
   };
@@ -1350,8 +1505,11 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
 
     // Helper to get error message for a field
     const getErrorMessage = (field: string) => {
-      return formik.touched[field as keyof typeof formik.touched] ? 
+      const error = formik.touched[field as keyof typeof formik.touched] ? 
         formik.errors[field as keyof typeof formik.errors] : '';
+      
+      // Convert the error to a string if it's not already
+      return typeof error === 'string' ? error : '';
     };
 
     // Helper to check if a tier field has an error
@@ -1359,10 +1517,10 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
       return Boolean(
         formik.touched.pricingTiers && 
         formik.touched.pricingTiers[tierIndex] && 
-        formik.touched.pricingTiers[tierIndex]?.[field] && 
+        // @ts-ignore - ignoring type checking for accessing dynamic properties
+        formik.touched.pricingTiers[tierIndex][field] && 
         formik.errors.pricingTiers && 
-        formik.errors.pricingTiers[tierIndex] && 
-        formik.errors.pricingTiers[tierIndex]?.[field]
+        formik.errors.pricingTiers[tierIndex]
       );
     };
 
@@ -1370,10 +1528,13 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
     const getTierErrorMessage = (tierIndex: number, field: string) => {
       if (formik.touched.pricingTiers && 
           formik.touched.pricingTiers[tierIndex] && 
-          formik.touched.pricingTiers[tierIndex]?.[field] && 
+          // @ts-ignore - ignoring type checking for accessing dynamic properties
+          formik.touched.pricingTiers[tierIndex][field] && 
           formik.errors.pricingTiers && 
           formik.errors.pricingTiers[tierIndex]) {
-        return formik.errors.pricingTiers[tierIndex]?.[field];
+        // @ts-ignore - ignoring type checking for accessing dynamic properties
+        const error = formik.errors.pricingTiers[tierIndex][field];
+        return typeof error === 'string' ? error : '';
       }
       return '';
     };
@@ -1562,25 +1723,25 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
     switch (step) {
       case 0:
         return (
-          <Stack spacing={1.5}>
-            <Accordion defaultExpanded sx={{ border: '1px solid #CDCED8', borderRadius: 1, boxShadow: 'none', '&:not(:last-child)': { mb: 1.5 } }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: '#F8F8FA', minHeight: 48 }}>
+          <Stack spacing={3}> {/* Increased spacing for consistency */}
+            <Accordion defaultExpanded sx={{ border: '1px solid #CDCED8', borderRadius: 1, boxShadow: 'none', '&:not(:last-child)': { mb: 0 } }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: '#F8F8FA', minHeight: 56 }}> {/* Consistent height */}
                 <Typography variant="subtitle1" sx={{ display: 'flex', alignItems: 'center', color: '#3D1560' }}>
                   <InventoryIcon sx={{ mr: 1, color: '#3D1560' }} /> Images
                 </Typography>
               </AccordionSummary>
-              <AccordionDetails sx={{ p: 2 }}>
+              <AccordionDetails sx={{ p: 3 }}> {/* Increased padding for consistency */}
                 {renderImageUpload()}
               </AccordionDetails>
             </Accordion>
-            <Accordion defaultExpanded sx={{ border: '1px solid #CDCED8', borderRadius: 1, boxShadow: 'none', '&:not(:last-child)': { mb: 1.5 } }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: '#F8F8FA', minHeight: 48 }}>
+            <Accordion defaultExpanded sx={{ border: '1px solid #CDCED8', borderRadius: 1, boxShadow: 'none', '&:not(:last-child)': { mb: 0 } }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: '#F8F8FA', minHeight: 56 }}> {/* Consistent height */}
                 <Typography variant="subtitle1" sx={{ display: 'flex', alignItems: 'center', color: '#3D1560' }}>
                   <DescriptionIcon sx={{ mr: 1, color: '#3D1560' }} /> Basic Details
                 </Typography>
               </AccordionSummary>
-              <AccordionDetails sx={{ p: 2 }}>
-                <Stack spacing={2}>
+              <AccordionDetails sx={{ p: 3 }}> {/* Increased padding for consistency */}
+                <Stack spacing={3}> {/* Increased spacing for consistency */}
                   <StyledTextField
                     fullWidth
                     name="title"
@@ -1615,13 +1776,13 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                 </Stack>
               </AccordionDetails>
             </Accordion>
-            <Accordion defaultExpanded sx={{ border: '1px solid #CDCED8', borderRadius: 1, boxShadow: 'none', '&:not(:last-child)': { mb: 1.5 } }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: '#F8F8FA', minHeight: 48 }}>
+            <Accordion defaultExpanded sx={{ border: '1px solid #CDCED8', borderRadius: 1, boxShadow: 'none', '&:not(:last-child)': { mb: 0 } }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: '#F8F8FA', minHeight: 56 }}> {/* Consistent height */}
                 <Typography variant="subtitle1" sx={{ display: 'flex', alignItems: 'center', color: '#3D1560' }}>
                   <LocationOnIcon sx={{ mr: 1, color: '#3D1560' }} /> Service Location
                 </Typography>
               </AccordionSummary>
-              <AccordionDetails sx={{ p: 2 }}>
+              <AccordionDetails sx={{ p: 3 }}> {/* Increased padding for consistency */}
                 {renderServiceAreaFields()}
               </AccordionDetails>
             </Accordion>
@@ -1864,7 +2025,9 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
             shortDescription: formik.values.shortDescription,
             category: formik.values.category,
             location: {
-              city: formik.values.location,
+              city: Array.isArray(formik.values.location)
+                ? formik.values.location.join(', ')
+                : formik.values.location,
               country: formik.values.country || 'Select a country',
             },
             images: formik.values.images.length > 0 
@@ -1882,7 +2045,9 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
               joinedDate: new Date(),
               isOnline: true,
               location: {
-                city: formik.values.location,
+                city: Array.isArray(formik.values.location)
+                  ? formik.values.location.join(', ')
+                  : formik.values.location,
                 country: formik.values.country || 'Select a country',
               },
               reviews: [],
