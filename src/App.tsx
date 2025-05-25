@@ -34,6 +34,7 @@ import { Appointment } from './types';
 import { AppointmentDetailsModal, RescheduleAppointmentModal } from './components/appointments';
 import { Box, Typography } from '@mui/material';
 import SavedItemsPage from './pages/SavedItemsPage';
+import RecentlyViewedPage from './pages/RecentlyViewedPage'; // Import the new page
 
 function App() {
   const [currentPage, setCurrentPage] = useState<
@@ -59,7 +60,8 @@ function App() {
     'cart' |
     'checkout' |
     'order-confirmation' |
-    'savedItems' // Added new page state
+    'savedItems' |
+    'recentlyViewed' // Added new page state
   >('landing');
   const [selectedListing, setSelectedListing] = useState<ListingItem | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<ServiceProvider | null>(null);
@@ -87,6 +89,13 @@ function App() {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [savedItemIds, setSavedItemIds] = useState<string[]>([]); // Initial saved items (e.g., first product)
 
+  // State for recently viewed items
+  interface RecentlyViewedEntry {
+    itemId: string;
+    viewedAt: number; // Timestamp
+  }
+  const [recentlyViewedItems, setRecentlyViewedItems] = useState<RecentlyViewedEntry[]>([]);
+
   const toggleSaveItem = (itemId: string) => {
     setSavedItemIds(prevIds =>
       prevIds.includes(itemId)
@@ -97,6 +106,30 @@ function App() {
 
   const isItemSaved = (itemId: string) => {
     return savedItemIds.includes(itemId);
+  };
+
+  // Function to add an item to recently viewed
+  const MAX_RECENTLY_VIEWED = 30;
+  const RECENTLY_VIEWED_TIMESPAN_DAYS = 30;
+
+  const addRecentlyViewedItem = (itemId: string) => {
+    setRecentlyViewedItems(prevItems => {
+      const now = Date.now();
+      const thirtyDaysAgo = now - (RECENTLY_VIEWED_TIMESPAN_DAYS * 24 * 60 * 60 * 1000);
+
+      // Remove the item if it already exists, to move it to the top
+      let updatedItems = prevItems.filter(item => item.itemId !== itemId);
+
+      // Add the new item to the beginning
+      updatedItems.unshift({ itemId, viewedAt: now });
+
+      // Filter out items older than 30 days and limit to MAX_RECENTLY_VIEWED
+      updatedItems = updatedItems
+        .filter(item => item.viewedAt >= thirtyDaysAgo)
+        .slice(0, MAX_RECENTLY_VIEWED);
+      
+      return updatedItems;
+    });
   };
 
   // Determine if sidebar should be shown
@@ -111,6 +144,7 @@ function App() {
 
   const handleListingSelect = (listing: ListingItem) => {
     setSelectedListing(listing);
+    addRecentlyViewedItem(listing.id); // Add to recently viewed before navigating
     setCurrentPage(listing.type === 'service' ? 'serviceDetails' : 'productDetails');
   };
 
@@ -473,6 +507,155 @@ function App() {
       
       return combinedItems;
     }, [savedItemIds]);
+
+    // Memoized list for recently viewed items
+    const filteredRecentlyViewedItems = useMemo(() => {
+      const allMockItems = [...mockProducts, ...mockServices];
+      return recentlyViewedItems
+        .map(entry => {
+          const item = allMockItems.find(i => i.id === entry.itemId);
+          if (!item) return null;
+          return {
+            ...(item as ListingItem), // Cast to ListingItem or a common type
+            viewedAt: entry.viewedAt,
+            // Ensure common properties for display, similar to saved items
+            dateSaved: 'N/A', // Not applicable here, but keep structure consistent if needed
+            itemType: item.type === 'product' ? 'product' : 'service',
+            shortDescription: item.shortDescription || (item as any).description || item.name,
+            images: item.images && item.images.length > 0 ? item.images : ['https://via.placeholder.com/150'],
+            views: item.views || 0,
+          };
+        })
+        .filter(item => item !== null) as (ListingItem & { viewedAt: number; itemType: 'product' | 'service'; shortDescription: string; images: string[]; views: number; dateSaved: string; })[];
+    }, [recentlyViewedItems]);
+
+    // START: Appointments Card Enhancements
+    interface UserBooking {
+      id: string;
+      serviceName: string;
+      providerName: string;
+      date: Date;
+      time: string; // e.g., "10:00 AM"
+      description?: string;
+    }
+
+    const userBookingsSample: UserBooking[] = useMemo(() => [
+      { id: 'ub001', serviceName: 'Deep Tissue Massage', providerName: 'Revive Spa', date: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 3), time: '02:00 PM', description: 'Relaxing massage session' },
+      { id: 'ub002', serviceName: 'Haircut & Styling', providerName: 'Style Salon', date: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 7), time: '11:00 AM', description: 'Standard haircut and styling' },
+      { id: 'ub003', serviceName: 'Yoga Session', providerName: 'Zen Studio', date: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 7), time: '05:00 PM', description: 'Evening Yoga' },
+      { id: 'ub004', serviceName: 'Consultation', providerName: 'Wellness Clinic', date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 5), time: '03:30 PM', description: 'Initial consultation' },
+      { id: 'ub005', serviceName: 'Dental Check-up', providerName: 'City Dental', date: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 1), time: '09:00 AM', description: 'Routine check-up' },
+    ], []);
+
+    const [calendarDate, setCalendarDate] = useState(new Date());
+    const [calendarViewMode, setCalendarViewMode] = useState<'month' | 'week'>('month');
+
+    const dayNames = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+    const handlePrevPeriod = () => {
+      setCalendarDate(prevDate => {
+        const newDate = new Date(prevDate);
+        if (calendarViewMode === 'month') {
+          newDate.setMonth(newDate.getMonth() - 1);
+        } else {
+          newDate.setDate(newDate.getDate() - 7);
+        }
+        return newDate;
+      });
+    };
+
+    const handleNextPeriod = () => {
+      setCalendarDate(prevDate => {
+        const newDate = new Date(prevDate);
+        if (calendarViewMode === 'month') {
+          newDate.setMonth(newDate.getMonth() + 1);
+        } else {
+          newDate.setDate(newDate.getDate() + 7);
+        }
+        return newDate;
+      });
+    };
+    
+    const upcomingAppointments = useMemo(() => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return userBookingsSample
+        .filter(booking => booking.date >= today)
+        .sort((a, b) => a.date.getTime() - b.date.getTime());
+    }, [userBookingsSample]);
+
+    const renderCalendarCells = () => {
+      const year = calendarDate.getFullYear();
+      const month = calendarDate.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      let firstDayOfMonth = new Date(year, month, 1).getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
+      firstDayOfMonth = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1; // Adjust to Monday = 0, ..., Sunday = 6
+
+      const cells = [];
+      for (let i = 0; i < firstDayOfMonth; i++) {
+        cells.push(<div key={`empty-prev-${i}`} className="p-1 text-center"></div>);
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const bookingsOnThisDay = userBookingsSample.filter(
+          b => b.date.getFullYear() === year && b.date.getMonth() === month && b.date.getDate() === day
+        );
+        const isBooked = bookingsOnThisDay.length > 0;
+        const tooltipText = isBooked 
+          ? bookingsOnThisDay.map(b => `${b.serviceName} at ${b.time}`).join('\n') 
+          : '';
+        cells.push(
+          <div 
+            key={`day-${day}`} 
+            title={tooltipText}
+            className={`p-1 text-center text-xs rounded cursor-default ${isBooked ? 'bg-[#EDD9FF] text-[#3D1560] font-semibold' : 'text-gray-700'} hover:bg-[#D8C4E9]`}
+          >
+            {day}
+          </div>
+        );
+      }
+      const totalRenderedCells = firstDayOfMonth + daysInMonth;
+      const remainingCellsToFill = (Math.ceil(totalRenderedCells / 7) * 7) - totalRenderedCells;
+      for (let i = 0; i < remainingCellsToFill; i++) {
+        cells.push(<div key={`empty-next-${i}`} className="p-1 text-center"></div>);
+      }
+      return cells;
+    };
+
+    const renderWeeklyCalendarCells = () => {
+      const viewStartDate = new Date(calendarDate);
+      let currentDayOfWeek = viewStartDate.getDay(); // Sunday = 0, ..., Saturday = 6
+      currentDayOfWeek = (currentDayOfWeek === 0) ? 6 : currentDayOfWeek - 1; // Adjust to Monday = 0, ..., Sunday = 6
+      viewStartDate.setDate(viewStartDate.getDate() - currentDayOfWeek); // Set to the Monday of the current week
+
+      const weekCells = [];
+      for (let i = 0; i < 7; i++) {
+        const dayToRender = new Date(viewStartDate);
+        dayToRender.setDate(viewStartDate.getDate() + i);
+        
+        const bookingsOnThisDay = userBookingsSample.filter(
+          b => b.date.getFullYear() === dayToRender.getFullYear() && 
+               b.date.getMonth() === dayToRender.getMonth() && 
+               b.date.getDate() === dayToRender.getDate()
+        );
+        const isBooked = bookingsOnThisDay.length > 0;
+        const tooltipText = isBooked 
+          ? bookingsOnThisDay.map(b => `${b.serviceName} at ${b.time}`).join('\n') 
+          : '';
+        weekCells.push(
+          <div 
+            key={`week-day-${i}`} 
+            title={tooltipText}
+            className={`p-1 text-center text-xs rounded cursor-default ${isBooked ? 'bg-[#EDD9FF] text-[#3D1560] font-semibold' : 'text-gray-700'} hover:bg-[#D8C4E9]`}
+          >
+            {dayToRender.getDate()}
+          </div>
+        );
+      }
+      return weekCells;
+    };
+    // END: Appointments Card Enhancements
 
     return (
       <div className="p-8">
@@ -1104,26 +1287,99 @@ function App() {
         {/* Convert tabs to cards on the profile homepage */}
         {!isEditMode && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+            {/* Ongoing Orders Card */}
+            <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
+              <h3 className="text-2xl font-semibold text-gray-900 mb-4">Ongoing Orders</h3>
+              <p className="text-base text-gray-600 mb-6">Manage your current orders.</p>
+              <button 
+                onClick={() => handleNavigate('myOrders')}
+                className="text-lg text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center"
+              >
+                View Orders <ChevronRight className="ml-1 h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Appointments Card - MODIFIED */}
+            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 flex flex-col">
+              <h3 className="text-xl font-semibold text-[#1B1C20] mb-3">Appointments ({upcomingAppointments.length})</h3>
+              
+              <div className="flex flex-col md:flex-row gap-3 flex-grow min-h-0"> {/* min-h-0 for flex-grow to work in flex-col */}
+                {/* Calendar Section (md:w-3/5) */}
+                <div className="md:w-3/5 border border-gray-200 rounded-md p-2 bg-gray-50">
+                  <div className="flex items-center justify-between mb-2 text-xs">
+                    <button onClick={handlePrevPeriod} className="p-1 rounded hover:bg-[#E8E9ED] text-[#383A47]"><ChevronLeft size={16} /></button>
+                    <span className="font-medium text-[#3D1560]">
+                      {monthNames[calendarDate.getMonth()]} {calendarDate.getFullYear()}
+                    </span>
+                    <button onClick={handleNextPeriod} className="p-1 rounded hover:bg-[#E8E9ED] text-[#383A47]"><ChevronRight size={16} /></button>
+                    <div className="flex gap-1">
+                      <button 
+                        onClick={() => setCalendarViewMode('month')} 
+                        className={`px-1.5 py-0.5 rounded text-[10px] ${calendarViewMode === 'month' ? 'bg-[#3D1560] text-white' : 'bg-[#CDCED8] text-[#383A47]'}`}
+                      >
+                        Month
+                      </button>
+                      <button 
+                        onClick={() => setCalendarViewMode('week')} 
+                        className={`px-1.5 py-0.5 rounded text-[10px] ${calendarViewMode === 'week' ? 'bg-[#3D1560] text-white' : 'bg-[#CDCED8] text-[#383A47]'}`}
+                      >
+                        Week
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-7 gap-0.5 text-center text-[10px] font-medium text-[#70727F] mb-1">
+                    {dayNames.map(name => <div key={name}>{name}</div>)}
+                  </div>
+                  <div className="grid grid-cols-7 gap-0.5">
+                    {calendarViewMode === 'month' ? renderCalendarCells() : renderWeeklyCalendarCells()}
+                  </div>
+                </div>
+
+                {/* Appointments List Section (md:w-2/5) */}
+                <div className="md:w-2/5 flex flex-col">
+                  <h4 className="text-xs font-semibold text-[#383A47] mb-1.5 px-1">Upcoming</h4>
+                  <div className="space-y-1.5 flex-grow overflow-y-auto max-h-40 pr-1"> {/* max-h and overflow for scroll */}
+                    {upcomingAppointments.length > 0 ? upcomingAppointments.slice(0, 3).map(booking => (
+                      <div key={booking.id} className="p-1.5 border border-gray-200 rounded-md bg-white text-[11px] leading-tight hover:border-[#3D1560]">
+                        <p className="font-semibold text-[#1B1C20] truncate" title={booking.serviceName}>{booking.serviceName}</p>
+                        <p className="text-[#70727F]">{new Date(booking.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, {booking.time}</p>
+                        <p className="text-[#70727F] truncate" title={booking.providerName}>With: {booking.providerName}</p>
+                      </div>
+                    )) : (
+                      <p className="text-xs text-center text-[#70727F] py-4">No upcoming appointments.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-auto pt-3 text-right"> {/* mt-auto to push to bottom */}
+                <button 
+                  onClick={() => handleNavigate('bookings')}
+                  className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center ml-auto"
+                >
+                  View All Appointments <ChevronRight className="ml-0.5 h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+            
             {/* Saved Items Card */}
             <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
               <h2 className="text-2xl font-semibold mb-6 text-[#1B1C20]">Saved Items ({filteredSavedItems.length})</h2>
               <div className="space-y-4">
-                {filteredSavedItems.slice(0, 3).map((item, index) => ( // item is now correctly typed
+                {filteredSavedItems.slice(0, 3).map((item, index) => (
                   <div 
-                    key={item.id + '-' + index} // Added index to key for safety if ids could rarely collide between product/service before full merge
+                    key={item.id + '-saved-' + index} 
                     className="flex items-center gap-4 p-3 border border-[#E8E9ED] rounded-lg hover:border-[#3D1560] hover:shadow-md transition-all duration-300 cursor-pointer group"
-                    onClick={() => handleListingSelect(item as ListingItem)} // Type assertion might still be needed depending on ListingItem definition
+                    onClick={() => handleListingSelect(item as ListingItem)}
                   >
-                    {/* Image */}
                     <div className="relative w-20 h-20 flex-shrink-0">
                       <img 
                         src={item.images[0]} 
                         alt={item.name} 
                         className="w-full h-full object-cover rounded-lg" 
                       />
-                    </div>
-                    
-                    {/* Content */}
+                      </div>
                     <div className="flex-grow min-w-0">
                       <h3 className="font-semibold text-sm text-[#1B1C20] group-hover:text-[#3D1560] transition-colors truncate">
                         {item.name}
@@ -1139,11 +1395,12 @@ function App() {
                           <div className="flex items-center gap-0.5">
                             <Eye className="h-3.5 w-3.5" />
                             <span>{item.views}</span>
-                          </div>
+                    </div>
                           <div className="flex items-center gap-0.5">
                             <Calendar className="h-3.5 w-3.5" />
-                            <span>{item.dateSaved}</span> 
-                          </div>
+                            {/* Ensure dateSaved is accessed safely as it's dynamically added */}
+                            <span>{(item as any).dateSaved || 'N/A'}</span> 
+                    </div>
                         </div>
                       </div>
                     </div>
@@ -1151,42 +1408,76 @@ function App() {
                   </div>
                 ))}
               </div>
-              
-              <div className="mt-6 text-right">
-                <button 
-                  onClick={() => handleNavigate('savedItems')} // Updated onClick to navigate to savedItems page
-                  className="text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center ml-auto text-sm"
-                >
-                  View All Saved Items
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </button>
-              </div>
+              {filteredSavedItems.length > 0 && (
+                <div className="mt-6 text-right">
+                  <button 
+                    onClick={() => handleNavigate('savedItems')}
+                    className="text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center ml-auto text-sm"
+                  >
+                    View All Saved Items
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </button>
+                </div>
+              )}
+               {filteredSavedItems.length === 0 && (
+                <p className="text-center text-[#70727F] py-4 mt-4">You haven't saved any items yet.</p>
+              )}
             </div>
             
             {/* Recently Viewed Card */}
             <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-2xl font-semibold text-gray-900 mb-4">Recently Viewed</h3>
-              <p className="text-base text-gray-600 mb-6">Check out your recently viewed items.</p>
-              <button className="text-lg text-blue-600 hover:text-blue-800 font-medium">View Details</button>
+              <h2 className="text-2xl font-semibold mb-6 text-[#1B1C20]">Recently Viewed ({filteredRecentlyViewedItems.length})</h2>
+              {filteredRecentlyViewedItems.length > 0 ? (
+                <div className="space-y-4">
+                  {filteredRecentlyViewedItems.slice(0, 3).map((item, index) => (
+                    <div 
+                      key={item.id + '-recent-' + index} 
+                      className="flex items-center gap-4 p-3 border border-[#E8E9ED] rounded-lg hover:border-[#3D1560] hover:shadow-md transition-all duration-300 cursor-pointer group"
+                      onClick={() => handleListingSelect(item as ListingItem)}
+                    >
+                      <div className="relative w-20 h-20 flex-shrink-0">
+                        <img 
+                          src={item.images[0]} 
+                          alt={item.name} 
+                          className="w-full h-full object-cover rounded-lg" 
+                        />
             </div>
-            
-            {/* Ongoing Orders Card */}
-            <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-2xl font-semibold text-gray-900 mb-4">Ongoing Orders</h3>
-              <p className="text-base text-gray-600 mb-6">Manage your current orders.</p>
+                      <div className="flex-grow min-w-0">
+                        <h3 className="font-semibold text-sm text-[#1B1C20] group-hover:text-[#3D1560] transition-colors truncate">
+                          {item.name}
+                        </h3>
+                        <p className="text-xs text-[#70727F] mt-0.5 truncate">
+                          {item.shortDescription && item.shortDescription.length > 50 
+                            ? `${item.shortDescription.substring(0, 50)}...` 
+                            : item.shortDescription}
+                        </p>
+                        <div className="flex items-center justify-between mt-1.5 text-xs text-[#70727F]">
+                          <span className="font-medium text-[#383A47]">${item.price}</span>
+                          <div className="flex items-center gap-0.5">
+                            <Calendar className="h-3.5 w-3.5" />
+                            {/* Ensure viewedAt is accessed safely and formatted */}
+                            <span>Viewed: {(item as any).viewedAt ? new Date((item as any).viewedAt).toLocaleDateString() : 'N/A'}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-5 w-5 text-[#CDCED8] group-hover:text-[#3D1560] transition-colors ml-auto flex-shrink-0" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-[#70727F] py-4">You haven't viewed any items recently.</p>
+              )}
+              {filteredRecentlyViewedItems.length > 0 && (
+                <div className="mt-6 text-right">
               <button 
-                onClick={() => handleNavigate('myOrders')}
-                className="text-lg text-blue-600 hover:text-blue-800 font-medium flex items-center"
+                    onClick={() => handleNavigate('recentlyViewed')}
+                    className="text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center ml-auto text-sm"
               >
-                View Orders <ChevronRight className="ml-1 h-5 w-5" />
+                    View All Recently Viewed Items 
+                    <ChevronRight className="h-4 w-4 ml-1" />
               </button>
             </div>
-            
-            {/* Appointments Card */}
-            <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-2xl font-semibold text-gray-900 mb-4">Appointments</h3>
-              <p className="text-base text-gray-600 mb-6">View and manage your appointments.</p>
-              <button className="text-lg text-blue-600 hover:text-blue-800 font-medium">View Details</button>
+              )}
             </div>
           </div>
         )}
@@ -1200,9 +1491,9 @@ function App() {
   // Seller Dashboard Overview placeholder
   const SellerDashboardOverview = () => {
     const [timeFilter, setTimeFilter] = useState<'24h' | '7d' | '30d' | '90d'>('30d');
-    const [isEditMode, setIsEditMode] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false); // Restored
     
-    // Mock data for charts
+    // Mock data for charts - Restored
     const revenueData = {
       '24h': [1200, 950, 1350, 1100, 1450, 1320, 1580],
       '7d': [5200, 4800, 5600, 6100, 5800, 6200, 6500],
@@ -1210,25 +1501,25 @@ function App() {
       '90d': [52000, 56000, 49000, 61000, 68000, 72000, 79000]
     };
     
-    const navigateTo = (page: string) => {
+    const navigateTo = (page: string) => { // Restored
       handleNavigate(page);
     };
     
-    const salesData = {
+    const salesData = { // Restored
       '24h': [12, 9, 15, 10, 14, 12, 16],
       '7d': [48, 52, 45, 59, 63, 58, 67],
       '30d': [155, 168, 143, 189, 201, 195, 215],
       '90d': [450, 490, 425, 560, 605, 580, 640]
     };
     
-    const viewsData = {
+    const viewsData = { // Restored
       '24h': [85, 92, 78, 102, 110, 95, 118],
       '7d': [580, 620, 530, 680, 720, 650, 780],
       '30d': [2200, 2350, 2100, 2600, 2800, 2450, 2900],
       '90d': [6500, 7200, 6800, 8100, 8500, 7900, 9200]
     };
     
-    const getTimeLabels = () => {
+    const getTimeLabels = () => { // Restored
       switch (timeFilter) {
         case '24h':
           return ['9AM', '10AM', '11AM', '12PM', '1PM', '2PM', '3PM'];
@@ -1243,7 +1534,7 @@ function App() {
       }
     };
 
-    // Status color mapping for consistency
+    // Status color mapping for consistency - Restored
     const getStatusBadgeColor = (status: string) => {
       const statusLower = status.toLowerCase();
       switch (statusLower) {
@@ -1385,7 +1676,7 @@ function App() {
                 <span className="text-[#383A47]">Products: 177</span>
               </div>
               <div className="text-xs">
-                <span className="inline-block w-3 h-3 bg-[#9B53D9] rounded-full mr-1"></span>
+                <span className="inline.block w-3 h-3 bg-[#9B53D9] rounded-full mr-1"></span>
                 <span className="text-[#383A47]">Services: 38</span>
               </div>
             </div>
@@ -1481,7 +1772,7 @@ function App() {
                     
                     <div 
                       className="w-12 md:w-16 bg-gradient-to-t from-[#3D1560] to-[#9B53D9] rounded-t-md transition-all duration-500 hover:from-[#6D26AB] hover:to-[#9B53D9] cursor-pointer" 
-                      style={{ height: `${value / 100}px` }}
+                      style={{ height: `${value / 100}px` }} // Example scaling, adjust as needed
                     ></div>
                   </div>
                   <span className="text-xs mt-2 text-[#70727F]">{getTimeLabels()[index]}</span>
@@ -1489,7 +1780,7 @@ function App() {
               ))}
             </div>
             
-            {/* Chart summary section removed as requested */}
+            {/* Chart summary section can be added here if needed */}
           </div>
         </div>
         
@@ -1560,7 +1851,7 @@ function App() {
                     className="text-indigo-600" 
                     strokeWidth="10" 
                     strokeDasharray={250} 
-                    strokeDashoffset={250 - (250 * 5.8) / 10}
+                    strokeDashoffset={250 - (250 * 5.8) / 10} // Example percentage (5.8%)
                     strokeLinecap="round" 
                     stroke="currentColor" 
                     fill="transparent" 
@@ -1642,65 +1933,6 @@ function App() {
             </div>
           </div>
         </div>
-        
-        {/* Convert tabs to cards on the profile homepage */}
-        {!isEditMode && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
-            {/* Saved Items Card */}
-            <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-2xl font-semibold text-gray-900 mb-4">Saved Items</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {mockProducts.slice(0, 3).map(item => (
-                  <div key={item.id} className="border border-gray-200 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 bg-white">
-                    <img src={item.images[0]} alt={item.name} className="h-48 w-full object-cover rounded-t-xl" />
-                    <div className="p-4">
-                      <h4 className="font-semibold text-lg text-gray-800 truncate">{item.name}</h4>
-                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">{item.shortDescription}</p>
-                      <div className="mt-3 flex justify-between items-center">
-                        <span className="text-lg font-bold text-indigo-600">${item.price}</span>
-                        <button className="px-3 py-1 text-sm bg-indigo-100 text-indigo-800 rounded-full hover:bg-indigo-200 transition-colors">View Details</button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-6 text-right">
-                <button className="text-md text-indigo-600 hover:text-indigo-800 font-medium flex items-center ml-auto">
-                  View All Saved Items
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-            
-            {/* Recently Viewed Card */}
-            <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-2xl font-semibold text-gray-900 mb-4">Recently Viewed</h3>
-              <p className="text-base text-gray-600 mb-6">Check out your recently viewed items.</p>
-              <button className="text-lg text-blue-600 hover:text-blue-800 font-medium">View Details</button>
-            </div>
-            
-            {/* Ongoing Orders Card */}
-            <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-2xl font-semibold text-gray-900 mb-4">Ongoing Orders</h3>
-              <p className="text-base text-gray-600 mb-6">Manage your current orders.</p>
-              <button 
-                onClick={() => handleNavigate('myOrders')}
-                className="text-lg text-blue-600 hover:text-blue-800 font-medium flex items-center"
-              >
-                View Orders <ChevronRight className="ml-1 h-5 w-5" />
-              </button>
-            </div>
-            
-            {/* Appointments Card */}
-            <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-2xl font-semibold text-gray-900 mb-4">Appointments</h3>
-              <p className="text-base text-gray-600 mb-6">View and manage your appointments.</p>
-              <button className="text-lg text-blue-600 hover:text-blue-800 font-medium">View Details</button>
-            </div>
-          </div>
-        )}
       </PlaceholderPage>
     );
   };
@@ -4315,6 +4547,15 @@ function App() {
             onListingSelect={handleListingSelect}
             toggleSaveItem={toggleSaveItem}
             onBack={() => handleNavigate('profile')} // Navigate back to profile
+          />
+        )}
+        {currentPage === 'recentlyViewed' && (
+          <RecentlyViewedPage
+            recentlyViewedItems={ProfilePage().props.filteredRecentlyViewedItems} // This needs to be passed correctly from App's scope
+            products={mockProducts} // Pass products and services for potential hydration if needed, though filtered list is primary
+            services={mockServices}
+            onListingSelect={handleListingSelect}
+            onBack={() => handleNavigate('profile')}
           />
         )}
       </div>

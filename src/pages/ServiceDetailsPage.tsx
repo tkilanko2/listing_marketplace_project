@@ -154,6 +154,11 @@ export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelec
     }
   }, [service]);
 
+  useEffect(() => {
+    // This effect could be used for other on-mount logic if needed.
+    // For now, it's empty as addRecentlyViewedItem will be called by App.tsx
+  }, [service.id]); // Re-run if service changes
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl bg-[#F8F8FA]">
       {/* Navigation and Breadcrumb */}
