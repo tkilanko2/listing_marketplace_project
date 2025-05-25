@@ -15,7 +15,7 @@ import {
   BarChart, Calendar, DollarSign, ShoppingCart, Package, TrendingUp, 
   ArrowUp, Wallet, ChevronDown, ChevronLeft, ChevronRight, Search, 
   Edit, Trash, Eye, PlusCircle, Zap, BarChart2, Settings, 
-  Users, Star, CheckCircle, MoreVertical, Film, X, Bookmark, ChevronUp, LayoutDashboard, Store, ExternalLink, Archive, Trash2, AlertTriangle, MapPin 
+  Users, Star, CheckCircle, MoreVertical, Film, X, Bookmark, ChevronUp, LayoutDashboard, Store, ExternalLink, Archive, Trash2, AlertTriangle, MapPin, Heart // Added Heart for save status
 } from 'lucide-react';
 import { MyOrdersPage } from './pages/MyOrdersPage';
 import { 
@@ -83,6 +83,19 @@ function App() {
   const [checkoutStep, setCheckoutStep] = useState<'auth' | 'shipping' | 'payment' | 'review'>('auth');
   // Add a state to keep track if the user came from checkout
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [savedItemIds, setSavedItemIds] = useState<string[]>([]); // Initial saved items (e.g., first product)
+
+  const toggleSaveItem = (itemId: string) => {
+    setSavedItemIds(prevIds =>
+      prevIds.includes(itemId)
+        ? prevIds.filter(id => id !== itemId)
+        : [...prevIds, itemId]
+    );
+  };
+
+  const isItemSaved = (itemId: string) => {
+    return savedItemIds.includes(itemId);
+  };
 
   // Determine if sidebar should be shown
   const shouldShowSidebar = () => {
@@ -429,6 +442,26 @@ function App() {
       // Show success message
       alert('Profile updated successfully!');
     };
+
+    const filteredSavedItems = useMemo(() => {
+      const savedProducts = mockProducts
+        .filter(p => savedItemIds.includes(p.id))
+        .map(p => ({ ...p, itemType: 'product' })); // Add itemType for potential differentiation
+      
+      const savedServices = mockServices
+        .filter(s => savedItemIds.includes(s.id))
+        .map(s => ({ 
+          ...s, 
+          itemType: 'service', 
+          // Ensure common fields like dateSaved and views are present or defaulted
+          dateSaved: s.dateSaved || new Date().toISOString().split('T')[0], 
+          views: s.views || 0,
+          // Services might not have shortDescription, provide a fallback
+          shortDescription: s.shortDescription || s.name, 
+        }));
+
+      return [...savedProducts, ...savedServices];
+    }, [savedItemIds]);
 
     return (
       <div className="p-8">
@@ -1062,35 +1095,79 @@ function App() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
             {/* Saved Items Card */}
             <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
-              <h2 className="text-2xl font-semibold mb-6">Saved Items</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {mockProducts.slice(0, 3).map((product, index) => (
-                  <div key={index} className="border rounded-lg overflow-hidden shadow hover:shadow-md transition-shadow duration-300 flex flex-col">
-                    <div className="relative w-full h-48">
+              <h2 className="text-2xl font-semibold mb-6 text-[#1B1C20]">Saved Items ({filteredSavedItems.length})</h2>
+              <div className="space-y-4">
+                {filteredSavedItems.slice(0, 3).map((item, index) => ( // Changed product to item
+                  <div 
+                    key={item.id} // Use item.id for key
+                    className="flex items-center gap-4 p-3 border border-[#E8E9ED] rounded-lg hover:border-[#3D1560] hover:shadow-md transition-all duration-300 cursor-pointer group"
+                    onClick={() => handleListingSelect(item as ListingItem)} // Navigate to listing, assert type
+                  >
+                    {/* Image */}
+                    <div className="relative w-20 h-20 flex-shrink-0"> 
                       <img 
-                        src={product.images[0]} 
-                        alt={product.name} 
-                        className="w-full h-48 object-cover" 
+                        src={item.images[0]} 
+                        alt={item.name} 
+                        className="w-full h-full object-cover rounded-md" 
                       />
-                      <div className="absolute bottom-0 right-0 bg-black bg-opacity-50 text-white px-2 py-1 text-xs rounded-tl-md">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 5.943 7.523 2 12 2c4.478 0 8.268 3.943 9.542 10-1.274 6.057-5.064 10-9.542 10S3.732 18.057 2.458 12z" />
-                        </svg>
-                        {product.views || 0}
+                    </div>
+                    
+                    {/* Content */}
+                    <div className="flex-grow min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-[#1B1C20] text-base truncate group-hover:text-[#3D1560]">{item.name}</h3>
+                          <p className="text-xs text-[#70727F] mt-0.5 line-clamp-1">
+                            {item.shortDescription && item.shortDescription.length > 40 
+                              ? `${item.shortDescription.substring(0, 40)}...` 
+                              : item.shortDescription}
+                          </p>
+                        </div>
+                        <div className="flex-shrink-0">
+                          <span className="text-md font-bold text-[#3D1560]">${item.price}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Meta info */}
+                      <div className="flex items-center gap-3 mt-1.5 text-xs text-[#70727F]">
+                        <div className="flex items-center gap-1">
+                          <Eye className="h-3.5 w-3.5" />
+                          <span>{item.views || 0}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3.5 w-3.5" />
+                          <span>{(item as any).dateSaved || 'N/A'}</span> 
+                        </div>
                       </div>
                     </div>
-                    <div className="p-3 flex flex-col flex-grow">
-                      <h3 className="font-semibold text-lg mb-1">{product.name}</h3>
-                      <p className="text-sm text-gray-600 mb-2">{product.shortDescription}</p>
-                      <p className="text-sm text-gray-500 mb-2">Saved: {product.dateSaved || 'N/A'}</p>
-                      <p className="text-lg font-bold mb-3">${product.price}</p>
-                      <button className="mt-auto bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors duration-200">View Details</button>
+                    
+                    {/* Action icons */}
+                    <div className="flex items-center space-x-2 flex-shrink-0">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation(); 
+                          toggleSaveItem(item.id); 
+                        }}
+                        className="p-1.5 text-[#70727F] hover:text-[#DF678C] rounded-full hover:bg-[#FFE5ED] transition-colors duration-200"
+                        title="Unsave item"
+                      >
+                        <Bookmark className="h-5 w-5" fill="currentColor"/> 
+                      </button>
+                      <ChevronRight className="h-5 w-5 text-[#9B53D9] group-hover:text-[#3D1560]" />
                     </div>
                   </div>
                 ))}
+                 {filteredSavedItems.length === 0 && (
+                  <p className="text-center text-[#70727F] py-4">You haven't saved any items yet.</p>
+                )}
               </div>
-              <button className="mt-6 bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-colors duration-200">View All Saved Items</button>
+              
+              <div className="mt-6 text-right">
+                <button className="text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center ml-auto text-sm">
+                  View All Saved Items
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </button>
+              </div>
             </div>
             
             {/* Recently Viewed Card */}
@@ -1943,9 +2020,9 @@ function App() {
                     <div>
                       <p className="text-sm text-gray-500">Specialization</p>
                       <div className="flex flex-wrap gap-2 mt-1">
-                        <span className="bg-blue-100 text-blue-800 text-xs px-2.5 py-1 rounded-full">Beauty & Wellness</span>
-                        <span className="bg-green-100 text-green-800 text-xs px-2.5 py-1 rounded-full">Health Services</span>
-                        <span className="bg-purple-100 text-purple-800 text-xs px-2.5 py-1 rounded-full">Home Decor</span>
+                        <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Beauty & Wellness</span>
+                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Health Services</span>
+                        <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">Home Decor</span>
                       </div>
                     </div>
                     <div>
@@ -4031,6 +4108,8 @@ function App() {
             onBack={handleBackToLanding}
             onProviderSelect={handleProviderSelect}
             onListingSelect={handleListingSelect}
+            isItemSaved={isItemSaved(selectedListing.id)}
+            toggleSaveItem={() => toggleSaveItem(selectedListing.id)}
           />
         )}
 
@@ -4042,6 +4121,8 @@ function App() {
             onProviderSelect={handleProviderSelect}
             onListingSelect={handleListingSelect}
             onNavigateTo={handleNavigate}
+            isItemSaved={isItemSaved(selectedListing.id)}
+            toggleSaveItem={() => toggleSaveItem(selectedListing.id)}
           />
         )}
         

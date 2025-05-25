@@ -36,6 +36,8 @@ interface ProductDetailsPageProps {
   onProviderSelect: (provider: ServiceProvider) => void;
   onListingSelect: (listing: ListingItem) => void;
   onNavigateTo?: (page: string) => void;
+  isItemSaved: boolean;
+  toggleSaveItem: () => void;
 }
 
 export function ProductDetailsPage({ 
@@ -44,10 +46,11 @@ export function ProductDetailsPage({
   onBack, 
   onProviderSelect, 
   onListingSelect,
-  onNavigateTo 
+  onNavigateTo,
+  isItemSaved,
+  toggleSaveItem
 }: ProductDetailsPageProps) {
   const [quantity, setQuantity] = useState(1);
-  const [isWishListed, setIsWishListed] = useState(false);
   const { addToCart } = useCart();
   const [provider, setProvider] = useState(product.provider);
   const [reviews, setReviews] = useState<DetailedReview[]>([
@@ -252,24 +255,29 @@ export function ProductDetailsPage({
               </div>
               <div className="flex items-center">
                 <Package2 className="w-4 h-4 text-[#70727F] mr-1" />
-                <span>{product.condition}</span>
-              </div>
-              <div className="flex items-center">
-                <MapPin className="w-4 h-4 text-[#70727F] mr-1" />
-                <span>{product.location.city}</span>
+                <span>{product.availableQuantity} available</span>
               </div>
               <div className="flex items-center">
                 <Eye className="w-4 h-4 text-[#70727F] mr-1" />
                 <span>{product.views} views</span>
               </div>
-              <div className="flex items-center">
-                <Bookmark className="w-4 h-4 text-[#70727F] mr-1" />
-                <span>{product.saves} saves</span>
-              </div>
             </div>
           </div>
-          <div className="flex items-center space-x-6">
-            {/* Empty div for layout */}
+          <div className="flex gap-2 items-center mt-4 md:mt-0">
+            <button 
+              onClick={toggleSaveItem}
+              className={`p-2 rounded-full border border-[#CDCED8] text-[#383A47] hover:bg-[#EDD9FF] hover:text-[#6D26AB] transition-colors duration-200 ${isItemSaved ? 'bg-[#FFE5ED]' : ''}`}
+              title={isItemSaved ? "Unsave item" : "Save item"}
+            >
+              {isItemSaved ? (
+                <HeartAnimation isActive={true} onClick={toggleSaveItem} />
+              ) : (
+                <Heart className="w-5 h-5 text-[#383A47]" />
+              )}
+            </button>
+            <button className="p-2 rounded-full border border-[#CDCED8] text-[#383A47] hover:bg-[#EDD9FF] hover:text-[#6D26AB] transition-colors duration-200">
+              <Share2 className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </FadeInOnScroll>
@@ -461,13 +469,13 @@ export function ProductDetailsPage({
 
                   <div className="flex justify-center gap-4 pt-2 border-t border-[#CDCED8]">
                     <button
-                      onClick={() => setIsWishListed(!isWishListed)}
+                      onClick={() => toggleSaveItem()}
                       className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm ${
-                        isWishListed ? 'bg-[#EDD9FF] text-[#3D1560]' : 'bg-[#F8F8FA] text-[#383A47] hover:bg-[#E8E9ED] border border-[#CDCED8]'
+                        isItemSaved ? 'bg-[#EDD9FF] text-[#3D1560]' : 'bg-[#F8F8FA] text-[#383A47] hover:bg-[#E8E9ED] border border-[#CDCED8]'
                       }`}
                     >
-                      <Heart className={`h-4 w-4 ${isWishListed ? 'fill-[#3D1560] text-[#3D1560]' : ''}`} />
-                      {isWishListed ? 'Wishlisted' : 'Wishlist'}
+                      <Heart className={`h-4 w-4 ${isItemSaved ? 'fill-[#3D1560] text-[#3D1560]' : ''}`} />
+                      {isItemSaved ? 'Wishlisted' : 'Wishlist'}
                     </button>
                     <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#F8F8FA] text-[#383A47] hover:bg-[#E8E9ED] border border-[#CDCED8] transition-colors duration-200 shadow-sm">
                       <Share2 className="h-4 w-4" />

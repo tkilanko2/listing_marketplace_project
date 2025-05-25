@@ -36,10 +36,11 @@ interface ServiceDetailsPageProps {
   onBack: () => void;
   onProviderSelect: (provider: ServiceProvider) => void;
   onListingSelect: (listing: ListingItem) => void;
+  isItemSaved: boolean;
+  toggleSaveItem: () => void;
 }
 
-export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelect, onListingSelect }: ServiceDetailsPageProps) {
-  const [isWishListed, setIsWishListed] = useState(false);
+export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelect, onListingSelect, isItemSaved, toggleSaveItem }: ServiceDetailsPageProps) {
   const [provider, setProvider] = useState(service.provider);
   const otherServices = mockServices.filter(s => 
     s.provider.id === provider.id && s.id !== service.id
@@ -203,13 +204,12 @@ export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelec
           </div>
           <div className="flex gap-2 items-center mt-4 md:mt-0">
             <button 
-              onClick={() => setIsWishListed(!isWishListed)}
-              className="p-2 rounded-full border border-[#CDCED8] text-[#383A47] hover:bg-[#EDD9FF] hover:text-[#6D26AB] transition-colors duration-200"
+              onClick={toggleSaveItem}
+              className={`p-2 rounded-full border border-[#CDCED8] text-[#383A47] hover:bg-[#EDD9FF] hover:text-[#6D26AB] transition-colors duration-200 ${isItemSaved ? 'bg-[#FFE5ED]' : ''}`}
+              title={isItemSaved ? "Unsave item" : "Save item"}
             >
-              {isWishListed ? (
-                <HeartAnimation isActive={true} onClick={() => setIsWishListed(false)}>
-                  <Heart className="w-5 h-5 fill-[#DF678C] text-[#DF678C]" />
-                </HeartAnimation>
+              {isItemSaved ? (
+                <HeartAnimation isActive={true} onClick={toggleSaveItem} />
               ) : (
                 <Heart className="w-5 h-5 text-[#383A47]" />
               )}
@@ -385,11 +385,11 @@ export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelec
                   
                   <div className="flex items-center justify-center space-x-2 text-sm text-[#70727F]">
                     <button 
-                      onClick={() => setIsWishListed(!isWishListed)}
+                      onClick={toggleSaveItem}
                       className="flex items-center hover:text-[#DF678C] transition-colors"
                     >
-                      <Heart className={`w-4 h-4 mr-1 ${isWishListed ? 'fill-current text-[#DF678C]' : ''}`} />
-                      <span>Save</span>
+                      <Heart className={`w-4 h-4 mr-1 ${isItemSaved ? 'fill-current text-[#DF678C]' : ''}`} />
+                      <span>{isItemSaved ? "Unsave" : "Save"}</span>
                     </button>
                     <span>•</span>
                     <button className="flex items-center hover:text-[#DF678C] transition-colors">
