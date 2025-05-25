@@ -548,19 +548,40 @@ function App() {
     ], []);
 
     const [calendarDate, setCalendarDate] = useState(new Date());
-    const [calendarViewMode, setCalendarViewMode] = useState<'month' | 'week'>('month');
 
     const dayNames = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
+    // Helper function to format appointment date for display
+    const formatAppointmentDate = (date: Date, time: string): { text: string; isSoon: boolean } => {
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+
+      today.setHours(0, 0, 0, 0);
+      tomorrow.setHours(0, 0, 0, 0);
+      const checkDate = new Date(date);
+      checkDate.setHours(0, 0, 0, 0);
+
+      let datePrefix = '';
+      let isSoon = false;
+
+      if (checkDate.getTime() === today.getTime()) {
+        datePrefix = 'Today';
+        isSoon = true;
+      } else if (checkDate.getTime() === tomorrow.getTime()) {
+        datePrefix = 'Tomorrow';
+        isSoon = true;
+      } else {
+        datePrefix = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      }
+      return { text: `${datePrefix}, ${time}`, isSoon };
+    };
+
     const handlePrevPeriod = () => {
       setCalendarDate(prevDate => {
         const newDate = new Date(prevDate);
-        if (calendarViewMode === 'month') {
-          newDate.setMonth(newDate.getMonth() - 1);
-        } else {
-          newDate.setDate(newDate.getDate() - 7);
-        }
+        newDate.setMonth(newDate.getMonth() - 1);
         return newDate;
       });
     };
@@ -568,11 +589,7 @@ function App() {
     const handleNextPeriod = () => {
       setCalendarDate(prevDate => {
         const newDate = new Date(prevDate);
-        if (calendarViewMode === 'month') {
-          newDate.setMonth(newDate.getMonth() + 1);
-        } else {
-          newDate.setDate(newDate.getDate() + 7);
-        }
+        newDate.setMonth(newDate.getMonth() + 1);
         return newDate;
       });
     };
@@ -591,6 +608,8 @@ function App() {
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       let firstDayOfMonth = new Date(year, month, 1).getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
       firstDayOfMonth = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1; // Adjust to Monday = 0, ..., Sunday = 6
+      const todayDate = new Date();
+      todayDate.setHours(0,0,0,0);
 
       const cells = [];
       for (let i = 0; i < firstDayOfMonth; i++) {
@@ -598,18 +617,31 @@ function App() {
       }
 
       for (let day = 1; day <= daysInMonth; day++) {
+        const currentDateIter = new Date(year, month, day);
         const bookingsOnThisDay = userBookingsSample.filter(
           b => b.date.getFullYear() === year && b.date.getMonth() === month && b.date.getDate() === day
         );
         const isBooked = bookingsOnThisDay.length > 0;
+        const isToday = currentDateIter.getTime() === todayDate.getTime();
         const tooltipText = isBooked 
           ? bookingsOnThisDay.map(b => `${b.serviceName} at ${b.time}`).join('\n') 
           : '';
+        
+        let dayClass = 'p-1 text-center text-xs rounded cursor-default hover:bg-[#D8C4E9]';
+        if (isBooked) {
+          dayClass += ' bg-[#EDD9FF] text-[#3D1560] font-semibold';
+        } else {
+          dayClass += ' text-gray-700';
+        }
+        if (isToday) {
+          dayClass += ' border-2 border-[#3D1560] ring-1 ring-offset-1 ring-[#6D26AB]'; // Today's marker
+        }
+
         cells.push(
           <div 
             key={`day-${day}`} 
             title={tooltipText}
-            className={`p-1 text-center text-xs rounded cursor-default ${isBooked ? 'bg-[#EDD9FF] text-[#3D1560] font-semibold' : 'text-gray-700'} hover:bg-[#D8C4E9]`}
+            className={dayClass}
           >
             {day}
           </div>
@@ -621,39 +653,6 @@ function App() {
         cells.push(<div key={`empty-next-${i}`} className="p-1 text-center"></div>);
       }
       return cells;
-    };
-
-    const renderWeeklyCalendarCells = () => {
-      const viewStartDate = new Date(calendarDate);
-      let currentDayOfWeek = viewStartDate.getDay(); // Sunday = 0, ..., Saturday = 6
-      currentDayOfWeek = (currentDayOfWeek === 0) ? 6 : currentDayOfWeek - 1; // Adjust to Monday = 0, ..., Sunday = 6
-      viewStartDate.setDate(viewStartDate.getDate() - currentDayOfWeek); // Set to the Monday of the current week
-
-      const weekCells = [];
-      for (let i = 0; i < 7; i++) {
-        const dayToRender = new Date(viewStartDate);
-        dayToRender.setDate(viewStartDate.getDate() + i);
-        
-        const bookingsOnThisDay = userBookingsSample.filter(
-          b => b.date.getFullYear() === dayToRender.getFullYear() && 
-               b.date.getMonth() === dayToRender.getMonth() && 
-               b.date.getDate() === dayToRender.getDate()
-        );
-        const isBooked = bookingsOnThisDay.length > 0;
-        const tooltipText = isBooked 
-          ? bookingsOnThisDay.map(b => `${b.serviceName} at ${b.time}`).join('\n') 
-          : '';
-        weekCells.push(
-          <div 
-            key={`week-day-${i}`} 
-            title={tooltipText}
-            className={`p-1 text-center text-xs rounded cursor-default ${isBooked ? 'bg-[#EDD9FF] text-[#3D1560] font-semibold' : 'text-gray-700'} hover:bg-[#D8C4E9]`}
-          >
-            {dayToRender.getDate()}
-          </div>
-        );
-      }
-      return weekCells;
     };
     // END: Appointments Card Enhancements
 
@@ -1312,27 +1311,13 @@ function App() {
                       {monthNames[calendarDate.getMonth()]} {calendarDate.getFullYear()}
                     </span>
                     <button onClick={handleNextPeriod} className="p-1 rounded hover:bg-[#E8E9ED] text-[#383A47]"><ChevronRight size={16} /></button>
-                    <div className="flex gap-1">
-                      <button 
-                        onClick={() => setCalendarViewMode('month')} 
-                        className={`px-1.5 py-0.5 rounded text-[10px] ${calendarViewMode === 'month' ? 'bg-[#3D1560] text-white' : 'bg-[#CDCED8] text-[#383A47]'}`}
-                      >
-                        Month
-                      </button>
-                      <button 
-                        onClick={() => setCalendarViewMode('week')} 
-                        className={`px-1.5 py-0.5 rounded text-[10px] ${calendarViewMode === 'week' ? 'bg-[#3D1560] text-white' : 'bg-[#CDCED8] text-[#383A47]'}`}
-                      >
-                        Week
-                      </button>
-                    </div>
                   </div>
                   
                   <div className="grid grid-cols-7 gap-0.5 text-center text-[10px] font-medium text-[#70727F] mb-1">
                     {dayNames.map(name => <div key={name}>{name}</div>)}
                   </div>
                   <div className="grid grid-cols-7 gap-0.5">
-                    {calendarViewMode === 'month' ? renderCalendarCells() : renderWeeklyCalendarCells()}
+                    {renderCalendarCells()}
                   </div>
                 </div>
 
@@ -1340,13 +1325,18 @@ function App() {
                 <div className="md:w-2/5 flex flex-col">
                   <h4 className="text-xs font-semibold text-[#383A47] mb-1.5 px-1">Upcoming</h4>
                   <div className="space-y-1.5 flex-grow overflow-y-auto max-h-40 pr-1"> {/* max-h and overflow for scroll */}
-                    {upcomingAppointments.length > 0 ? upcomingAppointments.slice(0, 3).map(booking => (
-                      <div key={booking.id} className="p-1.5 border border-gray-200 rounded-md bg-white text-[11px] leading-tight hover:border-[#3D1560]">
-                        <p className="font-semibold text-[#1B1C20] truncate" title={booking.serviceName}>{booking.serviceName}</p>
-                        <p className="text-[#70727F]">{new Date(booking.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, {booking.time}</p>
-                        <p className="text-[#70727F] truncate" title={booking.providerName}>With: {booking.providerName}</p>
-                      </div>
-                    )) : (
+                    {upcomingAppointments.length > 0 ? upcomingAppointments.slice(0, 3).map(booking => {
+                      const formattedDateInfo = formatAppointmentDate(booking.date, booking.time);
+                      return (
+                        <div key={booking.id} className="p-1.5 border border-gray-200 rounded-md bg-white hover:border-[#3D1560] leading-snug">
+                          <p className="font-semibold text-[#1B1C20] truncate text-sm" title={booking.serviceName}>{booking.serviceName}</p>
+                          <p className={`text-xs ${formattedDateInfo.isSoon ? 'text-[#DF678C] font-medium' : 'text-[#70727F]'}`}>
+                            {formattedDateInfo.text}
+                          </p>
+                          <p className="text-xs text-[#70727F] truncate" title={booking.providerName}>With: {booking.providerName}</p>
+                        </div>
+                      );
+                    }) : (
                       <p className="text-xs text-center text-[#70727F] py-4">No upcoming appointments.</p>
                     )}
                   </div>
