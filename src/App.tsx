@@ -15,7 +15,7 @@ import {
   BarChart, Calendar, DollarSign, ShoppingCart, Package, TrendingUp, 
   ArrowUp, Wallet, ChevronDown, ChevronLeft, ChevronRight, Search, 
   Edit, Trash, Eye, PlusCircle, Zap, BarChart2, Settings, 
-  Users, Star, CheckCircle, MoreVertical, Film, X, Bookmark, ChevronUp, LayoutDashboard, Store, ExternalLink, Archive, Trash2, AlertTriangle, MapPin, Heart // Added Heart for save status
+  Users, Star, CheckCircle, MoreVertical, Film, X, Bookmark, ChevronUp, LayoutDashboard, Store, ExternalLink, Archive, Trash2, AlertTriangle, MapPin, Heart, Shield, Bell, SlidersHorizontal // Added new icons
 } from 'lucide-react';
 import { MyOrdersPage } from './pages/MyOrdersPage';
 import { 
@@ -35,45 +35,18 @@ import { AppointmentDetailsModal, RescheduleAppointmentModal } from './component
 import { Box, Typography } from '@mui/material';
 import SavedItemsPage from './pages/SavedItemsPage';
 import RecentlyViewedPage from './pages/RecentlyViewedPage'; // Import the new page
+import { motion, AnimatePresence } from 'framer-motion';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<
-    'landing' | 
-    'serviceDetails' | 
-    'productDetails' | 
-    'booking' | 
-    'payment' | 
-    'sellerProfile' | 
-    'createListing' | 
-    'profile' | 
-    'myOrders' | 
-    'sellerDashboard' | 
-    'settings' |
-    'sellerDashboard_overview' |
-    'sellerDashboard_myShop' |
-    'sellerDashboard_orders' |
-    'sellerDashboard_appointments' |
-    'sellerDashboard_finance' |
-    'editListing' |
-    'bookings' |
-    'home' |
-    'cart' |
-    'checkout' |
-    'order-confirmation' |
-    'savedItems' |
-    'recentlyViewed' // Added new page state
-  >('landing');
+  const [currentPage, setCurrentPage] = useState('landing');
   const [selectedListing, setSelectedListing] = useState<ListingItem | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<ServiceProvider | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<{ name: string; email: string; imageUrl?: string; status?: 'online' | 'offline' | 'away'; userId: string } | null>(null);
+  const [activeSettingsTab, setActiveSettingsTab] = useState('security');
   const [selectedLanguage, setSelectedLanguage] = useState('en');
-  const [user, setUser] = useState<{
-    name: string;
-    email: string;
-    imageUrl?: string;
-    status?: 'online' | 'offline' | 'away';
-    userId: string;
-  } | null>(null);
+  const [selectedCurrency, setSelectedCurrency] = useState('USD');
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedListingForEdit, setSelectedListingForEdit] = useState<any>(null);
   const [bookingDetails, setBookingDetails] = useState<{
     customerName: string;
@@ -1469,6 +1442,106 @@ function App() {
             </div>
               )}
             </div>
+            
+            {/* Delivery Addresses Card - NEW */}
+            <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-semibold text-[#1B1C20]">Delivery Addresses</h2>
+              <button 
+                  onClick={() => alert('Navigate to Add New Address page/modal')}
+                  className="text-sm text-white bg-[#3D1560] hover:bg-[#6D26AB] font-medium py-2 px-4 rounded-lg flex items-center transition-colors"
+              >
+                  <PlusCircle className="h-4 w-4 mr-2" />
+                  Add New
+              </button>
+              </div>
+              <div className="space-y-4">
+                {/* Placeholder Address 1 */}
+                <div className="flex items-center justify-between p-3 border border-[#E8E9ED] rounded-lg hover:border-[#3D1560] transition-all duration-300 group cursor-pointer" onClick={() => alert('Edit Address 1')}>
+                  <div>
+                    <div className="flex items-center">
+                      <MapPin className="h-4 w-4 text-[#3D1560] mr-2 flex-shrink-0" />
+                      <h4 className="font-semibold text-sm text-[#1B1C20] group-hover:text-[#3D1560]">Home Base</h4>
+                      <span className="ml-2 text-xs bg-[#EDD9FF] text-[#3D1560] px-1.5 py-0.5 rounded-full">Default</span>
+                    </div>
+                    <p className="text-xs text-[#70727F] mt-0.5 ml-6 truncate">123 Willow Creek Rd, Springfield, IL 62704</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-[#CDCED8] group-hover:text-[#3D1560] transition-colors ml-auto flex-shrink-0 opacity-50 group-hover:opacity-100" />
+                </div>
+                {/* Placeholder Address 2 */}
+                <div className="flex items-center justify-between p-3 border border-[#E8E9ED] rounded-lg hover:border-[#3D1560] transition-all duration-300 group cursor-pointer" onClick={() => alert('Edit Address 2')}>
+                  <div>
+                    <div className="flex items-center">
+                      <MapPin className="h-4 w-4 text-[#70727F] group-hover:text-[#3D1560] mr-2 flex-shrink-0" />
+                      <h4 className="font-semibold text-sm text-[#1B1C20] group-hover:text-[#3D1560]">Work Office</h4>
+                    </div>
+                    <p className="text-xs text-[#70727F] mt-0.5 ml-6 truncate">456 Business Hub, Suite 789, Metro City, NY 10001</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-[#CDCED8] group-hover:text-[#3D1560] transition-colors ml-auto flex-shrink-0 opacity-50 group-hover:opacity-100" />
+                </div>
+                {/* Placeholder for no addresses or loading state if needed */}
+              </div>
+              { (true) && ( // Assuming there are always addresses to manage, or replace with a count
+                <div className="mt-6 text-right">
+                  <button 
+                    onClick={() => alert('Navigate to Manage All Addresses page')}
+                    className="text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center ml-auto text-sm"
+                  >
+                    Manage All Addresses
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </button>
+                </div>
+              )}
+            </div>
+            
+            {/* My Reviews Card - NEW */}
+            <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
+              <h2 className="text-2xl font-semibold mb-6 text-[#1B1C20]">My Reviews <span className="text-base text-[#70727F]">(2)</span></h2>
+              <div className="space-y-4">
+                {/* Placeholder Review 1 */}
+                <div className="p-3 border border-[#E8E9ED] rounded-lg hover:border-[#3D1560] transition-all duration-300 group cursor-pointer" onClick={() => alert('View Review 1 Details')}>
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="font-semibold text-sm text-[#1B1C20] group-hover:text-[#3D1560] truncate">Premium Wireless Headphones</h4>
+                    <div className="flex items-center flex-shrink-0">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={`ph-rev1-${i}`} className={`h-4 w-4 ${i < 4 ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
+                      ))}
+            </div>
+          </div>
+                  <p className="text-xs text-[#70727F] mt-1 truncate leading-relaxed">Amazing sound quality and very comfortable for long listening sessions. Battery life is also excellent. Highly recommended!</p>
+                  <p className="text-xs text-[#CDCED8] mt-2">Reviewed on: October 26, 2023</p>
+                </div>
+                {/* Placeholder Review 2 */}
+                <div className="p-3 border border-[#E8E9ED] rounded-lg hover:border-[#3D1560] transition-all duration-300 group cursor-pointer" onClick={() => alert('View Review 2 Details')}>
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="font-semibold text-sm text-[#1B1C20] group-hover:text-[#3D1560] truncate">Organic Green Tea Blend</h4>
+                     <div className="flex items-center flex-shrink-0">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={`ph-rev2-${i}`} className={`h-4 w-4 ${i < 5 ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-xs text-[#70727F] mt-1 truncate leading-relaxed">A wonderfully refreshing tea with a smooth taste. Perfect for a morning pick-me-up or a relaxing evening.</p>
+                  <p className="text-xs text-[#CDCED8] mt-2">Reviewed on: September 15, 2023</p>
+                </div>
+                {/* Placeholder for no reviews or loading state if needed */}
+                 {false && ( // Example: Show if no reviews
+                    <p className="text-center text-[#70727F] py-4 mt-4">You haven't written any reviews yet.</p>
+                  )}
+              </div>
+              { (true) && ( // Assuming there are always reviews or a link to see more
+                <div className="mt-6 text-right">
+                  <button 
+                    onClick={() => alert('Navigate to All My Reviews page')}
+                    className="text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center ml-auto text-sm"
+                  >
+                    View All My Reviews
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </button>
+                </div>
+              )}
+            </div>
+
           </div>
         )}
         
@@ -4465,7 +4538,299 @@ function App() {
         )}
 
         {currentPage === 'settings' && (
-          <PlaceholderPage title="Settings" />
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="p-8 bg-[#F8F8FA] min-h-full"
+          >
+            <div className="max-w-4xl mx-auto">
+              <h1 className="text-3xl font-bold text-[#1B1C20] mb-8">Settings</h1>
+              
+              {/* Tabbed Navigation */}
+              <div className="mb-8 border-b border-[#E8E9ED]">
+                <nav className="flex space-x-8">
+                  {[
+                    { id: 'security', label: 'Security & Privacy', icon: Shield },
+                    { id: 'notifications', label: 'Notifications', icon: Bell },
+                    { id: 'personalization', label: 'Personalization', icon: SlidersHorizontal },
+                  ].map((tab) => (
+                    <motion.button
+                      key={tab.id}
+                      onClick={() => setActiveSettingsTab(tab.id)}
+                      className={`flex items-center px-1 py-4 text-sm font-medium border-b-2 transition-colors duration-200 ${
+                        activeSettingsTab === tab.id
+                          ? 'border-[#3D1560] text-[#3D1560]'
+                          : 'border-transparent text-[#70727F] hover:text-[#383A47] hover:border-[#CDCED8]'
+                      }`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <tab.icon className="h-5 w-5 mr-2" />
+                      {tab.label}
+                    </motion.button>
+                  ))}
+                </nav>
+              </div>
+
+              {/* Tab Content */}
+              <AnimatePresence mode="wait">
+                <motion.div 
+                  key={activeSettingsTab}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.2 }}
+                  className="space-y-10"
+                >
+                  {/* Security & Privacy Section */}
+                  {activeSettingsTab === 'security' && (
+                    <div className="bg-white p-6 rounded-xl shadow-lg border border-[#E8E9ED]">
+                      <h2 className="text-xl font-semibold text-[#3D1560] mb-6 pb-3 border-b border-[#E8E9ED] flex items-center">
+                        <Shield className="h-5 w-5 mr-2 text-[#3D1560]" /> Account Security & Privacy
+                      </h2>
+                      <div className="space-y-5">
+                        {/* Password Management */}
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="text-md font-medium text-[#383A47]">Password</h3>
+                            <p className="text-sm text-[#70727F]">Change your account password.</p>
+                          </div>
+                          <button 
+                            onClick={() => alert('Open Change Password Modal')}
+                            className="text-sm text-white bg-[#3D1560] hover:bg-[#6D26AB] py-2 px-4 rounded-lg transition-colors flex items-center">
+                            Change Password <ChevronRight className="ml-1 h-4 w-4" />
+                          </button>
+                        </div>
+
+                        {/* Two-Factor Authentication */}
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="text-md font-medium text-[#383A47]">Two-Factor Authentication (2FA)</h3>
+                            <p className="text-sm text-[#70727F]">Add an extra layer of security to your account.</p>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <span className="text-sm text-green-600 font-medium mr-2">Enabled</span> {/* Placeholder status */}
+                            <label htmlFor="2fa-toggle" className="flex items-center cursor-pointer">
+                              <div className="relative">
+                                <input type="checkbox" id="2fa-toggle" className="sr-only peer" defaultChecked />
+                                <div className="block bg-[#E8E9ED] w-12 h-6 rounded-full peer-checked:bg-[#3D1560]"></div>
+                                <div className="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out transform peer-checked:translate-x-full"></div>
+                              </div>
+                            </label>
+                            <button 
+                              onClick={() => alert('Open 2FA Management Page')}
+                              className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium">
+                              Manage
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Privacy Settings */}
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="text-md font-medium text-[#383A47]">Privacy Settings</h3>
+                            <p className="text-sm text-[#70727F]">Control what information is visible to others.</p>
+                          </div>
+                          <button 
+                            onClick={() => alert('Navigate to Privacy Settings Page')}
+                            className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center">
+                            Manage Settings <ChevronRight className="ml-1 h-4 w-4" />
+                          </button>
+                        </div>
+
+                        {/* Login History */}
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="text-md font-medium text-[#383A47]">Login History</h3>
+                            <p className="text-sm text-[#70727F]">View recent login activity on your account.</p>
+                          </div>
+                          <button 
+                            onClick={() => alert('Navigate to Login History Page')}
+                            className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center">
+                            View History <ChevronRight className="ml-1 h-4 w-4" />
+                          </button>
+                        </div>
+
+                        {/* Account Recovery */}
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="text-md font-medium text-[#383A47]">Account Recovery Options</h3>
+                            <p className="text-sm text-[#70727F]">Set up or update your account recovery methods.</p>
+                          </div>
+                          <button 
+                            onClick={() => alert('Navigate to Account Recovery Setup')}
+                            className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center">
+                            Setup Options <ChevronRight className="ml-1 h-4 w-4" />
+                          </button>
+                        </div>
+                        
+                        {/* Security Notifications */}
+                        <div className="flex justify-between items-center">
+                          <div>
+                              <h3 className="text-md font-medium text-[#383A47]">Security Notifications</h3>
+                              <p className="text-sm text-[#70727F]">Receive alerts for important security events.</p>
+                          </div>
+                          <label htmlFor="security-notifications-toggle" className="flex items-center cursor-pointer">
+                              <div className="relative">
+                                  <input type="checkbox" id="security-notifications-toggle" className="sr-only peer" defaultChecked />
+                                  <div className="block bg-[#E8E9ED] w-12 h-6 rounded-full peer-checked:bg-[#3D1560]"></div>
+                                  <div className="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out transform peer-checked:translate-x-full"></div>
+                              </div>
+                          </label>
+                        </div>
+
+                        {/* Data Privacy Controls */}
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="text-md font-medium text-[#383A47]">Data Privacy Controls</h3>
+                            <p className="text-sm text-[#70727F]">Manage how your data is collected and used.</p>
+                          </div>
+                          <button 
+                            onClick={() => alert('Navigate to Data Privacy Page')}
+                            className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center">
+                            Manage Your Data <ChevronRight className="ml-1 h-4 w-4" />
+                          </button>
+                        </div>
+
+                        {/* Account Deletion */}
+                        <div className="flex justify-between items-center pt-4 border-t border-[#E8E9ED] mt-4">
+                          <div>
+                            <h3 className="text-md font-medium text-red-600">Delete Account</h3>
+                            <p className="text-sm text-[#70727F]">Permanently delete your account and all associated data.</p>
+                          </div>
+                          <button 
+                            onClick={() => confirm('Are you sure you want to request account deletion? This action cannot be undone.') && alert('Account deletion request submitted.')}
+                            className="text-sm text-white bg-red-600 hover:bg-red-700 py-2 px-4 rounded-lg transition-colors flex items-center">
+                            <AlertTriangle className="mr-1 h-4 w-4" /> Request Deletion
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Notification Preferences Section */}
+                  {activeSettingsTab === 'notifications' && (
+                    <div className="bg-white p-6 rounded-xl shadow-lg border border-[#E8E9ED]">
+                      <h2 className="text-xl font-semibold text-[#3D1560] mb-6 pb-3 border-b border-[#E8E9ED] flex items-center">
+                        <Bell className="h-5 w-5 mr-2 text-[#3D1560]" /> Notification Preferences
+                      </h2>
+                      <div className="space-y-5">
+                        {[
+                          { id: 'order-updates', label: 'Order Updates', description: 'Get notified about your order status.', checked: true },
+                          { id: 'delivery-notifications', label: 'Delivery Notifications', description: 'Receive updates on package delivery.', checked: true },
+                          { id: 'price-alerts', label: 'Price Alerts', description: 'Alerts for price drops on saved items.', checked: false },
+                          { id: 'availability-alerts', label: 'Availability Alerts', description: 'Get notified when out-of-stock items are back.', checked: true },
+                          { id: 'message-notifications', label: 'Message Notifications', description: 'Alerts for new messages from sellers.', checked: true },
+                          { id: 'review-reminders', label: 'Review Reminders', description: 'Reminders to review completed orders.', checked: false },
+                          { id: 'promotional-offers', label: 'Promotional Offers', description: 'Receive news about promotions and discounts.', checked: false },
+                          { id: 'security-alerts-notif', label: 'Security Alerts (General)', description: 'General security information and tips.', checked: true },
+                        ].map(item => (
+                          <div key={item.id} className="flex justify-between items-center">
+                            <div>
+                              <h3 className="text-md font-medium text-[#383A47]">{item.label}</h3>
+                              <p className="text-sm text-[#70727F]">{item.description}</p>
+                            </div>
+                            <label htmlFor={`${item.id}-toggle`} className="flex items-center cursor-pointer">
+                              <div className="relative">
+                                <input type="checkbox" id={`${item.id}-toggle`} className="sr-only peer" defaultChecked={item.checked} />
+                                <div className="block bg-[#E8E9ED] w-12 h-6 rounded-full peer-checked:bg-[#3D1560]"></div>
+                                <div className="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out transform peer-checked:translate-x-full"></div>
+                              </div>
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Personalization Section - Updated */}
+                  {activeSettingsTab === 'personalization' && (
+                    <div className="bg-white p-6 rounded-xl shadow-lg border border-[#E8E9ED]">
+                      <h2 className="text-xl font-semibold text-[#3D1560] mb-6 pb-3 border-b border-[#E8E9ED] flex items-center">
+                        <SlidersHorizontal className="h-5 w-5 mr-2 text-[#3D1560]" /> Personalization
+                      </h2>
+                      <div className="space-y-5">
+                        {/* Language Settings */}
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="text-md font-medium text-[#383A47]">Language</h3>
+                            <p className="text-sm text-[#70727F]">Choose your preferred language for the platform.</p>
+                          </div>
+                          <select 
+                            className="border-[#CDCED8] rounded-md text-sm p-2 bg-white hover:border-[#3D1560] focus:ring-2 focus:ring-[#EDD9FF] focus:border-[#3D1560] focus:outline-none transition-all duration-200 w-48"
+                            value={selectedLanguage}
+                            onChange={(e) => setSelectedLanguage(e.target.value)}
+                          >
+                            <option value="en">English</option>
+                            <option value="es">Español (Spanish)</option>
+                            <option value="fr">Français (French)</option>
+                            <option value="de">Deutsch (German)</option>
+                            <option value="et">Eesti (Estonian)</option>
+                          </select>
+                        </div>
+
+                        {/* Currency Preferences */}
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="text-md font-medium text-[#383A47]">Currency</h3>
+                            <p className="text-sm text-[#70727F]">Select your preferred currency for pricing.</p>
+                          </div>
+                          <select 
+                            className="border-[#CDCED8] rounded-md text-sm p-2 bg-white hover:border-[#3D1560] focus:ring-2 focus:ring-[#EDD9FF] focus:border-[#3D1560] focus:outline-none transition-all duration-200 w-48"
+                            value={selectedCurrency}
+                            onChange={(e) => setSelectedCurrency(e.target.value)}
+                          >
+                            <option value="USD">USD - US Dollar</option>
+                            <option value="EUR">EUR - Euro</option>
+                            <option value="GBP">GBP - British Pound</option>
+                          </select>
+                        </div>
+
+                        {/* Display Preferences */}
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="text-md font-medium text-[#383A47]">Display Preferences</h3>
+                            <p className="text-sm text-[#70727F]">Customize the look and feel of the platform.</p>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <span className="text-sm text-[#383A47]">Dark Mode:</span>
+                            <label htmlFor="dark-mode-toggle" className="flex items-center cursor-pointer">
+                              <div className="relative">
+                                <input 
+                                  type="checkbox" 
+                                  id="dark-mode-toggle" 
+                                  className="sr-only peer"
+                                  checked={isDarkMode}
+                                  onChange={(e) => setIsDarkMode(e.target.checked)}
+                                />
+                                <div className="block bg-[#E8E9ED] w-12 h-6 rounded-full peer-checked:bg-[#3D1560]"></div>
+                                <div className="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out transform peer-checked:translate-x-full"></div>
+                              </div>
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Accessibility Settings */}
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="text-md font-medium text-[#383A47]">Accessibility</h3>
+                            <p className="text-sm text-[#70727F]">Adjust settings for enhanced accessibility.</p>
+                          </div>
+                          <button 
+                            onClick={() => alert('Navigate to Accessibility Options Page')}
+                            className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center"
+                          >
+                            Accessibility Options <ChevronRight className="ml-1 h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </motion.div>
         )}
 
         {currentPage === 'editListing' && (
@@ -4541,8 +4906,8 @@ function App() {
         )}
         {currentPage === 'recentlyViewed' && (
           <RecentlyViewedPage
-            recentlyViewedItems={ProfilePage().props.filteredRecentlyViewedItems} // This needs to be passed correctly from App's scope
-            products={mockProducts} // Pass products and services for potential hydration if needed, though filtered list is primary
+            recentlyViewedEntries={recentlyViewedItems} // Using the correct variable from App scope
+            products={mockProducts} 
             services={mockServices}
             onListingSelect={handleListingSelect}
             onBack={() => handleNavigate('profile')}
