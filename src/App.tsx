@@ -1260,16 +1260,118 @@ function App() {
         {!isEditMode && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
             {/* Ongoing Orders Card */}
-            <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-2xl font-semibold text-gray-900 mb-4">Ongoing Orders</h3>
-              <p className="text-base text-gray-600 mb-6">Manage your current orders.</p>
-              <button 
-                onClick={() => handleNavigate('myOrders')}
-                className="text-lg text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center"
-              >
-                View Orders <ChevronRight className="ml-1 h-5 w-5" />
-              </button>
+<div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 flex flex-col"> {/* Matched p-6 and flex flex-col from Appointments card */}
+  <div className="flex justify-between items-center mb-4"> 
+    <h3 className="text-xl font-semibold text-[#1B1C20]">Ongoing Orders</h3> 
+    <button 
+      onClick={() => handleNavigate('myOrders')}
+      className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center"
+    >
+      View All <ChevronRight className="ml-1 h-4 w-4" /> 
+    </button>
+  </div>
+  
+  {/* Ensure this container allows the content to scroll if it exceeds max-h-36 */}
+  <div className="space-y-3 flex-grow overflow-y-auto max-h-48 min-h-0"> 
+    {mockOrders
+      .filter(order => ['pending', 'processing', 'shipped'].includes(order.status))
+      .slice(0, 2) // Display up to 2 orders
+      .map(order => (
+        <div 
+          key={order.id}
+          className="bg-[#F8F8FA] rounded-lg p-3 border border-[#CDCED8] hover:border-[#3D1560] transition-colors duration-200"
+        >
+          <div className="flex items-start gap-3">
+            <div className="w-14 h-14 bg-white rounded-lg overflow-hidden border border-[#CDCED8] flex-shrink-0">
+              {order.type === 'product' && order.items?.[0]?.product?.images?.[0] ? (
+                <img 
+                  src={order.items[0].product.images[0]} 
+                  alt={order.items[0].product.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : order.type === 'service' && order.service?.images?.[0] ? (
+                <img 
+                  src={order.service.images[0]} 
+                  alt={order.service.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-[#E8E9ED]">
+                  <Package className="w-7 h-7 text-[#70727F]" />
+                </div>
+              )}
             </div>
+
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <h4 className="text-sm font-medium text-[#383A47] truncate">
+                  {order.type === 'product' 
+                    ? order.items?.[0]?.product?.name 
+                    : order.service?.name}
+                </h4>
+                <span className={`px-1.5 py-0.5 text-[11px] font-medium rounded-full ${ 
+                  order.status === 'pending' ? 'bg-[#FFF8DD] text-[#DAA520]' :
+                  order.status === 'processing' ? 'bg-[#F3E8F9] text-[#6D26AB]' :
+                  'bg-[#E8F5E9] text-[#4CAF50]'
+                }`}>
+                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                </span>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 text-xs text-[#70727F]">
+                <p className="truncate">Order #{order.id}</p>
+                <span className="hidden sm:inline">•</span>
+                <p>${order.totalAmount.toFixed(2)}</p>
+                {order.type === 'service' && order.appointmentDate && (
+                  <>
+                    <span className="hidden sm:inline">•</span>
+                    <p className="text-[#6D26AB] font-medium text-xs truncate">
+                      {order.appointmentDate.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-2 mt-3 pt-2 border-t border-[#CDCED8]">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOrderSelect(order.id);
+              }}
+              className="flex-1 px-2 py-1 text-xs font-medium text-[#3D1560] hover:text-[#6D26AB] hover:bg-[#EDD9FF] rounded-md transition-colors duration-200"
+            >
+              View Details
+            </button>
+            {order.status === 'shipped' && order.actions?.includes('track') && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log('Track order:', order.id);
+                  handleNavigate('trackOrderPage'); // Corrected: removed second argument
+                }}
+                className="flex-1 px-2 py-1 text-xs font-medium text-[#3D1560] hover:text-[#6D26AB] hover:bg-[#EDD9FF] rounded-md transition-colors duration-200"
+              >
+                Track Order
+              </button>
+            )}
+          </div>
+        </div>
+      ))}
+
+    {/* Conditional rendering for empty state */}
+    {mockOrders.filter(order => ['pending', 'processing', 'shipped'].includes(order.status)).slice(0, 2).length === 0 && (
+      <div className="text-center py-6 flex-grow flex flex-col justify-center items-center"> {/* Ensures empty state also respects flex-grow */}
+        <Package className="w-10 h-10 text-[#CDCED8] mx-auto mb-2" /> 
+        <p className="text-sm text-[#70727F]">No active orders</p> 
+      </div>
+    )}
+  </div>
+</div>
 
             {/* Appointments Card - MODIFIED */}
             <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 flex flex-col">
@@ -1297,7 +1399,7 @@ function App() {
                 {/* Appointments List Section (md:w-2/5) */}
                 <div className="md:w-2/5 flex flex-col">
                   <h4 className="text-xs font-semibold text-[#383A47] mb-1.5 px-1">Upcoming</h4>
-                  <div className="space-y-1.5 flex-grow overflow-y-auto max-h-40 pr-1"> {/* max-h and overflow for scroll */}
+                  <div className="space-y-1.5 flex-grow overflow-y-auto max-h-48 pr-1"> {/* max-h and overflow for scroll */}
                     {upcomingAppointments.length > 0 ? upcomingAppointments.slice(0, 3).map(booking => {
                       const formattedDateInfo = formatAppointmentDate(booking.date, booking.time);
                       return (
