@@ -33,6 +33,7 @@ import { AppointmentDashboard } from './components/appointments';
 import { Appointment } from './types';
 import { AppointmentDetailsModal, RescheduleAppointmentModal } from './components/appointments';
 import { Box, Typography } from '@mui/material';
+import SavedItemsPage from './pages/SavedItemsPage';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<
@@ -57,7 +58,8 @@ function App() {
     'home' |
     'cart' |
     'checkout' |
-    'order-confirmation'
+    'order-confirmation' |
+    'savedItems' // Added new page state
   >('landing');
   const [selectedListing, setSelectedListing] = useState<ListingItem | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<ServiceProvider | null>(null);
@@ -446,21 +448,30 @@ function App() {
     const filteredSavedItems = useMemo(() => {
       const savedProducts = mockProducts
         .filter(p => savedItemIds.includes(p.id))
-        .map(p => ({ ...p, itemType: 'product' })); // Add itemType for potential differentiation
+        .map(p => ({ 
+          ...p, 
+          itemType: 'product' as const,
+          // Assuming Product type already has dateSaved, views, shortDescription, images
+        })); 
       
       const savedServices = mockServices
         .filter(s => savedItemIds.includes(s.id))
-        .map(s => ({ 
-          ...s, 
-          itemType: 'service', 
-          // Ensure common fields like dateSaved and views are present or defaulted
-          dateSaved: s.dateSaved || new Date().toISOString().split('T')[0], 
+        .map(s => ({
+          ...s,
+          itemType: 'service' as const, 
+          dateSaved: (s as any).dateSaved || new Date().toLocaleDateString(), 
+          images: s.images && s.images.length > 0 ? s.images : ['https://via.placeholder.com/150'],
           views: s.views || 0,
-          // Services might not have shortDescription, provide a fallback
-          shortDescription: s.shortDescription || s.name, 
+          shortDescription: s.shortDescription || s.description || s.name, // Use description as fallback
         }));
 
-      return [...savedProducts, ...savedServices];
+      // Combine and type assertion for the combined array
+      const combinedItems: (Product & { itemType: 'product'; dateSaved: string; } | Service & { itemType: 'service'; dateSaved: string; images: string[]; views: number; shortDescription: string; })[] = [
+          ...savedProducts.map(p => ({...p, dateSaved: p.dateSaved || new Date().toLocaleDateString()})), // Ensure dateSaved for products
+          ...savedServices
+      ];
+      
+      return combinedItems;
     }, [savedItemIds]);
 
     return (
@@ -1097,73 +1108,55 @@ function App() {
             <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
               <h2 className="text-2xl font-semibold mb-6 text-[#1B1C20]">Saved Items ({filteredSavedItems.length})</h2>
               <div className="space-y-4">
-                {filteredSavedItems.slice(0, 3).map((item, index) => ( // Changed product to item
+                {filteredSavedItems.slice(0, 3).map((item, index) => ( // item is now correctly typed
                   <div 
-                    key={item.id} // Use item.id for key
+                    key={item.id + '-' + index} // Added index to key for safety if ids could rarely collide between product/service before full merge
                     className="flex items-center gap-4 p-3 border border-[#E8E9ED] rounded-lg hover:border-[#3D1560] hover:shadow-md transition-all duration-300 cursor-pointer group"
-                    onClick={() => handleListingSelect(item as ListingItem)} // Navigate to listing, assert type
+                    onClick={() => handleListingSelect(item as ListingItem)} // Type assertion might still be needed depending on ListingItem definition
                   >
                     {/* Image */}
-                    <div className="relative w-20 h-20 flex-shrink-0"> 
+                    <div className="relative w-20 h-20 flex-shrink-0">
                       <img 
                         src={item.images[0]} 
                         alt={item.name} 
-                        className="w-full h-full object-cover rounded-md" 
+                        className="w-full h-full object-cover rounded-lg" 
                       />
                     </div>
                     
                     {/* Content */}
                     <div className="flex-grow min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <h3 className="font-semibold text-[#1B1C20] text-base truncate group-hover:text-[#3D1560]">{item.name}</h3>
-                          <p className="text-xs text-[#70727F] mt-0.5 line-clamp-1">
-                            {item.shortDescription && item.shortDescription.length > 40 
-                              ? `${item.shortDescription.substring(0, 40)}...` 
-                              : item.shortDescription}
-                          </p>
-                        </div>
-                        <div className="flex-shrink-0">
-                          <span className="text-md font-bold text-[#3D1560]">${item.price}</span>
-                        </div>
-                      </div>
-                      
-                      {/* Meta info */}
-                      <div className="flex items-center gap-3 mt-1.5 text-xs text-[#70727F]">
-                        <div className="flex items-center gap-1">
-                          <Eye className="h-3.5 w-3.5" />
-                          <span>{item.views || 0}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3.5 w-3.5" />
-                          <span>{(item as any).dateSaved || 'N/A'}</span> 
+                      <h3 className="font-semibold text-sm text-[#1B1C20] group-hover:text-[#3D1560] transition-colors truncate">
+                        {item.name}
+                      </h3>
+                      <p className="text-xs text-[#70727F] mt-0.5 truncate">
+                        {item.shortDescription && item.shortDescription.length > 50 
+                          ? `${item.shortDescription.substring(0, 50)}...` 
+                          : item.shortDescription}
+                      </p>
+                      <div className="flex items-center justify-between mt-1.5 text-xs text-[#70727F]">
+                        <span className="font-medium text-[#383A47]">${item.price}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-0.5">
+                            <Eye className="h-3.5 w-3.5" />
+                            <span>{item.views}</span>
+                          </div>
+                          <div className="flex items-center gap-0.5">
+                            <Calendar className="h-3.5 w-3.5" />
+                            <span>{item.dateSaved}</span> 
+                          </div>
                         </div>
                       </div>
                     </div>
-                    
-                    {/* Action icons */}
-                    <div className="flex items-center space-x-2 flex-shrink-0">
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation(); 
-                          toggleSaveItem(item.id); 
-                        }}
-                        className="p-1.5 text-[#70727F] hover:text-[#DF678C] rounded-full hover:bg-[#FFE5ED] transition-colors duration-200"
-                        title="Unsave item"
-                      >
-                        <Bookmark className="h-5 w-5" fill="currentColor"/> 
-                      </button>
-                      <ChevronRight className="h-5 w-5 text-[#9B53D9] group-hover:text-[#3D1560]" />
-                    </div>
+                    <ChevronRight className="h-5 w-5 text-[#CDCED8] group-hover:text-[#3D1560] transition-colors ml-auto flex-shrink-0" />
                   </div>
                 ))}
-                 {filteredSavedItems.length === 0 && (
-                  <p className="text-center text-[#70727F] py-4">You haven't saved any items yet.</p>
-                )}
               </div>
               
               <div className="mt-6 text-right">
-                <button className="text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center ml-auto text-sm">
+                <button 
+                  onClick={() => handleNavigate('savedItems')} // Updated onClick to navigate to savedItems page
+                  className="text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center ml-auto text-sm"
+                >
                   View All Saved Items
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </button>
@@ -4312,6 +4305,16 @@ function App() {
           <OrderConfirmation 
             onContinueShopping={() => handleNavigate('landing')}
             onViewOrders={() => handleNavigate('my-orders')}
+          />
+        )}
+        {currentPage === 'savedItems' && (
+          <SavedItemsPage
+            savedItemIds={savedItemIds}
+            products={mockProducts}
+            services={mockServices}
+            onListingSelect={handleListingSelect}
+            toggleSaveItem={toggleSaveItem}
+            onBack={() => handleNavigate('profile')} // Navigate back to profile
           />
         )}
       </div>
