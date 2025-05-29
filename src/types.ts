@@ -268,8 +268,22 @@ export interface TrackingInfo {
   estimatedDelivery: Date;
 }
 
-export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'returned';
+// Define separate status types for Products and Services
+export type ProductStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'returned';
+export type ServiceStatus =
+  | 'requested'       // Initial booking request
+  | 'confirmed'       // Provider confirmed, payment processed
+  | 'scheduled'       // Upcoming appointment
+  | 'in_progress'     // Service currently happening
+  | 'completed'       // Service finished successfully
+  | 'cancelled'       // Cancelled by either party
+  | 'no_show'         // Customer didn't show up
+  | 'rescheduled';    // Moved to different time
+
+export type OrderStatus = ProductStatus | ServiceStatus; // Union type for Order.status
+
 export type PaymentStatus = 'pending' | 'paid' | 'refunded' | 'failed';
+
 export type OrderActionType = 'track' | 'cancel' | 'return' | 'review' | 'reorder' | 'reschedule';
 
 export interface Order {

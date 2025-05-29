@@ -1073,10 +1073,10 @@ export const mockOrders: Order[] = [
     items: [],
     type: 'service',
     service: mockServices[0],
-    appointmentDate: new Date('2024-05-15'),
-    status: 'pending',
-    paymentStatus: 'pending' as PaymentStatus,
-    orderDate: new Date('2023-10-01'),
+    appointmentDate: new Date('2024-01-20'),
+    status: 'confirmed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date('2024-01-10'),
     totalAmount: 120.00,
     actions: [
       { label: 'Cancel', handler: () => console.log('Cancel order ORD001'), type: 'cancel' },
@@ -1088,12 +1088,17 @@ export const mockOrders: Order[] = [
     userId: 'USER001',
     items: [{ id: 'ITEM002', product: mockProducts[0], quantity: 1, price: 45.99 }],
     type: 'product',
-    status: 'delivered',
+    status: 'shipped',
     paymentStatus: 'completed' as PaymentStatus,
-    orderDate: new Date('2023-09-15'),
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 5)),
     totalAmount: 45.99,
+    trackingInfo: { 
+      carrier: 'DHL', 
+      trackingNumber: 'DHL54321', 
+      estimatedDelivery: new Date(new Date().setDate(new Date().getDate() + 2))
+    },
     actions: [
-      { label: 'Review', handler: () => console.log('Review order ORD002'), type: 'review' },
+      { label: 'Track', handler: () => console.log('Track order ORD002'), type: 'track' },
       { label: 'View Details', handler: () => console.log('View details of order ORD002'), type: 'reorder' }
     ] as unknown as OrderActionType[]
   },
@@ -1103,10 +1108,10 @@ export const mockOrders: Order[] = [
     items: [],
     type: 'service',
     service: mockServices[1],
-    appointmentDate: new Date('2025-08-10'),
-    status: 'processing',
-    paymentStatus: 'pending' as PaymentStatus,
-    orderDate: new Date('2023-10-05'),
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 3)),
+    status: 'scheduled',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 2)),
     totalAmount: 80.00,
     actions: [
       { label: 'Message Seller', handler: () => console.log('Message seller for order ORD003'), type: 'reschedule' },
@@ -1118,12 +1123,11 @@ export const mockOrders: Order[] = [
     userId: 'USER001',
     items: [{ id: 'ITEM004', product: mockProducts[1], quantity: 1, price: 25.50 }],
     type: 'product',
-    status: 'shipped',
+    status: 'processing',
     paymentStatus: 'completed' as PaymentStatus,
-    orderDate: new Date('2023-09-20'),
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 1)),
     totalAmount: 25.50,
     actions: [
-      { label: 'Track', handler: () => console.log('Track order ORD004'), type: 'track' },
       { label: 'View Details', handler: () => console.log('View details of order ORD004'), type: 'reorder' }
     ] as unknown as OrderActionType[]
   },
@@ -1133,10 +1137,10 @@ export const mockOrders: Order[] = [
     items: [],
     type: 'service',
     service: mockServices[2],
-    appointmentDate: new Date('2025-08-20'),
-    status: 'pending',
-    paymentStatus: 'pending' as PaymentStatus,
-    orderDate: new Date('2023-10-10'),
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 7)),
+    status: 'confirmed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 3)),
     totalAmount: 150.00,
     actions: [
       { label: 'Cancel', handler: () => console.log('Cancel order ORD005'), type: 'cancel' },
@@ -1179,6 +1183,11 @@ export const mockOrders: Order[] = [
     paymentStatus: 'completed' as PaymentStatus,
     orderDate: new Date('2023-10-15'),
     totalAmount: 79.99,
+    trackingInfo: {
+      carrier: 'UPS',
+      trackingNumber: 'UPS987654321',
+      estimatedDelivery: new Date('2024-01-18')
+    },
     actions: [
       { label: 'Track', handler: () => console.log('Track order ORD008'), type: 'track' },
       { label: 'View Details', handler: () => console.log('View details of order ORD008'), type: 'reorder' }
@@ -1208,7 +1217,6 @@ export const mockOrders: Order[] = [
     orderDate: new Date('2023-08-20'),
     totalAmount: 199.99,
     actions: [
-      { label: 'Reviewed', handler: () => console.log('Already reviewed order ORD010'), type: 'reviewed' },
       { label: 'View Details', handler: () => console.log('View details of order ORD010'), type: 'reorder' }
     ] as unknown as OrderActionType[]
   }

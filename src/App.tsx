@@ -1260,29 +1260,34 @@ function App() {
         {!isEditMode && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
             {/* Ongoing Orders Card */}
-<div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 flex flex-col"> {/* Matched p-6 and flex flex-col from Appointments card */}
+<div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 flex flex-col">
   <div className="flex justify-between items-center mb-4"> 
-    <h3 className="text-xl font-semibold text-[#1B1C20]">Ongoing Orders</h3> 
+    <h3 className="text-xl font-semibold text-[#1B1C20]">Recent Orders and Bookings</h3> 
     <button 
-      onClick={() => handleNavigate('myOrders')}
+      onClick={() => handleNavigate('myOrders')} // This might need to navigate to a combined view page later
       className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center"
     >
       View All <ChevronRight className="ml-1 h-4 w-4" /> 
     </button>
   </div>
   
-  {/* Ensure this container allows the content to scroll if it exceeds max-h-36 */}
-  <div className="space-y-3 flex-grow overflow-y-auto max-h-48 min-h-0"> 
+  {/* Compact container with reduced height */}
+  <div className="space-y-2 flex-grow overflow-y-auto max-h-40 min-h-0"> 
     {mockOrders
-      .filter(order => ['pending', 'processing', 'shipped'].includes(order.status))
-      .slice(0, 2) // Display up to 2 orders
+      .filter(order => 
+        (order.type === 'product' && ['pending', 'processing', 'shipped'].includes(order.status)) ||
+        (order.type === 'service' && ['requested', 'confirmed', 'scheduled', 'in_progress'].includes(order.status))
+      )
+      .slice(0, 4) // Display up to 4 items
       .map(order => (
         <div 
           key={order.id}
-          className="bg-[#F8F8FA] rounded-lg p-3 border border-[#CDCED8] hover:border-[#3D1560] transition-colors duration-200"
+          className="bg-[#F8F8FA] rounded-lg p-2.5 border border-[#CDCED8] hover:border-[#3D1560] transition-colors duration-200 cursor-pointer"
+          onClick={() => handleOrderSelect(order.id)} // This might need a different handler for services vs products
         >
-          <div className="flex items-start gap-3">
-            <div className="w-14 h-14 bg-white rounded-lg overflow-hidden border border-[#CDCED8] flex-shrink-0">
+          <div className="flex items-center gap-2.5">
+            {/* Smaller image */}
+            <div className="w-10 h-10 bg-white rounded-md overflow-hidden border border-[#CDCED8] flex-shrink-0">
               {order.type === 'product' && order.items?.[0]?.product?.images?.[0] ? (
                 <img 
                   src={order.items[0].product.images[0]} 
@@ -1297,80 +1302,109 @@ function App() {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-[#E8E9ED]">
-                  <Package className="w-7 h-7 text-[#70727F]" />
+                  <Package className="w-5 h-5 text-[#70727F]" />
                 </div>
               )}
             </div>
 
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
+              {/* Compact header with status */}
+              <div className="flex items-center justify-between mb-1">
                 <h4 className="text-sm font-medium text-[#383A47] truncate">
                   {order.type === 'product' 
                     ? order.items?.[0]?.product?.name 
                     : order.service?.name}
                 </h4>
-                <span className={`px-1.5 py-0.5 text-[11px] font-medium rounded-full ${ 
-                  order.status === 'pending' ? 'bg-[#FFF8DD] text-[#DAA520]' :
-                  order.status === 'processing' ? 'bg-[#F3E8F9] text-[#6D26AB]' :
-                  'bg-[#E8F5E9] text-[#4CAF50]'
+                <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full flex-shrink-0 ${ 
+                  // Expanded status color logic needed here
+                  order.status === 'pending' || order.status === 'requested' ? 'bg-[#FFF8DD] text-[#DAA520]' :
+                  order.status === 'processing' || order.status === 'in_progress' ? 'bg-[#F3E8F9] text-[#6D26AB]' :
+                  order.status === 'shipped' || order.status === 'scheduled' ? 'bg-[#E6FFFA] text-[#38B2AC]' : // Example for scheduled
+                  order.status === 'confirmed' ? 'bg-[#EBF4FF] text-[#4299E1]' : // Example for confirmed
+                  'bg-[#E8F5E9] text-[#4CAF50]' // Default / fallback
                 }`}>
-                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                  {order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ')}
                 </span>
               </div>
               
-              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 text-xs text-[#70727F]">
-                <p className="truncate">Order #{order.id}</p>
-                <span className="hidden sm:inline">•</span>
-                <p>${order.totalAmount.toFixed(2)}</p>
+              {/* Compact details in single line */}
+              <div className="flex items-center gap-2 text-xs text-[#70727F]">
+                <span className="truncate">#{order.id}</span>
+                <span>•</span>
+                <span className="font-medium text-[#383A47]">${order.totalAmount.toFixed(2)}</span>
+                {order.type === 'product' && order.items && (
+                  <>
+                    <span>•</span>
+                    <span className="text-[10px]">
+                      Qty: {order.items.reduce((total, item) => total + (item.quantity || 1), 0)}
+                    </span>
+                  </>
+                )}
                 {order.type === 'service' && order.appointmentDate && (
                   <>
-                    <span className="hidden sm:inline">•</span>
-                    <p className="text-[#6D26AB] font-medium text-xs truncate">
+                    <span>•</span>
+                    <span className="text-[#6D26AB] font-medium truncate">
                       {order.appointmentDate.toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
                       })}
-                    </p>
+                    </span>
                   </>
                 )}
               </div>
+              
+              {/* Additional info row */}
+              <div className="flex items-center justify-between text-[10px] text-[#70727F] mt-0.5">
+                <span>
+                  {(() => {
+                    const daysDiff = Math.floor((new Date().getTime() - order.orderDate.getTime()) / (1000 * 60 * 60 * 24));
+                    return daysDiff === 0 ? 'Today' : daysDiff === 1 ? 'Yesterday' : `${daysDiff}d ago`;
+                  })()}
+                </span>
+                <div className="flex items-center gap-2">
+                  {order.status === 'shipped' && order.trackingInfo?.estimatedDelivery && (
+                    <span className="text-[#6D26AB] font-medium">
+                      Est: {order.trackingInfo.estimatedDelivery.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </span>
+                  )}
+                  {order.status === 'shipped' && order.trackingInfo?.trackingNumber && (
+                    <span className="text-[#3D1560] font-mono text-[9px]">
+                      #{order.trackingInfo.trackingNumber}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-
-          <div className="flex gap-2 mt-3 pt-2 border-t border-[#CDCED8]">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleOrderSelect(order.id);
-              }}
-              className="flex-1 px-2 py-1 text-xs font-medium text-[#3D1560] hover:text-[#6D26AB] hover:bg-[#EDD9FF] rounded-md transition-colors duration-200"
-            >
-              View Details
-            </button>
-            {order.status === 'shipped' && order.actions?.includes('track') && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  console.log('Track order:', order.id);
-                  handleNavigate('trackOrderPage'); // Corrected: removed second argument
-                }}
-                className="flex-1 px-2 py-1 text-xs font-medium text-[#3D1560] hover:text-[#6D26AB] hover:bg-[#EDD9FF] rounded-md transition-colors duration-200"
-              >
-                Track Order
-              </button>
-            )}
           </div>
         </div>
       ))}
 
     {/* Conditional rendering for empty state */}
-    {mockOrders.filter(order => ['pending', 'processing', 'shipped'].includes(order.status)).slice(0, 2).length === 0 && (
-      <div className="text-center py-6 flex-grow flex flex-col justify-center items-center"> {/* Ensures empty state also respects flex-grow */}
-        <Package className="w-10 h-10 text-[#CDCED8] mx-auto mb-2" /> 
-        <p className="text-sm text-[#70727F]">No active orders</p> 
+    {mockOrders.filter(order => 
+        (order.type === 'product' && ['pending', 'processing', 'shipped'].includes(order.status)) ||
+        (order.type === 'service' && ['requested', 'confirmed', 'scheduled', 'in_progress'].includes(order.status))
+      ).slice(0, 4).length === 0 && (
+      <div className="text-center py-4 flex-grow flex flex-col justify-center items-center">
+        <Package className="w-8 h-8 text-[#CDCED8] mx-auto mb-2" /> 
+        <p className="text-sm text-[#70727F]">No recent orders or bookings</p> 
       </div>
     )}
   </div>
+  
+  {/* Quick action summary */}
+  {mockOrders.filter(order => 
+      (order.type === 'product' && ['pending', 'processing', 'shipped'].includes(order.status)) ||
+      (order.type === 'service' && ['requested', 'confirmed', 'scheduled', 'in_progress'].includes(order.status))
+    ).length > 0 && (
+    <div className="mt-3 pt-3 border-t border-[#E8E9ED] text-center">
+      <p className="text-xs text-[#70727F]">
+        {mockOrders.filter(order => 
+            (order.type === 'product' && ['pending', 'processing', 'shipped'].includes(order.status)) ||
+            (order.type === 'service' && ['requested', 'confirmed', 'scheduled', 'in_progress'].includes(order.status))
+          ).length} active items
+      </p>
+    </div>
+  )}
 </div>
 
             {/* Appointments Card - MODIFIED */}
@@ -2942,319 +2976,6 @@ function App() {
                     
                     {/* Horizontal divider */}
                     <div className="border-t border-gray-200 my-6"></div>
-                    
-                    {/* Performance Insights Section */}
-                    <div className="mb-8">
-                      <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Performance Insights</h3>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {/* Key Metrics Cards */}
-                        <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-sm text-[#70727F]">Total Views</p>
-                              <h4 className="text-2xl font-bold mt-1 text-[#1B1C20]">{selectedViewListing.views}</h4>
-                              <p className="text-xs text-[#70727F] mt-1">
-                                <span className="text-[#3D1560] font-medium">↑ 12%</span> this month
-                              </p>
-                            </div>
-                            <div className="bg-[#EDD9FF] p-2 rounded-lg">
-                              <Eye className="w-5 h-5 text-[#3D1560]" />
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-sm text-[#70727F]">Saves/Wishlists</p>
-                              <h4 className="text-2xl font-bold mt-1 text-[#1B1C20]">{selectedViewListing.saves}</h4>
-                              <p className="text-xs text-[#70727F] mt-1">
-                                <span className="text-[#3D1560] font-medium">↑ 5%</span> this month
-                              </p>
-                            </div>
-                            <div className="bg-[#EDD9FF] p-2 rounded-lg">
-                              <Bookmark className="w-5 h-5 text-[#3D1560]" />
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-sm text-[#70727F]">Orders/Bookings</p>
-                              <h4 className="text-2xl font-bold mt-1 text-[#1B1C20]">{selectedViewListing.orders}</h4>
-                              <p className="text-xs text-[#70727F] mt-1">
-                                <span className="text-[#3D1560] font-medium">↑ 8%</span> this month
-                              </p>
-                            </div>
-                            <div className="bg-[#EDD9FF] p-2 rounded-lg">
-                              <ShoppingCart className="w-5 h-5 text-[#3D1560]" />
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* New Revenue Card */}
-                        <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-sm text-[#70727F]">Revenue</p>
-                              <h4 className="text-2xl font-bold mt-1 text-[#1B1C20]">
-                                {formatCurrency(selectedViewListing.price * selectedViewListing.orders)}
-                              </h4>
-                              <p className="text-xs text-[#70727F] mt-1">
-                                <span className="text-[#3D1560] font-medium">↑ 15%</span> this month
-                              </p>
-                            </div>
-                            <div className="bg-[#EDD9FF] p-2 rounded-lg">
-                              <DollarSign className="w-5 h-5 text-[#3D1560]" />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Revenue Over Time Chart */}
-                      <div className="mt-6 bg-[#F8F8FA] rounded-lg p-5 border border-[#E8E9ED]">
-                        <div className="flex justify-between items-start mb-4">
-                          <div>
-                            <h4 className="font-medium text-[#383A47]">Revenue Over Time</h4>
-                            <p className="text-sm text-[#70727F] mt-1">
-                              Monthly revenue data for this {selectedViewListing.type}
-                            </p>
-                          </div>
-                          <div className="flex items-center">
-                            <select className="text-sm border border-[#CDCED8] rounded-md px-2 py-1 bg-white">
-                              <option>Last 6 months</option>
-                              <option>Last year</option>
-                              <option>All time</option>
-                            </select>
-                          </div>
-                        </div>
-                        
-                        <div className="h-64 relative">
-                          {/* Mock chart - we'll create bars for a basic visualization */}
-                          <div className="absolute inset-0 flex items-end justify-between px-2">
-                            {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((month, i) => {
-                              // Generate random heights for the demo
-                              const randomHeight = 30 + Math.floor(Math.random() * 60);
-                              const isHighest = randomHeight > 75;
-                              
-                              return (
-                                <div key={month} className="flex flex-col items-center" style={{ width: '14%' }}>
-                                  <div 
-                                    className={`w-full rounded-t-md ${isHighest ? 'bg-[#3D1560]' : 'bg-[#9B53D9]'}`} 
-                                    style={{ height: `${randomHeight}%` }}
-                                  ></div>
-                                  <span className="text-xs text-[#70727F] mt-2">{month}</span>
-                                  <span className="text-xs font-medium text-[#383A47]">
-                                    ${(selectedViewListing.price * (1 + i * 0.3)).toFixed(0)}
-                                  </span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                          
-                          {/* Y-axis labels */}
-                          <div className="absolute left-0 inset-y-0 w-10 flex flex-col justify-between py-2 text-xs text-[#70727F]">
-                            <span>$1k</span>
-                            <span>$750</span>
-                            <span>$500</span>
-                            <span>$250</span>
-                            <span>$0</span>
-                          </div>
-                        </div>
-                        
-                        <div className="mt-4 pt-4 border-t border-[#E8E9ED] flex justify-between">
-                          <div>
-                            <span className="text-sm text-[#70727F]">Total Revenue</span>
-                            <p className="text-lg font-semibold text-[#1B1C20]">
-                              {formatCurrency(selectedViewListing.price * selectedViewListing.orders * 3.5)}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="text-sm text-[#70727F]">Average Order Value</span>
-                            <p className="text-lg font-semibold text-[#1B1C20]">
-                              {formatCurrency(selectedViewListing.price)}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="text-sm text-[#70727F]">Best Month</span>
-                            <p className="text-lg font-semibold text-[#1B1C20]">Jun</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Performance Metrics Chart Placeholder - replace with revenue chart above */}
-                      <div className="mt-6 bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED] flex flex-col justify-center items-center">
-                        <BarChart2 className="w-12 h-12 text-[#CDCED8] mb-3" />
-                        <h4 className="text-lg font-medium text-[#383A47]">Performance Trends</h4>
-                        <p className="text-sm text-[#70727F] mt-1">View history and detailed analytics for this listing</p>
-                        <button className="mt-4 px-4 py-2 bg-[#3D1560] hover:bg-[#6D26AB] text-white rounded-md text-sm font-medium transition-colors duration-200">
-                          View Detailed Analytics
-                        </button>
-                      </div>
-                    </div>
-                    
-                    {/* Horizontal divider */}
-                    <div className="border-t border-gray-200 my-6"></div>
-                    
-                    {/* Additional Details Section - we avoid tabs but use logical sections instead */}
-                    <div className="mb-8">
-                      <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Additional Details</h3>
-                      
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Specifications */}
-                        <div>
-                          <h4 className="font-medium text-[#383A47] mb-3">Specifications</h4>
-                          <div className="bg-[#F8F8FA] rounded-lg overflow-hidden">
-                            <div className="border-b border-[#E8E9ED] py-2.5 px-4 flex">
-                              <span className="text-sm text-[#70727F] w-1/3">Type</span>
-                              <span className="text-sm text-[#383A47] w-2/3 capitalize">{selectedViewListing.type}</span>
-                            </div>
-                            <div className="border-b border-[#E8E9ED] py-2.5 px-4 flex">
-                              <span className="text-sm text-[#70727F] w-1/3">Category</span>
-                              <span className="text-sm text-[#383A47] w-2/3">{selectedViewListing.category}</span>
-                            </div>
-                            <div className="border-b border-[#E8E9ED] py-2.5 px-4 flex">
-                              <span className="text-sm text-[#70727F] w-1/3">Location</span>
-                              <span className="text-sm text-[#383A47] w-2/3">{selectedViewListing.location}</span>
-                            </div>
-                            <div className="border-b border-[#E8E9ED] py-2.5 px-4 flex">
-                              <span className="text-sm text-[#70727F] w-1/3">SKU/ID</span>
-                              <span className="text-sm text-[#383A47] w-2/3">{selectedViewListing.id}</span>
-                            </div>
-                            <div className="py-2.5 px-4 flex">
-                              <span className="text-sm text-[#70727F] w-1/3">Published</span>
-                              <span className="text-sm text-[#383A47] w-2/3">{formatDate(selectedViewListing.createdAt)}</span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Pricing & Inventory */}
-                        <div>
-                          <h4 className="font-medium text-[#383A47] mb-3">Pricing & Inventory</h4>
-                          <div className="bg-[#F8F8FA] rounded-lg overflow-hidden">
-                            <div className="border-b border-[#E8E9ED] py-2.5 px-4 flex">
-                              <span className="text-sm text-[#70727F] w-1/3">Base Price</span>
-                              <span className="text-sm text-[#383A47] w-2/3">${selectedViewListing.price.toFixed(2)}</span>
-                            </div>
-                            <div className="border-b border-[#E8E9ED] py-2.5 px-4 flex">
-                              <span className="text-sm text-[#70727F] w-1/3">Discounted</span>
-                              <span className="text-sm text-[#383A47] w-2/3">No</span>
-                            </div>
-                            <div className="border-b border-[#E8E9ED] py-2.5 px-4 flex">
-                              <span className="text-sm text-[#70727F] w-1/3">Stock</span>
-                              <span className="text-sm text-[#383A47] w-2/3">{selectedViewListing.quantity}</span>
-                            </div>
-                            <div className="border-b border-[#E8E9ED] py-2.5 px-4 flex">
-                              <span className="text-sm text-[#70727F] w-1/3">Low Stock Alert</span>
-                              <span className="text-sm text-[#383A47] w-2/3">
-                                {selectedViewListing.quantity !== 'Unlimited' && parseInt(selectedViewListing.quantity) < 10 ? (
-                                  <span className="text-amber-600 flex items-center">
-                                    <AlertTriangle className="w-4 h-4 mr-1" /> 
-                                    Low Stock (Less than 10)
-                                  </span>
-                                ) : (
-                                  'Not Set'
-                                )}
-                              </span>
-                            </div>
-                            <div className="py-2.5 px-4 flex">
-                              <span className="text-sm text-[#70727F] w-1/3">Tax Category</span>
-                              <span className="text-sm text-[#383A47] w-2/3">Standard</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Marketing & Promotion Section */}
-                    <div className="mb-8">
-                      <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Marketing & Promotion</h3>
-                      
-                      <div className="bg-gradient-to-r from-[#3D1560] to-[#6D26AB] rounded-lg p-6 text-white">
-                        <div className="flex flex-col md:flex-row justify-between items-center">
-                          <div className="mb-4 md:mb-0">
-                            <h4 className="text-xl font-bold mb-2">Boost this listing</h4>
-                            <p className="text-white text-opacity-90">
-                              Increase visibility and sales by promoting this listing.
-                              {selectedViewListing.views > 100 ? 
-                                ` This listing has ${selectedViewListing.views} views with good engagement!` : 
-                                ' Start attracting more customers today.'}
-                            </p>
-                          </div>
-                          <div className="flex space-x-3">
-                            <button className="px-4 py-2 bg-white text-[#3D1560] rounded-md hover:bg-[#EDD9FF] transition-colors duration-200">
-                              See Options
-                            </button>
-                            <button className="px-4 py-2 bg-[#DF678C] text-white rounded-md hover:bg-[#c55578] transition-colors duration-200">
-                              Boost Now
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* SEO Optimization */}
-                      <div className="mt-6 bg-[#F8F8FA] rounded-lg p-5 border border-[#E8E9ED]">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-medium text-[#383A47] mb-1">SEO Optimization</h4>
-                            <p className="text-sm text-[#70727F]">
-                              Optimize your listing to appear higher in search results
-                            </p>
-                          </div>
-                          <div className="bg-[#EDD9FF] p-2 rounded-md text-[#3D1560] font-medium text-sm">
-                            {selectedViewListing.views > 100 ? 'Good' : 'Needs Improvement'}
-                          </div>
-                        </div>
-                        
-                        <div className="mt-4 space-y-3">
-                          <div>
-                            <div className="flex justify-between">
-                              <span className="text-xs text-[#70727F]">Title Optimization</span>
-                              <span className="text-xs font-medium text-[#3D1560]">
-                                {selectedViewListing.name.length > 30 ? '100%' : '75%'}
-                              </span>
-                            </div>
-                            <div className="mt-1 h-1.5 bg-[#E8E9ED] rounded-full overflow-hidden">
-                              <div 
-                                className="bg-[#3D1560] h-full" 
-                                style={{ width: selectedViewListing.name.length > 30 ? '100%' : '75%' }}
-                              ></div>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <div className="flex justify-between">
-                              <span className="text-xs text-[#70727F]">Description Quality</span>
-                              <span className="text-xs font-medium text-[#3D1560]">
-                                {selectedViewListing.description ? '90%' : '50%'}
-                              </span>
-                            </div>
-                            <div className="mt-1 h-1.5 bg-[#E8E9ED] rounded-full overflow-hidden">
-                              <div 
-                                className="bg-[#3D1560] h-full" 
-                                style={{ width: selectedViewListing.description ? '90%' : '50%' }}
-                              ></div>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <div className="flex justify-between">
-                              <span className="text-xs text-[#70727F]">Images & Media</span>
-                              <span className="text-xs font-medium text-[#3D1560]">60%</span>
-                            </div>
-                            <div className="mt-1 h-1.5 bg-[#E8E9ED] rounded-full overflow-hidden">
-                              <div className="bg-[#3D1560] h-full" style={{ width: '60%' }}></div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <button className="mt-5 w-full px-4 py-2 bg-[#3D1560] hover:bg-[#6D26AB] text-white rounded-md text-sm font-medium transition-colors duration-200">
-                          Improve SEO Score
-                        </button>
-                      </div>
-                    </div>
                   </div>
                 </div>
                 
