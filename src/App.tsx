@@ -227,6 +227,11 @@ function App() {
   // Handler for sidebar navigation
   const handleNavigate = (page: string) => {
     setCurrentPage(page as any);
+    // Reset order action and selected order when navigating to myOrders
+    if (page === 'myOrders') {
+      setOrderAction(null);
+      setSelectedOrder(null);
+    }
     // Reset scroll position when navigating
     window.scrollTo(0, 0);
   };
@@ -1258,21 +1263,15 @@ function App() {
         
         {/* Convert tabs to cards on the profile homepage */}
         {!isEditMode && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 items-start">
             {/* Ongoing Orders Card */}
 <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 flex flex-col">
   <div className="flex justify-between items-center mb-4"> 
     <h3 className="text-xl font-semibold text-[#1B1C20]">Recent Orders and Bookings</h3> 
-    <button 
-      onClick={() => handleNavigate('myOrders')} // This might need to navigate to a combined view page later
-      className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center"
-    >
-      View All <ChevronRight className="ml-1 h-4 w-4" /> 
-    </button>
   </div>
   
-  {/* Compact container with reduced height */}
-  <div className="space-y-2 flex-grow overflow-y-auto max-h-40 min-h-0"> 
+  {/* Compact container - adjusted max-h-52 to max-h-56 to slightly increase height */}
+  <div className="space-y-2 flex-grow overflow-y-auto min-h-0 max-h-56"> 
     {mockOrders
       .filter(order => 
         (order.type === 'product' && ['pending', 'processing', 'shipped'].includes(order.status)) ||
@@ -1391,19 +1390,32 @@ function App() {
     )}
   </div>
   
-  {/* Quick action summary */}
+  {/* Quick action summary - consistently at the bottom if present */}
   {mockOrders.filter(order => 
       (order.type === 'product' && ['pending', 'processing', 'shipped'].includes(order.status)) ||
       (order.type === 'service' && ['requested', 'confirmed', 'scheduled', 'in_progress'].includes(order.status))
-    ).length > 0 && (
-    <div className="mt-3 pt-3 border-t border-[#E8E9ED] text-center">
+    ).length > 0 ? (
+    <div className="mt-auto pt-3 border-t border-[#E8E9ED] flex justify-between items-center">
       <p className="text-xs text-[#70727F]">
         {mockOrders.filter(order => 
             (order.type === 'product' && ['pending', 'processing', 'shipped'].includes(order.status)) ||
             (order.type === 'service' && ['requested', 'confirmed', 'scheduled', 'in_progress'].includes(order.status))
           ).length} active items
       </p>
+      <button 
+        onClick={() => handleNavigate('myOrders')}
+        className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center"
+      >
+        View All <ChevronRight className="ml-1 h-4 w-4" /> 
+      </button>
     </div>
+  ) : (
+    // Add a placeholder div to maintain space if summary isn't shown, ensuring flex-grow works as expected
+    // Or, ensure the list itself has enough bottom margin if this isn't desired
+    // For now, let's rely on the p-6 of the parent if summary is not there.
+    // If summary is not there, the list (flex-grow item) will expand, and p-6 provides bottom padding.
+    // If summary is there, mt-auto pushes it down, and its pt-3 + p-6 (bottom) provides spacing.
+    null // No explicit spacer needed if the list area flex-grows appropriately.
   )}
 </div>
 
@@ -1433,7 +1445,8 @@ function App() {
                 {/* Appointments List Section (md:w-2/5) */}
                 <div className="md:w-2/5 flex flex-col">
                   <h4 className="text-xs font-semibold text-[#383A47] mb-1.5 px-1">Upcoming</h4>
-                  <div className="space-y-1.5 flex-grow overflow-y-auto max-h-48 pr-1"> {/* max-h and overflow for scroll */}
+                  {/* Removed max-h-48 to allow full growth, added min-h-0 for safety although parent has it */}
+                  <div className="space-y-1.5 flex-grow overflow-y-auto min-h-0 pr-1"> 
                     {upcomingAppointments.length > 0 ? upcomingAppointments.slice(0, 3).map(booking => {
                       const formattedDateInfo = formatAppointmentDate(booking.date, booking.time);
                       return (
