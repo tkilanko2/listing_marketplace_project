@@ -15,6 +15,20 @@ export interface ServiceProvider {
   responseRate?: string;
 }
 
+export interface ProductSeller {
+  id: string;
+  name: string;
+  avatar: string;
+  rating: number;
+  totalSales: number;
+  joinedDate: Date;
+  isOnline: boolean;
+  location: string; // Can be a string for general location
+  reviews: Review[];
+  responseTime?: string;
+  responseRate?: string;
+}
+
 export interface BaseItem {
   id: string;
   name: string;
@@ -61,6 +75,7 @@ export interface Service extends BaseItem {
 export interface Product extends BaseItem {
   type: 'product';
   condition: 'new' | 'used' | 'refurbished';
+  seller: ProductSeller;
   sku?: string;
   warranty?: string;
   dimensions?: {

@@ -8,6 +8,7 @@ import { SellerProfilePage } from './pages/SellerProfilePage';
 import CreateListingPage from './pages/CreateListingPage';
 import { CartPage } from './pages/CartPage';
 import { BookingDetailsPage } from './pages/BookingDetailsPage';
+import { ProductOrderDetailsPage } from './pages/ProductOrderDetailsPage';
 import { Service, Product, ListingItem, ServiceProvider } from './types';
 import { mockServices, mockProducts, mockListings, mockOrders } from './mockData';
 import { Navbar } from './components/Navbar';
@@ -4335,9 +4336,10 @@ function App() {
               );
             } else {
               return (
-                <OrderDetailsPage 
+                <ProductOrderDetailsPage 
                   order={order}
                   onBack={handleBackToOrders}
+                  userRegion="US" // This could be dynamic based on user location
                 />
               );
             }

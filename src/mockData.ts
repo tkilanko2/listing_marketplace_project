@@ -1,4 +1,4 @@
-import { Service, Product, ListingItem, Order, OrderActionType, PaymentStatus } from './types';
+import { Service, Product, ListingItem, Order, OrderActionType, PaymentStatus, ProductSeller } from './types';
 
 // Helper function to generate provider usernames
 function generateProviderUsername(): string {
@@ -990,10 +990,91 @@ const productCategories: { category: string; products: ProductTemplate[] }[] = [
   }
 ];
 
+// Mock Sellers for Products
+const productSellers: ProductSeller[] = [
+  {
+    id: 'SELLER001',
+    name: 'TechWorld Electronics',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80',
+    rating: 4.8,
+    totalSales: 2450,
+    joinedDate: new Date('2020-03-15'),
+    isOnline: true,
+    location: 'San Francisco, CA',
+    reviews: [
+      { id: '1', rating: 5, comment: 'Excellent products and fast shipping!', createdAt: new Date(), customerName: 'John Doe' },
+      { id: '2', rating: 4, comment: 'Good quality electronics', createdAt: new Date(), customerName: 'Jane Smith' }
+    ],
+    responseTime: '2 hours',
+    responseRate: '98%'
+  },
+  {
+    id: 'SELLER002',
+    name: 'HomeStyle Furniture Co.',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80',
+    rating: 4.6,
+    totalSales: 1350,
+    joinedDate: new Date('2019-08-22'),
+    isOnline: false,
+    location: 'Austin, TX',
+    reviews: [
+      { id: '3', rating: 5, comment: 'Beautiful furniture, exactly as described', createdAt: new Date(), customerName: 'Mike Johnson' }
+    ],
+    responseTime: '4 hours',
+    responseRate: '95%'
+  },
+  {
+    id: 'SELLER003',
+    name: 'Premium Audio Store',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80',
+    rating: 4.9,
+    totalSales: 980,
+    joinedDate: new Date('2021-01-10'),
+    isOnline: true,
+    location: 'Los Angeles, CA',
+    reviews: [
+      { id: '4', rating: 5, comment: 'Top-notch audio equipment!', createdAt: new Date(), customerName: 'Sarah Wilson' }
+    ],
+    responseTime: '1 hour',
+    responseRate: '99%'
+  },
+  {
+    id: 'SELLER004',
+    name: 'Fashion Forward Boutique',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80',
+    rating: 4.7,
+    totalSales: 1890,
+    joinedDate: new Date('2020-06-05'),
+    isOnline: true,
+    location: 'New York, NY',
+    reviews: [
+      { id: '5', rating: 4, comment: 'Stylish and high-quality fashion items', createdAt: new Date(), customerName: 'Emily Davis' }
+    ],
+    responseTime: '3 hours',
+    responseRate: '96%'
+  },
+  {
+    id: 'SELLER005',
+    name: 'Sports & Fitness Hub',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80',
+    rating: 4.5,
+    totalSales: 750,
+    joinedDate: new Date('2021-09-12'),
+    isOnline: true,
+    location: 'Denver, CO',
+    reviews: [
+      { id: '6', rating: 5, comment: 'Great fitness equipment, fast delivery', createdAt: new Date(), customerName: 'Alex Thompson' }
+    ],
+    responseTime: '2 hours',
+    responseRate: '97%'
+  }
+];
+
 // Generate products with curated images
 const mockProducts: Product[] = productCategories.flatMap(category =>
   category.products.map((product) => {
     const provider = providers[Math.floor(Math.random() * providers.length)];
+    const seller = productSellers[Math.floor(Math.random() * productSellers.length)];
     const price = Math.floor(Math.random() * 1000) + 100;
     
     return {
@@ -1002,12 +1083,13 @@ const mockProducts: Product[] = productCategories.flatMap(category =>
       name: product.name,
       price,
       description: `High-quality ${product.name.toLowerCase()} available for purchase`,
-      shortDescription: `Premium ${product.name.toLowerCase()} in ${provider.location.city}`,
-      longDescription: `Experience the premium quality of this ${product.name.toLowerCase()}. Features include ${Object.entries(product.specifications).map(([key, value]) => `${key}: ${value}`).join(', ')}. Available for immediate purchase.`,
+      shortDescription: `Premium ${product.name.toLowerCase()} from ${seller.name}`,
+      longDescription: `Experience the premium quality of this ${product.name.toLowerCase()}. Features include ${Object.entries(product.specifications).map(([key, value]) => `${key}: ${value}`).join(', ')}. Available for immediate purchase from ${seller.name}.`,
       images: product.images.map(url => `${url}?auto=format&fit=crop&w=800&h=600&q=80`),
       views: Math.floor(Math.random() * 1000) + 100,
       saves: Math.floor(Math.random() * 500) + 50,
       provider,
+      seller,
       category: category.category,
       location: provider.location,
       createdAt: new Date(Date.now() - Math.random() * 10000000000),
