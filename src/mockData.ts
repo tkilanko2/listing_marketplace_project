@@ -1078,6 +1078,8 @@ export const mockOrders: Order[] = [
     paymentStatus: 'paid' as PaymentStatus,
     orderDate: new Date('2024-01-10'),
     totalAmount: 120.00,
+    location: 'Tech Hub Downtown, 123 Main Street, Suite 400',
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
     actions: [
       { label: 'Cancel', handler: () => console.log('Cancel booking BKG001'), type: 'cancel' },
       { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG001'), type: 'reschedule' },
@@ -1115,6 +1117,8 @@ export const mockOrders: Order[] = [
     paymentStatus: 'paid' as PaymentStatus,
     orderDate: new Date(new Date().setDate(new Date().getDate() - 2)),
     totalAmount: 80.00,
+    location: 'Client\'s Home - 456 Elm Street, Apartment 2B',
+    selectedServiceMode: 'at_buyer' as 'at_seller' | 'at_buyer' | 'remote',
     actions: [
       { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG003'), type: 'reschedule' },
       { label: 'Message Provider', handler: () => console.log('Message provider for booking BKG003'), type: 'message' },
@@ -1145,6 +1149,7 @@ export const mockOrders: Order[] = [
     paymentStatus: 'paid' as PaymentStatus,
     orderDate: new Date(new Date().setDate(new Date().getDate() - 3)),
     totalAmount: 150.00,
+    location: 'Business Center - 789 Corporate Plaza, Conference Room A',
     actions: [
       { label: 'Cancel', handler: () => console.log('Cancel booking BKG005'), type: 'cancel' },
       { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG005'), type: 'reschedule' },
@@ -1238,6 +1243,8 @@ export const mockOrders: Order[] = [
     paymentStatus: 'paid' as PaymentStatus,
     orderDate: new Date(new Date().setDate(new Date().getDate() - 1)),
     totalAmount: 90.00,
+    location: 'Online via Zoom - Meeting ID will be shared',
+    selectedServiceMode: 'remote' as 'at_seller' | 'at_buyer' | 'remote',
     actions: [
       { label: 'View Progress', handler: () => console.log('View progress for booking BKG011'), type: 'view' },
       { label: 'Message Provider', handler: () => console.log('Message provider for booking BKG011'), type: 'message' }

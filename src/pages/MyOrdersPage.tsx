@@ -375,7 +375,7 @@ export function MyOrdersPage({
                         />
                       </div>
                     ) : order.type === 'service' && order.service && order.service.images && order.service.images.length > 0 ? (
-                      <div className="w-16 h-16 bg-[#EBF4FF] rounded-lg flex items-center justify-center overflow-hidden border-2 border-[#4299E1] border-opacity-20" aria-label={`${order.service.name} image`}>
+                      <div className="w-16 h-16 bg-[#EDD9FF] rounded-lg flex items-center justify-center overflow-hidden border-2 border-[#3D1560] border-opacity-20" aria-label={`${order.service.name} image`}>
                         <img 
                           src={order.service.images[0]} 
                           alt={order.service.name}
@@ -385,11 +385,11 @@ export function MyOrdersPage({
                     ) : (
                       <div className={`w-16 h-16 rounded-lg flex items-center justify-center border-2 ${
                         order.type === 'service' 
-                          ? 'bg-[#EBF4FF] border-[#4299E1] border-opacity-20' 
+                          ? 'bg-[#EDD9FF] border-[#3D1560] border-opacity-20' 
                           : 'bg-[#F8F8FA] border-[#3D1560] border-opacity-20'
                       }`}>
                         {order.type === 'service' ? (
-                          <Calendar className="w-8 h-8 text-[#4299E1]" />
+                          <Calendar className="w-8 h-8 text-[#3D1560]" />
                         ) : (
                           <Package className="w-8 h-8 text-[#3D1560]" />
                         )}
@@ -398,7 +398,7 @@ export function MyOrdersPage({
                     {/* Type indicator badge */}
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                       order.type === 'service' 
-                        ? 'bg-[#4299E1] text-white' 
+                        ? 'bg-[#3D1560] text-white' 
                         : 'bg-[#3D1560] text-white'
                     }`}>
                       {order.type === 'service' ? 'Service' : 'Product'}
@@ -417,7 +417,7 @@ export function MyOrdersPage({
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                           new Date(order.appointmentDate) <= new Date(Date.now() + 24 * 60 * 60 * 1000) 
                             ? 'bg-[#DF678C] text-white' 
-                            : 'bg-[#E6FFFA] text-[#38B2AC]'
+                            : 'bg-[#EDD9FF] text-[#6D26AB]'
                         }`}>
                           {new Date(order.appointmentDate) <= new Date(Date.now() + 24 * 60 * 60 * 1000) ? 'Soon' : 'Upcoming'}
                         </span>
@@ -456,16 +456,16 @@ export function MyOrdersPage({
                       </div>
                       {order.type === 'service' && order.appointmentDate && (
                         <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-[#6D26AB]" />
-                          <span className="text-[#6D26AB] font-semibold">
+                          <Calendar className="w-4 h-4 text-[#3D1560]" />
+                          <span className="text-[#3D1560] font-semibold">
                             {formatDateTime(order.appointmentDate)}
                           </span>
                         </div>
                       )}
                       {order.type === 'product' && order.trackingInfo && (
                         <div className="flex items-center gap-2">
-                          <Truck className="w-4 h-4 text-[#38B2AC]" />
-                          <span className="text-[#38B2AC] font-medium">
+                          <Truck className="w-4 h-4 text-[#6D26AB]" />
+                          <span className="text-[#6D26AB] font-medium">
                             {order.trackingInfo.carrier}: {order.trackingInfo.trackingNumber}
                           </span>
                         </div>
@@ -505,7 +505,7 @@ export function MyOrdersPage({
                           const rescheduleAction = order.actions.find((a: any) => a.type === 'reschedule') as unknown as { type: string; handler?: () => void };
                           if (rescheduleAction && typeof rescheduleAction.handler === 'function') rescheduleAction.handler();
                         }}
-                        className="px-4 py-2 rounded-lg text-sm font-bold bg-[#38B2AC] text-[#FFFFFF] hover:bg-[#2C7A7B] transition-colors duration-200 shadow-sm"
+                        className="px-4 py-2 rounded-lg text-sm font-bold bg-[#6D26AB] text-[#FFFFFF] hover:bg-[#9B53D9] transition-colors duration-200 shadow-sm"
                       >
                         <Calendar className="inline-block h-4 w-4 mr-1" /> Reschedule
                       </button>
@@ -519,7 +519,7 @@ export function MyOrdersPage({
                           const messageAction = order.actions.find((a: any) => a.type === 'message') as unknown as { type: string; handler?: () => void };
                           if (messageAction && typeof messageAction.handler === 'function') messageAction.handler();
                         }}
-                        className="px-3 py-2 rounded-lg text-sm font-medium bg-[#F8F8FA] text-[#4299E1] border border-[#4299E1] hover:bg-[#4299E1] hover:text-white transition-colors duration-200"
+                        className="px-3 py-2 rounded-lg text-sm font-medium bg-[#F8F8FA] text-[#3D1560] border border-[#3D1560] hover:bg-[#3D1560] hover:text-white transition-colors duration-200"
                       >
                         <MessageCircle className="inline-block h-4 w-4 mr-1" /> Message
                       </button>
@@ -559,16 +559,16 @@ export function MyOrdersPage({
           <div className="max-w-md mx-auto">
             <div className="mb-4">
               {searchQuery || selectedStatus !== 'all' || selectedTimeframe !== 'all' || viewType !== 'all' ? (
-                <div className="w-16 h-16 mx-auto mb-4 bg-[#F3E8F9] rounded-full flex items-center justify-center">
-                  <Search className="w-8 h-8 text-[#6D26AB]" />
+                <div className="w-16 h-16 mx-auto mb-4 bg-[#EDD9FF] rounded-full flex items-center justify-center">
+                  <Search className="w-8 h-8 text-[#3D1560]" />
                 </div>
               ) : (
                 <div className="flex justify-center gap-2 mb-4">
-                  <div className="w-12 h-12 bg-[#EBF4FF] rounded-lg flex items-center justify-center">
+                  <div className="w-12 h-12 bg-[#EDD9FF] rounded-lg flex items-center justify-center">
                     <Package className="w-6 h-6 text-[#3D1560]" />
                   </div>
-                  <div className="w-12 h-12 bg-[#EBF4FF] rounded-lg flex items-center justify-center">
-                    <Calendar className="w-6 h-6 text-[#4299E1]" />
+                  <div className="w-12 h-12 bg-[#EDD9FF] rounded-lg flex items-center justify-center">
+                    <Calendar className="w-6 h-6 text-[#3D1560]" />
                   </div>
                 </div>
               )}
@@ -685,23 +685,23 @@ function StatusBadge({ status }: { status: OrderStatus }) {
     switch (status) {
       case 'pending':
       case 'requested':
-        return 'bg-[#FFF8DD] text-[#DAA520] border border-[#DAA520] border-opacity-30';
+        return 'bg-[#E8E9ED] text-[#70727F] border border-[#70727F] border-opacity-30';
       case 'processing':
       case 'in_progress':
-        return 'bg-[#F3E8F9] text-[#6D26AB] border border-[#6D26AB] border-opacity-30';
+        return 'bg-[#EDD9FF] text-[#6D26AB] border border-[#6D26AB] border-opacity-30';
       case 'confirmed':
-        return 'bg-[#EBF4FF] text-[#4299E1] border border-[#4299E1] border-opacity-30';
+        return 'bg-[#EDD9FF] text-[#3D1560] border border-[#3D1560] border-opacity-30';
       case 'shipped':
       case 'scheduled':
-        return 'bg-[#E6FFFA] text-[#38B2AC] border border-[#38B2AC] border-opacity-30';
+        return 'bg-[#EDD9FF] text-[#6D26AB] border border-[#6D26AB] border-opacity-30';
       case 'delivered':
       case 'completed':
-        return 'bg-[#E8F5E9] text-[#4CAF50] border border-[#4CAF50] border-opacity-30';
+        return 'bg-[#F8F8FA] text-[#1B1C20] border border-[#CDCED8] border-opacity-30';
       case 'cancelled':
       case 'no_show':
-        return 'bg-[#FFEBEE] text-[#F44336] border border-[#F44336] border-opacity-30';
+        return 'bg-[#FFE5ED] text-[#DF678C] border border-[#DF678C] border-opacity-30';
       case 'rescheduled':
-        return 'bg-[#FFF3E0] text-[#FF9800] border border-[#FF9800] border-opacity-30';
+        return 'bg-[#E8E9ED] text-[#70727F] border border-[#70727F] border-opacity-30';
       default:
         return 'bg-[#CDCED8] text-[#70727F] border border-[#70727F] border-opacity-30';
     }

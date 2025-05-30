@@ -300,6 +300,7 @@ export interface Order {
   service?: Service;
   appointmentDate?: Date;
   location?: string;
+  selectedServiceMode?: 'at_seller' | 'at_buyer' | 'remote'; // Service delivery mode
   shippingAddress?: ShippingAddress;
   trackingInfo?: TrackingInfo;
   cancelReason?: string;

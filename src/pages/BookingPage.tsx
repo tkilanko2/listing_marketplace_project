@@ -272,15 +272,16 @@ export function BookingPage({ selectedService, allServices, onBack, onProceedToP
                                 console.log("Setting selected time:", slotTime);
                                 setSelectedSlot(slot);
                               }}
-                              className={`p-2 text-sm rounded-md border-2 transition-all duration-200
-                                ${
-                                  isSelected
-                                    ? 'border-[#3D1560] bg-[#6D26AB] text-white shadow-sm ring-2 ring-[#EDD9FF]'
-                                    : 'border-[#CDCED8] bg-white text-[#383A47] hover:bg-[#EDD9FF] hover:border-[#6D26AB]'
-                                }`}
-                              disabled={!slot.available}
+                              className={`p-2 text-sm rounded-md transition-colors ${
+                                selectedSlot?.start.getTime() === slot.start.getTime()
+                                  ? 'bg-[#3D1560] text-white'
+                                  : 'bg-[#F8F8FA] text-[#383A47] hover:bg-[#E8E9ED] border border-[#CDCED8]'
+                              }`}
                             >
-                              {slotTime}
+                              {slot.start.toLocaleTimeString('default', { 
+                                hour: 'numeric', 
+                                minute: '2-digit' 
+                              })}
                             </button>
                           );
                         })}

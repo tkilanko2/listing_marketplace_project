@@ -7,6 +7,7 @@ import { PaymentPage } from './pages/PaymentPage';
 import { SellerProfilePage } from './pages/SellerProfilePage';
 import CreateListingPage from './pages/CreateListingPage';
 import { CartPage } from './pages/CartPage';
+import { BookingDetailsPage } from './pages/BookingDetailsPage';
 import { Service, Product, ListingItem, ServiceProvider } from './types';
 import { mockServices, mockProducts, mockListings, mockOrders } from './mockData';
 import { Navbar } from './components/Navbar';
@@ -4319,10 +4320,28 @@ function App() {
         )}
 
         {currentPage === 'myOrders' && selectedOrder && orderAction === 'details' && (
-          <OrderDetailsPage 
-            order={mockOrders.find(o => o.id === selectedOrder)!}
-            onBack={handleBackToOrders}
-          />
+          (() => {
+            const order = mockOrders.find(o => o.id === selectedOrder);
+            if (!order) return null;
+            
+            if (order.type === 'service') {
+              return (
+                <BookingDetailsPage 
+                  booking={order}
+                  onBack={handleBackToOrders}
+                  userRegion="US" // This could be dynamic based on user location
+                  selectedServiceMode={order.selectedServiceMode || 'at_seller'}
+                />
+              );
+            } else {
+              return (
+                <OrderDetailsPage 
+                  order={order}
+                  onBack={handleBackToOrders}
+                />
+              );
+            }
+          })()
         )}
 
         {currentPage === 'myOrders' && selectedOrder && orderAction === 'track' && (
