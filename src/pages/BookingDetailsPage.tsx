@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { Order } from '../types';
 import SellerTermsModal from '../components/SellerTermsModal';
+import { OrderStatusTimeline } from '../components/OrderStatusTimeline';
 
 interface BookingDetailsPageProps {
   booking: Order;
@@ -292,6 +293,21 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
     }
   ];
 
+  const handleServiceClick = (serviceId: string) => {
+    // Check if service is still active/live
+    const service = booking.service;
+    if (service && (service.status === 'active' || !service.status)) {
+      // Navigate to service details page
+      console.log('Navigate to service:', serviceId);
+      // This would typically call a navigation function passed as prop
+      // onNavigateToService?.(serviceId);
+    }
+  };
+
+  const isServiceClickable = (service: any) => {
+    return service && (service.status === 'active' || !service.status);
+  };
+
   // Appointment Details Modal Component
   const AppointmentDetailsModal = () => {
     if (!appointmentDetailsOpen || !booking.service || !booking.appointmentDate) return null;
@@ -470,6 +486,15 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Status Timeline */}
+          <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#CDCED8] p-6">
+            <OrderStatusTimeline 
+              currentStatus={booking.status}
+              orderType="service"
+              orderDate={booking.orderDate}
+            />
+          </div>
+
           {/* Status Alert */}
           {booking.status === 'requested' && (
             <div className="bg-[#E8E9ED] border border-[#70727F] rounded-xl p-4">
@@ -529,103 +554,158 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
 
             <div className="p-6">
               {/* Booking Details Tab */}
-              {activeTab === 'details' && booking.service && (
+              {activeTab === 'details' && (
                 <div className="space-y-6">
                   {/* Service Information */}
-                  <div>
-                    <h3 className="text-xl font-semibold text-[#1B1C20] mb-4">Service Details</h3>
-                    <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#CDCED8]">
-                      <div className="flex gap-4">
-                        {booking.service.images && booking.service.images.length > 0 && (
-                          <div className="w-20 h-20 rounded-lg overflow-hidden border border-[#CDCED8] flex-shrink-0">
-                            <img 
-                              src={booking.service.images[0]} 
-                              alt={booking.service.name}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        )}
-                        <div className="flex-1">
-                          <h4 className="text-lg font-semibold text-[#1B1C20] mb-2">{booking.service.name}</h4>
-                          <p className="text-[#70727F] mb-2">{booking.service.shortDescription}</p>
-                          <div className="flex items-center gap-4 text-sm text-[#70727F]">
-                            <div className="flex items-center gap-1">
-                              <Clock className="w-4 h-4" />
-                              {booking.service.duration} minutes
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <MapPin className="w-4 h-4" />
-                              {booking.service.location.city}, {booking.service.location.country}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Service Delivery & Appointment Information */}
-                  {booking.appointmentDate && (
-                    <div>
-                      <h3 className="text-xl font-semibold text-[#1B1C20] mb-4">Appointment Details</h3>
-                      <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#CDCED8]">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="flex items-center gap-3">
-                            <Calendar className="w-5 h-5 text-[#3D1560]" />
-                            <div>
-                              <p className="text-sm text-[#70727F]">Date</p>
-                              <p className="font-medium text-[#383A47]">{formatDate(booking.appointmentDate)}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <Clock className="w-5 h-5 text-[#3D1560]" />
-                            <div>
-                              <p className="text-sm text-[#70727F]">Time</p>
-                              <p className="font-medium text-[#383A47]">{formatTime(booking.appointmentDate)}</p>
-                            </div>
-                          </div>
-                          {serviceLocationDetails && (
-                            <div className="flex items-start gap-3 md:col-span-2">
-                              <serviceLocationDetails.icon className="w-5 h-5 text-[#3D1560] mt-0.5" />
-                              <div>
-                                <p className="text-sm text-[#70727F]">{serviceLocationDetails.type}</p>
-                                <p className="font-medium text-[#383A47] mb-1">{serviceLocationDetails.address}</p>
-                                <p className="text-xs text-[#70727F]">{serviceLocationDetails.description}</p>
+                  {booking.service && (() => {
+                    const service = booking.service;
+                    const isClickable = isServiceClickable(service);
+                    
+                    return (
+                      <div>
+                        <h3 className="text-xl font-semibold text-[#1B1C20] mb-4">Service Details</h3>
+                        <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#CDCED8]">
+                          <div className="flex gap-4">
+                            {service.images && service.images.length > 0 && (
+                              <div 
+                                className={`w-20 h-20 rounded-lg overflow-hidden border border-[#CDCED8] flex-shrink-0 ${
+                                  isClickable ? 'cursor-pointer hover:opacity-80 transition-opacity' : 'opacity-60'
+                                }`}
+                                onClick={() => isClickable && handleServiceClick(service.id)}
+                              >
+                                <img 
+                                  src={service.images[0]} 
+                                  alt={service.name}
+                                  className="w-full h-full object-cover"
+                                />
+                                {!isClickable && (
+                                  <div className="absolute inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center">
+                                    <span className="text-xs text-white font-medium">Unavailable</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <h4 
+                                className={`text-lg font-semibold mb-2 ${
+                                  isClickable 
+                                    ? 'text-[#3D1560] cursor-pointer hover:text-[#6D26AB] transition-colors' 
+                                    : 'text-[#70727F]'
+                                }`}
+                                onClick={() => isClickable && handleServiceClick(service.id)}
+                              >
+                                {service.name}
+                                {!isClickable && (
+                                  <span className="ml-2 text-xs bg-[#FFE5ED] text-[#DF678C] px-2 py-1 rounded-full">
+                                    No longer available
+                                  </span>
+                                )}
+                              </h4>
+                              <p className="text-[#70727F] mb-2">{service.description}</p>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4 text-sm text-[#70727F]">
+                                  <span>Duration: {service.duration} minutes</span>
+                                  <span>Category: {service.category}</span>
+                                </div>
+                                <div className="text-lg font-bold text-[#1B1C20]">
+                                  ${service.price.toFixed(2)}
+                                </div>
                               </div>
                             </div>
-                          )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
-                  {/* Provider Information */}
-                  <div>
-                    <h3 className="text-xl font-semibold text-[#1B1C20] mb-4">Service Provider</h3>
-                    <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#CDCED8]">
-                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-full overflow-hidden border border-[#CDCED8]">
-                          <img 
-                            src={booking.service.provider.avatar} 
-                            alt={booking.service.provider.username}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="text-lg font-semibold text-[#1B1C20] mb-1">{booking.service.provider.username}</h4>
-                          <div className="flex items-center gap-4 text-sm text-[#70727F]">
-                            <div className="flex items-center gap-1">
-                              <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                              {booking.service.provider.rating.toFixed(1)} ({booking.service.provider.totalBookings} bookings)
+                  {/* Service Delivery & Appointment Information */}
+                  {booking.service && (() => {
+                    const service = booking.service;
+                    return (
+                      <div>
+                        <h3 className="text-xl font-semibold text-[#1B1C20] mb-4">Appointment Details</h3>
+                        <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#CDCED8]">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex items-center gap-3">
+                              <Calendar className="w-5 h-5 text-[#3D1560]" />
+                              <div>
+                                <p className="text-sm text-[#70727F]">Appointment Date</p>
+                                <p className="font-medium text-[#383A47]">
+                                  {booking.appointmentDate ? formatDate(booking.appointmentDate) : 'TBD'}
+                                </p>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-1">
-                              <MapPin className="w-4 h-4" />
-                              {booking.service.provider.location.city}, {booking.service.provider.location.country}
+                            <div className="flex items-center gap-3">
+                              <Clock className="w-5 h-5 text-[#3D1560]" />
+                              <div>
+                                <p className="text-sm text-[#70727F]">Time</p>
+                                <p className="font-medium text-[#383A47]">
+                                  {booking.appointmentDate ? formatTime(booking.appointmentDate) : 'TBD'}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              {(() => {
+                                const locationDetails = getServiceLocationDetails();
+                                if (!locationDetails) return null;
+                                const LocationIcon = locationDetails.icon;
+                                return (
+                                  <>
+                                    <LocationIcon className="w-5 h-5 text-[#3D1560]" />
+                                    <div>
+                                      <p className="text-sm text-[#70727F]">Location</p>
+                                      <p className="font-medium text-[#383A47]">{locationDetails.address}</p>
+                                    </div>
+                                  </>
+                                );
+                              })()}
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <Clock3 className="w-5 h-5 text-[#3D1560]" />
+                              <div>
+                                <p className="text-sm text-[#70727F]">Duration</p>
+                                <p className="font-medium text-[#383A47]">{service.duration} minutes</p>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    );
+                  })()}
+
+                  {/* Provider Information */}
+                  {booking.service && (() => {
+                    const service = booking.service;
+                    return (
+                      <div>
+                        <h3 className="text-xl font-semibold text-[#1B1C20] mb-4">Service Provider</h3>
+                        <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#CDCED8]">
+                          <div className="flex items-center gap-4">
+                            <div className="w-16 h-16 rounded-full overflow-hidden border border-[#CDCED8]">
+                              <img 
+                                src={service.provider.avatar} 
+                                alt={service.provider.username}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="text-lg font-semibold text-[#1B1C20] mb-1">{service.provider.username}</h4>
+                              <div className="flex items-center gap-4 text-sm text-[#70727F]">
+                                <div className="flex items-center gap-1">
+                                  <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                                  {service.provider.rating.toFixed(1)} ({service.provider.totalBookings} bookings)
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <MapPin className="w-4 h-4" />
+                                  {service.provider.location.city}, {service.provider.location.country}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
 

@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { Order } from '../types';
 import SellerTermsModal from '../components/SellerTermsModal';
+import { OrderStatusTimeline } from '../components/OrderStatusTimeline';
 
 interface ProductOrderDetailsPageProps {
   order: Order;
@@ -261,6 +262,21 @@ export function ProductOrderDetailsPage({ order, onBack, userRegion = 'US' }: Pr
     }
   ];
 
+  const handleProductClick = (productId: string) => {
+    // Check if product is still active/live
+    const product = order.items?.[0]?.product;
+    if (product && (product.status === 'active' || !product.status)) {
+      // Navigate to product details page
+      console.log('Navigate to product:', productId);
+      // This would typically call a navigation function passed as prop
+      // onNavigateToProduct?.(productId);
+    }
+  };
+
+  const isProductClickable = (product: any) => {
+    return product && (product.status === 'active' || !product.status);
+  };
+
   // Tracking Details Modal Component
   const TrackingDetailsModal = () => {
     if (!trackingDetailsOpen || !order.trackingInfo) return null;
@@ -403,6 +419,15 @@ export function ProductOrderDetailsPage({ order, onBack, userRegion = 'US' }: Pr
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Status Timeline */}
+          <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#CDCED8] p-6">
+            <OrderStatusTimeline 
+              currentStatus={order.status}
+              orderType="product"
+              orderDate={order.orderDate}
+            />
+          </div>
+
           {/* Status Alert */}
           {order.status === 'shipped' && order.trackingInfo && (
             <div className="bg-[#EDD9FF] border border-[#3D1560] rounded-xl p-4">
@@ -468,34 +493,61 @@ export function ProductOrderDetailsPage({ order, onBack, userRegion = 'US' }: Pr
                   <div>
                     <h3 className="text-xl font-semibold text-[#1B1C20] mb-4">Items Ordered</h3>
                     <div className="space-y-4">
-                      {order.items?.map((item, index) => (
-                        <div key={index} className="bg-[#F8F8FA] rounded-lg p-4 border border-[#CDCED8]">
-                          <div className="flex gap-4">
-                            {item.product.images && item.product.images.length > 0 && (
-                              <div className="w-20 h-20 rounded-lg overflow-hidden border border-[#CDCED8] flex-shrink-0">
-                                <img 
-                                  src={item.product.images[0]} 
-                                  alt={item.product.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                            )}
-                            <div className="flex-1">
-                              <h4 className="text-lg font-semibold text-[#1B1C20] mb-2">{item.product.name}</h4>
-                              <p className="text-[#70727F] mb-2">{item.product.description}</p>
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4 text-sm text-[#70727F]">
-                                  <span>Quantity: {item.quantity || 1}</span>
-                                  <span>Price: ${item.product.price.toFixed(2)} each</span>
+                      {order.items?.map((item, index) => {
+                        const isClickable = isProductClickable(item.product);
+                        return (
+                          <div key={index} className="bg-[#F8F8FA] rounded-lg p-4 border border-[#CDCED8]">
+                            <div className="flex gap-4">
+                              {item.product.images && item.product.images.length > 0 && (
+                                <div 
+                                  className={`w-20 h-20 rounded-lg overflow-hidden border border-[#CDCED8] flex-shrink-0 ${
+                                    isClickable ? 'cursor-pointer hover:opacity-80 transition-opacity' : 'opacity-60'
+                                  }`}
+                                  onClick={() => isClickable && handleProductClick(item.product.id)}
+                                >
+                                  <img 
+                                    src={item.product.images[0]} 
+                                    alt={item.product.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                  {!isClickable && (
+                                    <div className="absolute inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center">
+                                      <span className="text-xs text-white font-medium">Unavailable</span>
+                                    </div>
+                                  )}
                                 </div>
-                                <div className="text-lg font-bold text-[#1B1C20]">
-                                  ${(item.product.price * (item.quantity || 1)).toFixed(2)}
+                              )}
+                              <div className="flex-1">
+                                <h4 
+                                  className={`text-lg font-semibold mb-2 ${
+                                    isClickable 
+                                      ? 'text-[#3D1560] cursor-pointer hover:text-[#6D26AB] transition-colors' 
+                                      : 'text-[#70727F]'
+                                  }`}
+                                  onClick={() => isClickable && handleProductClick(item.product.id)}
+                                >
+                                  {item.product.name}
+                                  {!isClickable && (
+                                    <span className="ml-2 text-xs bg-[#FFE5ED] text-[#DF678C] px-2 py-1 rounded-full">
+                                      No longer available
+                                    </span>
+                                  )}
+                                </h4>
+                                <p className="text-[#70727F] mb-2">{item.product.description}</p>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-4 text-sm text-[#70727F]">
+                                    <span>Quantity: {item.quantity || 1}</span>
+                                    <span>Price: ${item.product.price.toFixed(2)} each</span>
+                                  </div>
+                                  <div className="text-lg font-bold text-[#1B1C20]">
+                                    ${(item.product.price * (item.quantity || 1)).toFixed(2)}
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
 
