@@ -1068,7 +1068,7 @@ export { mockServices, mockProducts };
 // Mock Orders Data
 export const mockOrders: Order[] = [
   {
-    id: 'ORD001',
+    id: 'BKG001',
     userId: 'USER001',
     items: [],
     type: 'service',
@@ -1079,8 +1079,10 @@ export const mockOrders: Order[] = [
     orderDate: new Date('2024-01-10'),
     totalAmount: 120.00,
     actions: [
-      { label: 'Cancel', handler: () => console.log('Cancel order ORD001'), type: 'cancel' },
-      { label: 'View Details', handler: () => console.log('View details of order ORD001'), type: 'reorder' }
+      { label: 'Cancel', handler: () => console.log('Cancel booking BKG001'), type: 'cancel' },
+      { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG001'), type: 'reschedule' },
+      { label: 'Message Provider', handler: () => console.log('Message provider for booking BKG001'), type: 'message' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG001'), type: 'reorder' }
     ] as unknown as OrderActionType[]
   },
   {
@@ -1103,7 +1105,7 @@ export const mockOrders: Order[] = [
     ] as unknown as OrderActionType[]
   },
   {
-    id: 'ORD003',
+    id: 'BKG003',
     userId: 'USER001',
     items: [],
     type: 'service',
@@ -1114,8 +1116,9 @@ export const mockOrders: Order[] = [
     orderDate: new Date(new Date().setDate(new Date().getDate() - 2)),
     totalAmount: 80.00,
     actions: [
-      { label: 'Message Seller', handler: () => console.log('Message seller for order ORD003'), type: 'reschedule' },
-      { label: 'View Details', handler: () => console.log('View details of order ORD003'), type: 'reorder' }
+      { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG003'), type: 'reschedule' },
+      { label: 'Message Provider', handler: () => console.log('Message provider for booking BKG003'), type: 'message' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG003'), type: 'reorder' }
     ] as unknown as OrderActionType[]
   },
   {
@@ -1132,7 +1135,7 @@ export const mockOrders: Order[] = [
     ] as unknown as OrderActionType[]
   },
   {
-    id: 'ORD005',
+    id: 'BKG005',
     userId: 'USER001',
     items: [],
     type: 'service',
@@ -1143,8 +1146,9 @@ export const mockOrders: Order[] = [
     orderDate: new Date(new Date().setDate(new Date().getDate() - 3)),
     totalAmount: 150.00,
     actions: [
-      { label: 'Cancel', handler: () => console.log('Cancel order ORD005'), type: 'cancel' },
-      { label: 'View Details', handler: () => console.log('View details of order ORD005'), type: 'reorder' }
+      { label: 'Cancel', handler: () => console.log('Cancel booking BKG005'), type: 'cancel' },
+      { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG005'), type: 'reschedule' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG005'), type: 'reorder' }
     ] as unknown as OrderActionType[]
   },
   {
@@ -1204,6 +1208,7 @@ export const mockOrders: Order[] = [
     totalAmount: 89.97,
     actions: [
       { label: 'Review', handler: () => console.log('Review order ORD009'), type: 'review' },
+      { label: 'Buy Again', handler: () => console.log('Buy again order ORD009'), type: 'reorder' },
       { label: 'View Details', handler: () => console.log('View details of order ORD009'), type: 'reorder' }
     ] as unknown as OrderActionType[]
   },
@@ -1217,7 +1222,92 @@ export const mockOrders: Order[] = [
     orderDate: new Date('2023-08-20'),
     totalAmount: 199.99,
     actions: [
+      { label: 'Buy Again', handler: () => console.log('Buy again order ORD010'), type: 'reorder' },
       { label: 'View Details', handler: () => console.log('View details of order ORD010'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  // Additional service orders with diverse statuses
+  {
+    id: 'BKG011',
+    userId: 'USER001',
+    items: [],
+    type: 'service',
+    service: mockServices[3],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 1)),
+    status: 'in_progress',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 1)),
+    totalAmount: 90.00,
+    actions: [
+      { label: 'View Progress', handler: () => console.log('View progress for booking BKG011'), type: 'view' },
+      { label: 'Message Provider', handler: () => console.log('Message provider for booking BKG011'), type: 'message' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG012',
+    userId: 'USER001',
+    items: [],
+    type: 'service',
+    service: mockServices[4],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 3)),
+    status: 'completed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 7)),
+    totalAmount: 180.00,
+    actions: [
+      { label: 'Review Service', handler: () => console.log('Review service for booking BKG012'), type: 'review' },
+      { label: 'Book Again', handler: () => console.log('Book again booking BKG012'), type: 'reorder' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG012'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG013',
+    userId: 'USER001',
+    items: [],
+    type: 'service',
+    service: mockServices[0],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 5)),
+    status: 'requested',
+    paymentStatus: 'pending' as PaymentStatus,
+    orderDate: new Date(),
+    totalAmount: 120.00,
+    actions: [
+      { label: 'Cancel Request', handler: () => console.log('Cancel request for booking BKG013'), type: 'cancel' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG013'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG014',
+    userId: 'USER001',
+    items: [],
+    type: 'service',
+    service: mockServices[1],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 1)),
+    status: 'no_show',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 5)),
+    totalAmount: 80.00,
+    actions: [
+      { label: 'Reschedule', handler: () => console.log('Reschedule after no-show booking BKG014'), type: 'reschedule' },
+      { label: 'Request Refund', handler: () => console.log('Request refund for booking BKG014'), type: 'refund' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG014'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG015',
+    userId: 'USER001',
+    items: [],
+    type: 'service',
+    service: mockServices[2],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 10)),
+    status: 'rescheduled',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 4)),
+    totalAmount: 150.00,
+    actions: [
+      { label: 'View New Schedule', handler: () => console.log('View new schedule for booking BKG015'), type: 'view' },
+      { label: 'Message Provider', handler: () => console.log('Message provider for booking BKG015'), type: 'message' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG015'), type: 'reorder' }
     ] as unknown as OrderActionType[]
   }
 ];
@@ -1225,7 +1315,7 @@ export const mockOrders: Order[] = [
 // Mock Service Orders - Placeholder for future implementation
 export const mockServiceOrders = [
   {
-    id: 'SORD-1234-5678',
+    id: 'BKG-1234-5678',
     userId: 'usr-123',
     type: 'service' as const,
     status: 'confirmed' as const,

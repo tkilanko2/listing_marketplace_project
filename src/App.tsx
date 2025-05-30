@@ -1315,12 +1315,16 @@ function App() {
                     : order.service?.name}
                 </h4>
                 <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full flex-shrink-0 ${ 
-                  // Expanded status color logic needed here
+                  // Expanded status color logic to handle all service statuses
                   order.status === 'pending' || order.status === 'requested' ? 'bg-[#FFF8DD] text-[#DAA520]' :
                   order.status === 'processing' || order.status === 'in_progress' ? 'bg-[#F3E8F9] text-[#6D26AB]' :
-                  order.status === 'shipped' || order.status === 'scheduled' ? 'bg-[#E6FFFA] text-[#38B2AC]' : // Example for scheduled
-                  order.status === 'confirmed' ? 'bg-[#EBF4FF] text-[#4299E1]' : // Example for confirmed
-                  'bg-[#E8F5E9] text-[#4CAF50]' // Default / fallback
+                  order.status === 'shipped' || order.status === 'scheduled' ? 'bg-[#E6FFFA] text-[#38B2AC]' :
+                  order.status === 'confirmed' ? 'bg-[#EBF4FF] text-[#4299E1]' :
+                  order.status === 'delivered' || order.status === 'completed' ? 'bg-[#E8F5E9] text-[#4CAF50]' :
+                  order.status === 'cancelled' || order.status === 'no_show' ? 'bg-[#FFE5E5] text-[#D32F2F]' :
+                  order.status === 'rescheduled' ? 'bg-[#FFF3CD] text-[#856404]' :
+                  order.status === 'returned' ? 'bg-[#E8E9ED] text-[#70727F]' :
+                  'bg-[#E8F5E9] text-[#4CAF50]' // Default fallback
                 }`}>
                   {order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ')}
                 </span>
