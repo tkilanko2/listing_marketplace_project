@@ -27,9 +27,12 @@ import {
   Monitor,
   Home,
   Building,
-  X
+  X,
+  Copy,
+  PlusCircle,
+  Info
 } from 'lucide-react';
-import { Order } from '../types';
+import { Order, ActivityLogEntry, Service } from '../types';
 import SellerTermsModal from '../components/SellerTermsModal';
 import { OrderStatusTimeline } from '../components/OrderStatusTimeline';
 
@@ -453,482 +456,420 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
     );
   };
 
+  // Activity Log rendering
+  const renderActivityLog = () => {
+    if (!booking.activityLog || booking.activityLog.length === 0) {
+      return <p className="text-sm text-[#70727F]">No activity recorded for this booking yet.</p>;
+    }
+    return (
+      <ul className="space-y-4">
+        {booking.activityLog.map((entry, index) => {
+          const { icon: IconComponent, bgColor, iconColor } = getIconForActivity(entry.type);
+          const ActualIcon = entry.icon || IconComponent; // Use entry specific icon if available, else default
+
+          return (
+            <li key={index} className="flex items-start gap-3 pb-4 border-b border-[#F8F8FA] last:border-b-0 last:pb-0">
+              <div className={`p-2 rounded-full ${bgColor} mt-0.5 flex-shrink-0`}>
+                {ActualIcon && <ActualIcon className={`w-4 h-4 ${iconColor}`} />}
+              </div>
+              <div>
+                <p className="text-sm text-[#383A47] font-medium">
+                  {entry.title}
+                </p>
+                <p className="text-xs text-[#70727F] leading-relaxed">
+                  {entry.description}
+                </p>
+                <p className="text-xs text-[#CDCED8] mt-1">
+                  {formatDateTime(new Date(entry.timestamp))}
+                </p>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl bg-[#F8F8FA] min-h-screen">
-      {/* Header */}
-      <div className="mb-8">
-        <button 
-          onClick={onBack}
-          className="flex items-center text-[#3D1560] hover:text-[#6D26AB] font-medium mb-4 transition-colors duration-200"
-        >
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to My Orders
-        </button>
-        
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-[#1B1C20] mb-2">Booking #{booking.id}</h1>
-            <p className="text-[#70727F] text-lg">
-              Booked on {formatDate(booking.orderDate)}
-            </p>
-          </div>
-          
-          <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${statusConfig.borderColor} ${statusConfig.bgColor}`}>
-            <StatusIcon className={`w-6 h-6 ${statusConfig.color}`} />
-            <div>
-              <p className={`font-semibold ${statusConfig.color}`}>{statusConfig.title}</p>
-              <p className={`text-sm ${statusConfig.color} opacity-80`}>{statusConfig.description}</p>
-            </div>
-          </div>
+    <div className="bg-[#F8F8FA] min-h-screen py-8 px-4 md:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto">
+        {/* Back Button and Page Title */}
+        <div className="mb-6 flex items-center">
+          <button 
+            onClick={onBack} 
+            className="text-[#383A47] hover:text-[#3D1560] transition-colors duration-200 flex items-center mr-4 p-2 rounded-md hover:bg-[#E8E9ED]"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-2xl md:text-3xl font-semibold text-[#1B1C20]">
+            Booking Details
+          </h1>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Status Timeline */}
-          <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#CDCED8] p-6">
-            <OrderStatusTimeline 
-              currentStatus={booking.status}
-              orderType="service"
-              orderDate={booking.orderDate}
-            />
-          </div>
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column (Main Details) */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Status Timeline Card */}
+            <div className="bg-[#FFFFFF] rounded-lg shadow-sm border border-[#E8E9ED] p-6">
+              <OrderStatusTimeline 
+                currentStatus={booking.status}
+                orderType="service"
+                orderDate={booking.orderDate}
+                className="mb-2" // Added margin bottom for spacing inside the card
+              />
+            </div>
 
-          {/* Status Alert */}
-          {booking.status === 'requested' && (
-            <div className="bg-[#E8E9ED] border border-[#70727F] rounded-xl p-4">
-              <div className="flex items-start gap-3">
-                <Clock3 className="w-5 h-5 text-[#70727F] mt-0.5" />
-                <div>
-                  <h3 className="font-semibold text-[#70727F] mb-1">Awaiting Confirmation</h3>
-                  <p className="text-sm text-[#70727F] opacity-80">
-                    Your booking request has been sent to the provider. You'll receive a notification once they confirm your appointment.
-                  </p>
+            {/* Status Alert Card - More Prominent, with hover/focus for details */}
+            {(booking.status === 'requested' || (booking.status === 'scheduled' && booking.appointmentDate)) && (
+              <div 
+                className={`group relative ${statusConfig.bgColor} border-l-4 ${statusConfig.borderColor} rounded-md p-4 shadow-sm transition-all duration-300 ease-in-out hover:shadow-md focus-within:shadow-md`}
+                tabIndex={0} // Make it focusable
+              >
+                <div className="flex items-start gap-3">
+                  <statusConfig.icon className={`w-6 h-6 ${statusConfig.color} mt-0.5 flex-shrink-0`} />
+                  <div className="flex-1">
+                    <h3 className={`font-semibold ${statusConfig.color} text-base mb-1`}>{statusConfig.title}</h3>
+                    {/* Initially hidden description, revealed on hover/focus */}
+                    <div className="max-h-0 opacity-0 group-hover:max-h-40 group-hover:opacity-100 group-focus-within:max-h-40 group-focus-within:opacity-100 transition-all duration-300 ease-in-out overflow-hidden">
+                      <p className={`text-sm ${statusConfig.color} opacity-90 mt-1`}>
+                        {booking.status === 'requested' && `${statusConfig.description}. You'll receive a notification once they confirm your appointment.`}
+                        {booking.status === 'scheduled' && `Your appointment is scheduled for ${formatDateTime(booking.appointmentDate!)}.`}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                {/* Optional: Small hint for interactivity */}
+                <div className="absolute bottom-1 right-2 opacity-0 group-hover:opacity-70 group-focus-within:opacity-70 transition-opacity duration-300">
+                    <Info className={`w-3 h-3 ${statusConfig.color} opacity-50`} />
                 </div>
               </div>
-            </div>
-          )}
+            )}
+            {/* Ensure other status alerts follow a similar pattern if they exist and need this behavior */}
 
-          {booking.status === 'scheduled' && booking.appointmentDate && (
-            <div className="bg-[#EDD9FF] border border-[#6D26AB] rounded-xl p-4">
-              <div className="flex items-start gap-3">
-                <Calendar className="w-5 h-5 text-[#6D26AB] mt-0.5" />
-                <div>
-                  <h3 className="font-semibold text-[#6D26AB] mb-1">Upcoming Appointment</h3>
-                  <p className="text-sm text-[#6D26AB] opacity-80">
-                    Your appointment is scheduled for {formatDateTime(booking.appointmentDate)}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Tab Navigation */}
-          <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#CDCED8]">
-            <div className="border-b border-[#CDCED8]">
-              <nav className="flex space-x-8 px-6">
-                {[
-                  { id: 'details', label: 'Booking Details', icon: FileText },
-                  { id: 'payment', label: 'Payment Info', icon: CreditCard },
-                  { id: 'activity', label: 'Activity', icon: Clock }
-                ].map((tab) => {
-                  const Icon = tab.icon;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id as any)}
-                      className={`py-4 px-2 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors duration-200 ${
-                        activeTab === tab.id
-                          ? 'border-[#3D1560] text-[#3D1560]'
-                          : 'border-transparent text-[#70727F] hover:text-[#383A47]'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4" />
-                      {tab.label}
-                    </button>
-                  );
-                })}
-              </nav>
-            </div>
-
-            <div className="p-6">
-              {/* Booking Details Tab */}
-              {activeTab === 'details' && (
-                <div className="space-y-6">
-                  {/* Service Information */}
-                  {booking.service && (() => {
-                    const service = booking.service;
-                    const isClickable = isServiceClickable(service);
-                    
+            {/* Tab Navigation Card */}
+            <div className="bg-[#FFFFFF] rounded-lg shadow-sm border border-[#E8E9ED]">
+              <div className="border-b border-[#E8E9ED]">
+                <nav className="flex space-x-1 md:space-x-2 px-3 sm:px-4">
+                  {[
+                    { id: 'details', label: 'Booking Details', icon: FileText },
+                    { id: 'payment', label: 'Payment Info', icon: CreditCard },
+                    { id: 'activity', label: 'Activity Log', icon: Clock } // Renamed for clarity
+                  ].map((tab) => {
+                    const Icon = tab.icon;
                     return (
-                      <div>
-                        <h3 className="text-xl font-semibold text-[#1B1C20] mb-4">Service Details</h3>
-                        <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#CDCED8]">
-                          <div className="flex gap-4">
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id as any)}
+                        className={`py-3.5 px-3 sm:px-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3D1560] focus-visible:ring-opacity-50 rounded-t-md ${
+                          activeTab === tab.id
+                            ? 'border-[#3D1560] text-[#3D1560]'
+                            : 'border-transparent text-[#70727F] hover:text-[#383A47] hover:border-[#CDCED8]'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span>{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </nav>
+              </div>
+              <div className="p-6">
+                {/* Tab Content will go here, styled in next steps */}
+                {activeTab === 'details' && (
+                  <div className="space-y-8">
+                    {/* Service Information Card */}
+                    {booking.service && (() => {
+                      const service = booking.service;
+                      const isClickable = isServiceClickable(service);
+                      
+                      return (
+                        <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
+                          <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Service Information</h3>
+                          <div className="flex flex-col sm:flex-row gap-4">
                             {service.images && service.images.length > 0 && (
                               <div 
-                                className={`w-20 h-20 rounded-lg overflow-hidden border border-[#CDCED8] flex-shrink-0 ${
-                                  isClickable ? 'cursor-pointer hover:opacity-80 transition-opacity' : 'opacity-60'
+                                className={`relative w-full sm:w-24 h-32 sm:h-24 rounded-md overflow-hidden border border-[#CDCED8] flex-shrink-0 group ${
+                                  isClickable ? 'cursor-pointer' : 'opacity-70'
                                 }`}
                                 onClick={() => isClickable && handleServiceClick(service.id)}
                               >
                                 <img 
                                   src={service.images[0]} 
                                   alt={service.name}
-                                  className="w-full h-full object-cover"
+                                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                 />
                                 {!isClickable && (
-                                  <div className="absolute inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center">
-                                    <span className="text-xs text-white font-medium">Unavailable</span>
+                                  <div className="absolute inset-0 bg-[#474958] bg-opacity-60 flex items-center justify-center">
+                                    <span className="text-xs text-[#FFFFFF] font-medium px-2 py-1 bg-[#1B1C20] bg-opacity-70 rounded">Unavailable</span>
+                                  </div>
+                                )}
+                                {isClickable && (
+                                  <div className="absolute inset-0 bg-[#1B1C20] bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center">
+                                    <Eye className="w-6 h-6 text-[#FFFFFF] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                   </div>
                                 )}
                               </div>
                             )}
                             <div className="flex-1">
                               <h4 
-                                className={`text-lg font-semibold mb-2 ${
+                                className={`text-xl font-semibold mb-1.5 ${
                                   isClickable 
-                                    ? 'text-[#3D1560] cursor-pointer hover:text-[#6D26AB] transition-colors' 
-                                    : 'text-[#70727F]'
+                                    ? 'text-[#3D1560] hover:text-[#6D26AB] cursor-pointer transition-colors' 
+                                    : 'text-[#383A47]'
                                 }`}
                                 onClick={() => isClickable && handleServiceClick(service.id)}
                               >
                                 {service.name}
-                                {!isClickable && (
-                                  <span className="ml-2 text-xs bg-[#FFE5ED] text-[#DF678C] px-2 py-1 rounded-full">
-                                    No longer available
-                                  </span>
-                                )}
                               </h4>
-                              <p className="text-[#70727F] mb-2">{service.description}</p>
+                              {!isClickable && (
+                                <span className="text-xs bg-[#E8E9ED] text-[#70727F] px-2 py-0.5 rounded-full font-medium inline-block mb-2">
+                                  No longer available
+                                </span>
+                              )}
+                              <p className="text-[#70727F] text-sm mb-3 leading-relaxed line-clamp-2">{service.description}</p>
                               <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4 text-sm text-[#70727F]">
-                                  <span>Duration: {service.duration} minutes</span>
-                                  <span>Category: {service.category}</span>
+                                <div className="flex items-center gap-3 text-sm text-[#70727F]">
+                                  <div className="flex items-center gap-1">
+                                    <Clock3 className="w-3.5 h-3.5 text-[#383A47]" />
+                                    <span>{service.duration} min</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <Circle className="w-3 h-3 text-[#383A47] fill-current" /> {/* Placeholder for category icon */}
+                                    <span>{service.category}</span>
+                                  </div>
                                 </div>
-                                <div className="text-lg font-bold text-[#1B1C20]">
+                                <div className="text-xl font-bold text-[#1B1C20]">
                                   ${service.price.toFixed(2)}
                                 </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })()}
+                      );
+                    })()}
 
-                  {/* Service Delivery & Appointment Information */}
-                  {booking.service && (() => {
-                    const service = booking.service;
-                    return (
-                      <div>
-                        <h3 className="text-xl font-semibold text-[#1B1C20] mb-4">Appointment Details</h3>
-                        <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#CDCED8]">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="flex items-center gap-3">
-                              <Calendar className="w-5 h-5 text-[#3D1560]" />
-                              <div>
-                                <p className="text-sm text-[#70727F]">Appointment Date</p>
-                                <p className="font-medium text-[#383A47]">
-                                  {booking.appointmentDate ? formatDate(booking.appointmentDate) : 'TBD'}
-                                </p>
+                    {/* Appointment & Location Details Card */}
+                    {booking.service && (() => {
+                      const service = booking.service;
+                      const locationDetails = getServiceLocationDetails();
+                      return (
+                        <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
+                          <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Appointment & Location</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                            {[ // Array for easy mapping
+                              { icon: Calendar, label: "Date", value: booking.appointmentDate ? formatDate(booking.appointmentDate) : 'TBD' },
+                              { icon: Clock, label: "Time", value: booking.appointmentDate ? formatTime(booking.appointmentDate) : 'TBD' },
+                              { icon: locationDetails?.icon || MapPin, label: locationDetails?.type || "Location", value: locationDetails?.address || 'Not specified' },
+                              { icon: Clock3, label: "Duration", value: `${service.duration} minutes` },
+                            ].map(detail => (
+                              <div key={detail.label} className="flex items-start gap-3">
+                                <detail.icon className="w-5 h-5 text-[#3D1560] mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <p className="text-xs text-[#70727F] uppercase tracking-wider font-medium">{detail.label}</p>
+                                  <p className="font-medium text-[#383A47] text-sm">{detail.value}</p>
+                                </div>
                               </div>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <Clock className="w-5 h-5 text-[#3D1560]" />
-                              <div>
-                                <p className="text-sm text-[#70727F]">Time</p>
-                                <p className="font-medium text-[#383A47]">
-                                  {booking.appointmentDate ? formatTime(booking.appointmentDate) : 'TBD'}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              {(() => {
-                                const locationDetails = getServiceLocationDetails();
-                                if (!locationDetails) return null;
-                                const LocationIcon = locationDetails.icon;
-                                return (
-                                  <>
-                                    <LocationIcon className="w-5 h-5 text-[#3D1560]" />
-                                    <div>
-                                      <p className="text-sm text-[#70727F]">Location</p>
-                                      <p className="font-medium text-[#383A47]">{locationDetails.address}</p>
-                                    </div>
-                                  </>
-                                );
-                              })()}
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <Clock3 className="w-5 h-5 text-[#3D1560]" />
-                              <div>
-                                <p className="text-sm text-[#70727F]">Duration</p>
-                                <p className="font-medium text-[#383A47]">{service.duration} minutes</p>
-                              </div>
-                            </div>
+                            ))}
                           </div>
                         </div>
-                      </div>
-                    );
-                  })()}
+                      );
+                    })()}
 
-                  {/* Provider Information */}
-                  {booking.service && (() => {
-                    const service = booking.service;
-                    return (
-                      <div>
-                        <h3 className="text-xl font-semibold text-[#1B1C20] mb-4">Service Provider</h3>
-                        <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#CDCED8]">
+                    {/* Provider Information Card */}
+                    {booking.service && booking.service.provider && (() => {
+                      const provider = booking.service.provider;
+                      return (
+                        <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
+                          <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Service Provider</h3>
                           <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 rounded-full overflow-hidden border border-[#CDCED8]">
+                            <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#EDD9FF]">
                               <img 
-                                src={service.provider.avatar} 
-                                alt={service.provider.username}
+                                src={provider.avatar || '/placeholder-avatar.jpg'} 
+                                alt={provider.username}
                                 className="w-full h-full object-cover"
                               />
                             </div>
                             <div className="flex-1">
-                              <h4 className="text-lg font-semibold text-[#1B1C20] mb-1">{service.provider.username}</h4>
-                              <div className="flex items-center gap-4 text-sm text-[#70727F]">
+                              <h4 className="text-lg font-semibold text-[#3D1560] mb-0.5">{provider.username}</h4>
+                              <div className="flex items-center gap-3 text-sm text-[#70727F]">
                                 <div className="flex items-center gap-1">
-                                  <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                                  {service.provider.rating.toFixed(1)} ({service.provider.totalBookings} bookings)
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <MapPin className="w-4 h-4" />
-                                  {service.provider.location.city}, {service.provider.location.country}
+                                  <Star className="w-4 h-4 text-[#FFC107] fill-current" />
+                                  {provider.rating?.toFixed(1) || 'N/A'} 
+                                  <span className="text-[#CDCED8]">|</span>
+                                  <span>{provider.totalBookings || 0} bookings</span>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
-
-              {/* Payment Information Tab */}
-              {activeTab === 'payment' && (
-                <div className="space-y-6">
-                  <h3 className="text-xl font-semibold text-[#1B1C20]">Payment Information</h3>
-                  
-                  {/* Payment Breakdown */}
-                  <div className="bg-[#F8F8FA] rounded-lg p-6 border border-[#CDCED8]">
-                    <h4 className="text-lg font-semibold text-[#1B1C20] mb-4">Amount Breakdown</h4>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-[#70727F]">Service Fee</span>
-                        <span className="font-medium text-[#383A47]">${paymentBreakdown.serviceFee.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-[#70727F]">
-                          {paymentBreakdown.taxType} ({paymentBreakdown.taxRate}% - {userRegion})
-                        </span>
-                        <span className="font-medium text-[#383A47]">${paymentBreakdown.tax.toFixed(2)}</span>
-                      </div>
-                      <div className="border-t border-[#CDCED8] pt-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-lg font-semibold text-[#1B1C20]">Total Paid</span>
-                          <span className="text-lg font-bold text-[#1B1C20]">${paymentBreakdown.total.toFixed(2)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Payment Details */}
-                  <div className="bg-[#F8F8FA] rounded-lg p-6 border border-[#CDCED8]">
-                    <h4 className="text-lg font-semibold text-[#1B1C20] mb-4">Payment Details</h4>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <CreditCard className="w-5 h-5 text-[#3D1560]" />
-                        <div>
-                          <p className="text-sm text-[#70727F]">Payment Method</p>
-                          <p className="font-medium text-[#383A47]">Card ending in 4242</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Receipt className="w-5 h-5 text-[#3D1560]" />
-                        <div>
-                          <p className="text-sm text-[#70727F]">Transaction ID</p>
-                          <p className="font-medium text-[#383A47] font-mono text-sm">TXN-{booking.id}-{Date.now().toString().slice(-6)}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Calendar className="w-5 h-5 text-[#3D1560]" />
-                        <div>
-                          <p className="text-sm text-[#70727F]">Payment Date</p>
-                          <p className="font-medium text-[#383A47]">{formatDateTime(booking.orderDate)}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <CheckCircle className={`w-5 h-5 ${booking.paymentStatus === 'paid' ? 'text-[#1B1C20]' : 'text-[#70727F]'}`} />
-                        <div>
-                          <p className="text-sm text-[#70727F]">Payment Status</p>
-                          <p className={`font-medium ${booking.paymentStatus === 'paid' ? 'text-[#1B1C20]' : 'text-[#70727F]'}`}>
-                            {booking.paymentStatus.charAt(0).toUpperCase() + booking.paymentStatus.slice(1)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Download Receipt */}
-                  <button className="flex items-center gap-2 text-[#3D1560] hover:text-[#6D26AB] font-medium transition-colors duration-200">
-                    <Download className="w-4 h-4" />
-                    Download Receipt
-                  </button>
-                </div>
-              )}
-
-              {/* Activity Tab */}
-              {activeTab === 'activity' && (
-                <div className="space-y-6">
-                  <h3 className="text-xl font-semibold text-[#1B1C20]">Booking Activity</h3>
-                  
-                  <div className="space-y-4">
-                    {activityTimeline.map((activity, index) => {
-                      const ActivityIcon = activity.icon;
-                      return (
-                        <div key={activity.id} className="flex gap-4">
-                          <div className="flex flex-col items-center">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                              activity.status === 'completed' ? 'bg-[#E8F5E9] text-[#4CAF50]' : 'bg-[#F8F8FA] text-[#70727F]'
-                            }`}>
-                              <ActivityIcon className="w-5 h-5" />
-                            </div>
-                            {index < activityTimeline.length - 1 && (
-                              <div className="w-0.5 h-8 bg-[#CDCED8] mt-2" />
-                            )}
-                          </div>
-                          <div className="flex-1 pb-6">
-                            <h4 className="font-medium text-[#1B1C20] mb-1">{activity.action}</h4>
-                            <p className="text-[#70727F] text-sm mb-2">{activity.description}</p>
-                            <p className="text-xs text-[#70727F]">{formatDateTime(activity.timestamp)}</p>
+                            <button className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium py-2 px-4 rounded-md border border-[#3D1560] hover:bg-[#EDD9FF] transition-all duration-200 flex items-center gap-2">
+                              <MessageCircle className="w-4 h-4" />
+                              Contact
+                            </button>
                           </div>
                         </div>
                       );
-                    })}
+                    })()}
                   </div>
-                </div>
-              )}
+                )}
+
+                {/* Payment Info Tab */}
+                {activeTab === 'payment' && (
+                  <div className="space-y-6">
+                    <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
+                      <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Payment Summary</h3>
+                      
+                      <div className="space-y-3 mb-5">
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-[#70727F]">Service Fee:</span>
+                          <span className="text-[#383A47] font-medium">${paymentBreakdown.serviceFee.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-[#70727F]">{paymentBreakdown.taxType} ({paymentBreakdown.taxRate.toFixed(0)}%):</span>
+                          <span className="text-[#383A47] font-medium">${paymentBreakdown.tax.toFixed(2)}</span>
+                        </div>
+                        <hr className="border-t border-[#E8E9ED] my-2" />
+                        <div className="flex justify-between items-center text-base">
+                          <span className="text-[#383A47] font-semibold">Total Amount Paid:</span>
+                          <span className="text-[#1B1C20] font-bold text-lg">${paymentBreakdown.total.toFixed(2)}</span>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 border-t border-[#E8E9ED] pt-5">
+                        <h4 className="text-base font-semibold text-[#1B1C20] mb-3">Payment Method</h4>
+                        <div className="flex items-center gap-3 bg-[#F8F8FA] p-3 rounded-md border border-[#E8E9ED]">
+                          <CreditCard className="w-6 h-6 text-[#3D1560]" />
+                          <div>
+                            <p className="text-[#383A47] font-medium text-sm">
+                              Visa ending in **** {booking.paymentDetails?.last4 || '1234'} 
+                            </p>
+                            <p className="text-xs text-[#70727F]">
+                              Paid on {formatDate(booking.orderDate)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                        <button className="w-full sm:w-auto flex-1 bg-[#3D1560] text-[#FFFFFF] hover:bg-[#6D26AB] transition-colors duration-200 px-4 py-2.5 rounded-md font-medium text-sm flex items-center justify-center gap-2">
+                          <Download className="w-4 h-4" />
+                          Download Invoice
+                        </button>
+                        <button className="w-full sm:w-auto flex-1 border border-[#CDCED8] text-[#383A47] hover:bg-[#E8E9ED] hover:border-[#B0B2C0] transition-colors duration-200 px-4 py-2.5 rounded-md font-medium text-sm flex items-center justify-center gap-2">
+                          <Shield className="w-4 h-4" />
+                          Payment Help
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Activity Log Tab */}
+                {activeTab === 'activity' && (
+                  <div className="space-y-6">
+                    <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
+                      <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Booking Activity</h3>
+                      {renderActivityLog()}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Quick Actions */}
-          <div className="bg-[#FFFFFF] rounded-xl shadow-sm p-6 border border-[#CDCED8]">
-            <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Quick Actions</h3>
-            <div className="space-y-3">
-              {statusConfig.canViewDetails && (
-                <button 
-                  onClick={() => setAppointmentDetailsOpen(true)}
-                  className="w-full flex items-center gap-3 p-3 text-left bg-[#F3E8F9] border border-[#3D1560] rounded-lg hover:bg-[#EDD9FF] transition-colors duration-200"
-                >
-                  <Eye className="w-5 h-5 text-[#3D1560]" />
-                  <span className="font-medium text-[#3D1560]">View Appointment Details</span>
+          {/* Right Column (Actions & Quick Info) - Styled as a distinct sidebar-like panel */}
+          <div className="lg:col-span-1 space-y-6">
+            <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Manage Booking</h3>
+              <div className="space-y-3">
+                {statusConfig.canViewDetails && booking.service && (
+                  <button 
+                    onClick={() => setAppointmentDetailsOpen(true)} 
+                    className="w-full flex items-center justify-center gap-2 bg-[#3D1560] text-[#FFFFFF] hover:bg-[#6D26AB] transition-colors duration-200 px-4 py-2.5 rounded-md font-medium text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3D1560] focus-visible:ring-opacity-50"
+                  >
+                    <Eye className="w-4 h-4" /> View Appointment Details
+                  </button>
+                )}
+                {statusConfig.canMessage && (
+                  <button className="w-full flex items-center justify-center gap-2 border border-[#CDCED8] text-[#383A47] hover:bg-[#E8E9ED] hover:border-[#B0B2C0] transition-colors duration-200 px-4 py-2.5 rounded-md font-medium text-sm">
+                    <MessageCircle className="w-4 h-4" /> Contact Provider
+                  </button>
+                )}
+                {statusConfig.canReschedule && (
+                  <button className="w-full flex items-center justify-center gap-2 border border-[#CDCED8] text-[#383A47] hover:bg-[#E8E9ED] hover:border-[#B0B2C0] transition-colors duration-200 px-4 py-2.5 rounded-md font-medium text-sm">
+                    <RefreshCw className="w-4 h-4" /> Reschedule
+                  </button>
+                )}
+                {statusConfig.canCancel && (
+                  <button className="w-full flex items-center justify-center gap-2 border border-[#DF678C] text-[#DF678C] hover:bg-[#FFE5ED] transition-colors duration-200 px-4 py-2.5 rounded-md font-medium text-sm">
+                    <XCircle className="w-4 h-4" /> Cancel Booking
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#1B1C20] mb-3">Booking ID</h3>
+              <div className="bg-[#F8F8FA] p-3 rounded-md border border-[#E8E9ED] flex justify-between items-center">
+                <span className="text-[#383A47] font-mono text-sm select-all">{booking.id}</span>
+                <button onClick={() => navigator.clipboard.writeText(booking.id)} className="text-[#3D1560] hover:text-[#6D26AB] p-1 rounded-md hover:bg-[#EDD9FF]">
+                  <Copy className="w-4 h-4" />
                 </button>
-              )}
-              
-              {/* Service Terms Button */}
-              <button 
-                onClick={() => setServiceTermsOpen(true)}
-                className="w-full flex items-center gap-3 p-3 text-left bg-[#F8F8FA] border border-[#70727F] rounded-lg hover:bg-[#E8E9ED] transition-colors duration-200"
+              </div>
+            </div>
+
+            <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
+               <h3 className="text-lg font-semibold text-[#1B1C20] mb-3">Service Terms</h3>
+               <button 
+                onClick={() => setServiceTermsOpen(true)} 
+                className="w-full flex items-center justify-between text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE]"
               >
-                <FileText className="w-5 h-5 text-[#70727F]" />
-                <span className="font-medium text-[#383A47]">View Service Agreement</span>
-              </button>
-              
-              {statusConfig.canReschedule && (
-                <button className="w-full flex items-center gap-3 p-3 text-left bg-[#EDD9FF] border border-[#6D26AB] rounded-lg hover:bg-[#F3E8F9] transition-colors duration-200">
-                  <Calendar className="w-5 h-5 text-[#6D26AB]" />
-                  <span className="font-medium text-[#6D26AB]">Reschedule Appointment</span>
-                </button>
-              )}
-              
-              {statusConfig.canMessage && (
-                <button className="w-full flex items-center gap-3 p-3 text-left bg-[#F8F8FA] border border-[#3D1560] rounded-lg hover:bg-[#EDD9FF] transition-colors duration-200">
-                  <MessageCircle className="w-5 h-5 text-[#3D1560]" />
-                  <span className="font-medium text-[#3D1560]">Message Provider</span>
-                </button>
-              )}
-              
-              {booking.status === 'completed' && (
-                <button className="w-full flex items-center gap-3 p-3 text-left bg-[#F8F8FA] border border-[#1B1C20] rounded-lg hover:bg-[#E8E9ED] transition-colors duration-200">
-                  <Star className="w-5 h-5 text-[#1B1C20]" />
-                  <span className="font-medium text-[#1B1C20]">Leave a Review</span>
-                </button>
-              )}
-              
-              {statusConfig.canCancel && (
-                <button className="w-full flex items-center gap-3 p-3 text-left bg-[#FFE5ED] border border-[#DF678C] rounded-lg hover:bg-[#FFD1DC] transition-colors duration-200">
-                  <XCircle className="w-5 h-5 text-[#DF678C]" />
-                  <span className="font-medium text-[#DF678C]">Cancel Booking</span>
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Support */}
-          <div className="bg-[#FFFFFF] rounded-xl shadow-sm p-6 border border-[#CDCED8]">
-            <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Need Help?</h3>
-            <div className="space-y-3">
-              <button className="w-full flex items-center gap-3 p-3 text-left hover:bg-[#F8F8FA] rounded-lg transition-colors duration-200">
-                <Shield className="w-5 h-5 text-[#70727F]" />
-                <span className="font-medium text-[#383A47]">Contact Support</span>
-              </button>
-              <button className="w-full flex items-center gap-3 p-3 text-left hover:bg-[#F8F8FA] rounded-lg transition-colors duration-200">
-                <ExternalLink className="w-5 h-5 text-[#70727F]" />
-                <span className="font-medium text-[#383A47]">Help Center</span>
+                <span>View Provider's Terms & Conditions</span>
+                <ExternalLink className="w-4 h-4" />
               </button>
             </div>
-          </div>
 
-          {/* Booking Summary */}
-          <div className="bg-[#FFFFFF] rounded-xl shadow-sm p-6 border border-[#CDCED8]">
-            <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Booking Summary</h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-[#70727F]">Booking ID</span>
-                <span className="font-medium text-[#383A47]">#{booking.id}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#70727F]">Service</span>
-                <span className="font-medium text-[#383A47]">{booking.service?.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#70727F]">Duration</span>
-                <span className="font-medium text-[#383A47]">{booking.service?.duration} min</span>
-              </div>
-              {serviceLocationDetails && (
-                <div className="flex justify-between">
-                  <span className="text-[#70727F]">Service Type</span>
-                  <span className="font-medium text-[#383A47]">{serviceLocationDetails.type}</span>
-                </div>
-              )}
-              <div className="flex justify-between">
-                <span className="text-[#70727F]">Total Paid</span>
-                <span className="font-bold text-[#1B1C20] text-base">${booking.totalAmount.toFixed(2)}</span>
+            {/* Support & Help Card */}
+            <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#1B1C20] mb-3">Need Help?</h3>
+              <div className="space-y-2.5">
+                <button className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE]">
+                  <MessageCircle className="w-4 h-4 mr-2.5" /> Contact Support
+                </button>
+                <button className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE]">
+                  <FileText className="w-4 h-4 mr-2.5" /> FAQ & Help Center
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Appointment Details Modal */}
-      <AppointmentDetailsModal />
-      
-      {/* Service Terms Modal */}
-      <SellerTermsModal 
-        open={serviceTermsOpen}
-        onClose={() => setServiceTermsOpen(false)}
-        serviceName={booking.service?.name}
-        providerName={booking.service?.provider.username}
-        serviceType="service"
-      />
+      {/* Modals */}
+      {appointmentDetailsOpen && booking.service && <AppointmentDetailsModal />}
+      {serviceTermsOpen && booking.service && (
+        <SellerTermsModal 
+          open={serviceTermsOpen} 
+          onClose={() => setServiceTermsOpen(false)} 
+          serviceName={booking.service.name}
+          providerName={booking.service.provider.username}
+          serviceType="service" // Explicitly set for bookings
+        />
+      )}
     </div>
   );
-} 
+}
+
+// Helper function to get icon and colors for activity log entries
+const getIconForActivity = (type: ActivityLogEntry['type']) => {
+  switch (type) {
+    case 'created': return { icon: PlusCircle, bgColor: 'bg-[#E8F5E9]', iconColor: 'text-[#4CAF50]' };
+    case 'confirmed': return { icon: CheckCircle, bgColor: 'bg-[#EDD9FF]', iconColor: 'text-[#3D1560]' };
+    case 'rescheduled': return { icon: RefreshCw, bgColor: 'bg-[#FFF9C4]', iconColor: 'text-[#FBC02D]' };
+    case 'cancelled': return { icon: XCircle, bgColor: 'bg-[#FFE5ED]', iconColor: 'text-[#DF678C]' };
+    case 'completed': return { icon: CheckCircle2, bgColor: 'bg-[#E8F5E9]', iconColor: 'text-[#4CAF50]' };
+    case 'payment': return { icon: CreditCard, bgColor: 'bg-[#E8E9ED]', iconColor: 'text-[#383A47]' };
+    case 'note':
+    default: return { icon: Info, bgColor: 'bg-[#E8E9ED]', iconColor: 'text-[#70727F]' };
+  }
+}; 

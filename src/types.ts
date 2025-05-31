@@ -301,6 +301,15 @@ export type PaymentStatus = 'pending' | 'paid' | 'refunded' | 'failed';
 
 export type OrderActionType = 'track' | 'cancel' | 'return' | 'review' | 'reorder' | 'reschedule';
 
+export interface ActivityLogEntry {
+  timestamp: string; // ISO Date string
+  type: 'created' | 'confirmed' | 'rescheduled' | 'cancelled' | 'completed' | 'note' | 'payment';
+  title: string;
+  description: string;
+  icon?: React.ComponentType<any>; // Optional: specific icon for this entry type
+  actor?: 'user' | 'provider' | 'system';
+}
+
 export interface Order {
   id: string;
   userId: string;
@@ -315,9 +324,15 @@ export interface Order {
   service?: Service;
   appointmentDate?: Date;
   location?: string;
-  selectedServiceMode?: 'at_seller' | 'at_buyer' | 'remote'; // Service delivery mode
+  selectedServiceMode?: 'at_seller' | 'at_buyer' | 'remote';
   shippingAddress?: ShippingAddress;
   trackingInfo?: TrackingInfo;
+  paymentDetails?: {
+    last4?: string;
+    cardType?: string;
+    transactionId?: string;
+  };
+  activityLog?: ActivityLogEntry[];
   cancelReason?: string;
   actions: OrderActionType[];
 }
