@@ -285,7 +285,7 @@ export default function AppointmentDashboard({
           </Button>
         </ButtonGroup>
         
-        {/* View Toggle and New Appointment Buttons */}
+        {/* View Toggle and New Booking Buttons */}
         <Box>
           <Button 
             onClick={() => setView('list')}
@@ -330,7 +330,7 @@ export default function AppointmentDashboard({
             }}
             startIcon={<Plus size={18} />}
           >
-            New Appointment
+            New Booking
           </Button>
         </Box>
       </Box>

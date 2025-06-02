@@ -509,7 +509,7 @@ function App() {
         .filter(item => item !== null) as (ListingItem & { viewedAt: number; itemType: 'product' | 'service'; shortDescription: string; images: string[]; views: number; dateSaved: string; })[];
     }, [recentlyViewedItems]);
 
-    // START: Appointments Card Enhancements
+    // START: Bookings Card Enhancements
     interface UserBooking {
       id: string;
       serviceName: string;
@@ -634,7 +634,7 @@ function App() {
       }
       return cells;
     };
-    // END: Appointments Card Enhancements
+    // END: Bookings Card Enhancements
 
     return (
       <div className="p-8">
@@ -1425,7 +1425,7 @@ function App() {
   )}
 </div>
 
-            {/* Appointments Card - MODIFIED */}
+            {/* Bookings Card - MODIFIED */}
             <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 flex flex-col">
               <h3 className="text-xl font-semibold text-[#1B1C20] mb-3">Appointments ({upcomingAppointments.length})</h3>
               
@@ -1907,7 +1907,7 @@ function App() {
             <div className="flex justify-between items-start mb-2">
               <h3 className="text-sm font-medium text-[#383A47] flex items-center">
                 <Calendar className="h-4 w-4 mr-1 text-[#9B53D9]" />
-                Appointments
+                Bookings
               </h3>
               <span className="px-2 py-1 text-xs font-medium bg-[#F3E8F9] text-[#9B53D9] rounded-full flex items-center">
                 <ArrowUp className="h-3 w-3 mr-1" />
@@ -3461,9 +3461,9 @@ function App() {
     };
 
     const handleCreateAppointment = () => {
-      console.log('Create new appointment');
+      console.log('Create new booking');
       // In a real app, you would navigate to a creation form
-      alert('In a real application, you would be redirected to a form to create a new appointment.');
+      alert('In a real application, you would be redirected to a form to create a new booking.');
     };
     
     const handleCloseDetailsModal = () => {
@@ -3488,7 +3488,7 @@ function App() {
     const typedAppointments = mockAppointments as Appointment[];
 
     return (
-      <PlaceholderPage title="Appointments">
+      <PlaceholderPage title="Bookings">
         {/* Feedback message */}
         {actionFeedback.visible && (
           <Box 
