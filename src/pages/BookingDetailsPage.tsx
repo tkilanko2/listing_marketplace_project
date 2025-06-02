@@ -522,33 +522,6 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
               />
             </div>
 
-            {/* Status Alert Card - More Prominent, with hover/focus for details */}
-            {(booking.status === 'requested' || (booking.status === 'scheduled' && booking.appointmentDate)) && (
-              <div 
-                className={`group relative ${statusConfig.bgColor} border-l-4 ${statusConfig.borderColor} rounded-md p-4 shadow-sm transition-all duration-300 ease-in-out hover:shadow-md focus-within:shadow-md`}
-                tabIndex={0} // Make it focusable
-              >
-                <div className="flex items-start gap-3">
-                  <statusConfig.icon className={`w-6 h-6 ${statusConfig.color} mt-0.5 flex-shrink-0`} />
-                  <div className="flex-1">
-                    <h3 className={`font-semibold ${statusConfig.color} text-base mb-1`}>{statusConfig.title}</h3>
-                    {/* Initially hidden description, revealed on hover/focus */}
-                    <div className="max-h-0 opacity-0 group-hover:max-h-40 group-hover:opacity-100 group-focus-within:max-h-40 group-focus-within:opacity-100 transition-all duration-300 ease-in-out overflow-hidden">
-                      <p className={`text-sm ${statusConfig.color} opacity-90 mt-1`}>
-                        {booking.status === 'requested' && `${statusConfig.description}. You'll receive a notification once they confirm your appointment.`}
-                        {booking.status === 'scheduled' && `Your appointment is scheduled for ${formatDateTime(booking.appointmentDate!)}.`}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                {/* Optional: Small hint for interactivity */}
-                <div className="absolute bottom-1 right-2 opacity-0 group-hover:opacity-70 group-focus-within:opacity-70 transition-opacity duration-300">
-                    <Info className={`w-3 h-3 ${statusConfig.color} opacity-50`} />
-                </div>
-              </div>
-            )}
-            {/* Ensure other status alerts follow a similar pattern if they exist and need this behavior */}
-
             {/* Tab Navigation Card */}
             <div className="bg-[#FFFFFF] rounded-lg shadow-sm border border-[#E8E9ED]">
               <div className="border-b border-[#E8E9ED]">
@@ -809,26 +782,23 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
               </div>
             </div>
 
-            <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#1B1C20] mb-3">Service Terms</h3>
-              <button 
-                onClick={() => setServiceTermsOpen(true)} 
-                className="w-full flex items-center justify-between text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE]"
-              >
-                <span>View Provider's Terms & Conditions</span>
-                <ExternalLink className="w-4 h-4" />
-              </button>
-            </div>
-
             {/* Support & Help Card */}
             <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#1B1C20] mb-3">Need Help?</h3>
+              <h3 className="text-lg font-semibold text-[#1B1C20] mb-3">Support & Resources</h3>
               <div className="space-y-2.5">
-                <button className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE]">
-                  <MessageCircle className="w-4 h-4 mr-2.5" /> Contact Support
+                <button className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE] gap-2.5">
+                  <MessageCircle className="w-4 h-4" /> Contact Support
                 </button>
-                <button className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE]">
-                  <FileText className="w-4 h-4 mr-2.5" /> FAQ & Help Center
+                <button className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE] gap-2.5">
+                  <FileText className="w-4 h-4" /> FAQ & Help Center
+                </button>
+                <button 
+                  onClick={() => setServiceTermsOpen(true)} 
+                  className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE] gap-2.5"
+                >
+                  <Shield className="w-4 h-4" />
+                  Provider's Terms & Conditions
+                  <ExternalLink className="w-4 h-4" />
                 </button>
               </div>
             </div>
