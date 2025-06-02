@@ -517,6 +517,7 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                 currentStatus={booking.status}
                 orderType="service"
                 orderDate={booking.orderDate}
+                bookingId={booking.id}
                 className="mb-2" // Added margin bottom for spacing inside the card
               />
             </div>
@@ -809,18 +810,8 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
             </div>
 
             <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#1B1C20] mb-3">Booking ID</h3>
-              <div className="bg-[#F8F8FA] p-3 rounded-md border border-[#E8E9ED] flex justify-between items-center">
-                <span className="text-[#383A47] font-mono text-sm select-all">{booking.id}</span>
-                <button onClick={() => navigator.clipboard.writeText(booking.id)} className="text-[#3D1560] hover:text-[#6D26AB] p-1 rounded-md hover:bg-[#EDD9FF]">
-                  <Copy className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
-               <h3 className="text-lg font-semibold text-[#1B1C20] mb-3">Service Terms</h3>
-               <button 
+              <h3 className="text-lg font-semibold text-[#1B1C20] mb-3">Service Terms</h3>
+              <button 
                 onClick={() => setServiceTermsOpen(true)} 
                 className="w-full flex items-center justify-between text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE]"
               >

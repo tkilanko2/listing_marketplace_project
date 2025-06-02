@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Package, 
   CreditCard, 
@@ -11,7 +11,8 @@ import {
   Calendar,
   PlayCircle,
   Clock3,
-  Home
+  Home,
+  Copy
 } from 'lucide-react';
 import { OrderStatus } from '../types';
 
@@ -28,13 +29,105 @@ interface OrderStatusTimelineProps {
   currentStatus: OrderStatus;
   orderType: 'product' | 'service';
   orderDate: Date;
+  bookingId?: string;
   className?: string;
 }
 
-export function OrderStatusTimeline({ currentStatus, orderType, orderDate, className = '' }: OrderStatusTimelineProps) {
+export function OrderStatusTimeline({ currentStatus, orderType, orderDate, bookingId, className = '' }: OrderStatusTimelineProps) {
   
   // Debug logging
   console.log('OrderStatusTimeline - currentStatus:', currentStatus, 'orderType:', orderType);
+  
+  // State for copy feedback
+  const [isCopied, setIsCopied] = useState(false);
+  
+  // Copy booking ID function
+  const copyBookingId = async () => {
+    if (bookingId) {
+      try {
+        await navigator.clipboard.writeText(bookingId);
+        setIsCopied(true);
+        // Reset the feedback after 2 seconds
+        setTimeout(() => {
+          setIsCopied(false);
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy booking ID:', err);
+        // You could add error feedback here
+      }
+    }
+  };
+  
+  // Get status display information
+  const getStatusDisplay = () => {
+    switch (currentStatus) {
+      case 'requested':
+        return {
+          label: 'Status: Booking Requested',
+          color: 'text-[#70727F]',
+          bgColor: 'bg-[#E8E9ED]',
+          borderColor: 'border-[#70727F]'
+        };
+      case 'confirmed':
+        return {
+          label: 'Status: Confirmed',
+          color: 'text-[#3D1560]',
+          bgColor: 'bg-[#EDD9FF]',
+          borderColor: 'border-[#3D1560]'
+        };
+      case 'scheduled':
+        return {
+          label: 'Status: Scheduled',
+          color: 'text-[#6D26AB]',
+          bgColor: 'bg-[#EDD9FF]',
+          borderColor: 'border-[#6D26AB]'
+        };
+      case 'in_progress':
+        return {
+          label: 'Status: In Progress',
+          color: 'text-[#6D26AB]',
+          bgColor: 'bg-[#EDD9FF]',
+          borderColor: 'border-[#6D26AB]'
+        };
+      case 'completed':
+        return {
+          label: 'Status: Completed',
+          color: 'text-[#4CAF50]',
+          bgColor: 'bg-[#E8F5E9]',
+          borderColor: 'border-[#4CAF50]'
+        };
+      case 'cancelled':
+        return {
+          label: 'Status: Cancelled',
+          color: 'text-[#DF678C]',
+          bgColor: 'bg-[#FFE5ED]',
+          borderColor: 'border-[#DF678C]'
+        };
+      case 'no_show':
+        return {
+          label: 'Status: No Show',
+          color: 'text-[#DF678C]',
+          bgColor: 'bg-[#FFE5ED]',
+          borderColor: 'border-[#DF678C]'
+        };
+      case 'rescheduled':
+        return {
+          label: 'Status: Rescheduled',
+          color: 'text-[#70727F]',
+          bgColor: 'bg-[#E8E9ED]',
+          borderColor: 'border-[#70727F]'
+        };
+      default:
+        return {
+          label: 'Status: Unknown',
+          color: 'text-[#70727F]',
+          bgColor: 'bg-[#E8E9ED]',
+          borderColor: 'border-[#70727F]'
+        };
+    }
+  };
+
+  const statusDisplay = getStatusDisplay();
   
   // Define timeline steps for products
   const getProductTimeline = (): TimelineStep[] => {
@@ -309,9 +402,27 @@ export function OrderStatusTimeline({ currentStatus, orderType, orderDate, class
 
   return (
     <div className={`w-full ${className}`}>
-      <h3 className="text-lg font-semibold text-[#1B1C20] mb-5">
-        {orderType === 'product' ? 'Order' : 'Booking'} Progress
-      </h3>
+      {/* Header with Title and Booking ID */}
+      <div className="flex items-start justify-between mb-5">
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold text-[#1B1C20] mb-2">
+            {orderType === 'product' ? 'Order' : 'Booking'} Progress
+          </h3>
+          {bookingId && (
+            <button
+              onClick={copyBookingId}
+              className="text-sm text-[#70727F] hover:text-[#3D1560] transition-colors cursor-pointer focus:outline-none focus:text-[#3D1560]"
+              title="Click to copy booking ID"
+            >
+              {isCopied ? 'Booking ID copied!' : `Booking ID: ${bookingId}`}
+            </button>
+          )}
+        </div>
+        {/* Status Badge - Top Right */}
+        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${statusDisplay.bgColor} ${statusDisplay.color} ${statusDisplay.borderColor}`}>
+          {statusDisplay.label}
+        </span>
+      </div>
       
       {/* Desktop Timeline - Horizontal */}
       <div className="hidden md:block">
