@@ -32,7 +32,7 @@ import {
   PlusCircle,
   Info
 } from 'lucide-react';
-import { Order, ActivityLogEntry, Service } from '../types';
+import { Order, ActivityLogEntry, Service, OrderStatus } from '../types';
 import SellerTermsModal from '../components/SellerTermsModal';
 import { OrderStatusTimeline } from '../components/OrderStatusTimeline';
 
@@ -51,10 +51,23 @@ interface PaymentBreakdown {
   total: number;
 }
 
+// Helper to map service status for buyer/seller view
+function mapServiceStatus(status: string, userRole: 'buyer' | 'seller'): string {
+  // Backend stores a single status field for service bookings. Frontend maps 'confirmed'/'scheduled' based on user role for display.
+  if (status === 'confirmed' || status === 'scheduled') {
+    return userRole === 'buyer' ? 'confirmed' : 'scheduled';
+  }
+  return status;
+}
+
 export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selectedServiceMode = 'at_seller' }: BookingDetailsPageProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'payment' | 'activity'>('details');
   const [appointmentDetailsOpen, setAppointmentDetailsOpen] = useState(false);
   const [serviceTermsOpen, setServiceTermsOpen] = useState(false);
+
+  // Assume My Orders is always buyer view
+  const userRole: 'buyer' | 'seller' = 'buyer';
+  const mappedStatus = mapServiceStatus(booking.status, userRole) as OrderStatus;
 
   // Calculate payment breakdown based on region
   const calculatePaymentBreakdown = (): PaymentBreakdown => {
@@ -123,7 +136,7 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
   const serviceLocationDetails = getServiceLocationDetails();
 
   const getStatusConfig = () => {
-    switch (booking.status) {
+    switch (mappedStatus as OrderStatus) {
       case 'requested':
         return {
           color: 'text-[#70727F]', // Secondary text color
@@ -514,11 +527,12 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
             {/* Status Timeline Card */}
             <div className="bg-[#FFFFFF] rounded-lg shadow-sm border border-[#E8E9ED] p-6">
               <OrderStatusTimeline 
-                currentStatus={booking.status}
+                currentStatus={mappedStatus as OrderStatus}
                 orderType="service"
                 orderDate={booking.orderDate}
                 bookingId={booking.id}
-                className="mb-2" // Added margin bottom for spacing inside the card
+                userRole={userRole}
+                className="mb-2"
               />
             </div>
 

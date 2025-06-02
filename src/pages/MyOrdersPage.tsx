@@ -411,7 +411,7 @@ export function MyOrdersPage({
                       <h3 className="text-xl font-bold text-[#1B1C20]">
                         {order.type === 'service' ? 'Booking' : 'Order'} #{order.id}
                       </h3>
-                      <StatusBadge status={order.status} />
+                      <StatusBadge status={order.status} userRole="buyer" />
                       {/* Priority indicator for services */}
                       {order.type === 'service' && order.appointmentDate && (
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
@@ -679,10 +679,22 @@ export function MyOrdersPage({
   );
 }
 
+// Map status for buyer/seller view
+function mapServiceStatus(status: OrderStatus, userRole: 'buyer' | 'seller'): OrderStatus {
+  // For service bookings, 'confirmed' is buyer-facing, 'scheduled' is seller-facing
+  if (status === 'confirmed' || status === 'scheduled') {
+    return userRole === 'buyer' ? 'confirmed' : 'scheduled';
+  }
+  return status;
+}
+
+// NOTE: Backend stores a single status field for service bookings. Frontend maps 'confirmed'/'scheduled' based on user role for display.
+
 // Status badge component
-function StatusBadge({ status }: { status: OrderStatus }) {
+function StatusBadge({ status, userRole }: { status: OrderStatus, userRole: 'buyer' | 'seller' }) {
+  const mappedStatus = mapServiceStatus(status, userRole);
   const getStatusColor = () => {
-    switch (status) {
+    switch (mappedStatus) {
       case 'pending':
       case 'requested':
         return 'bg-[#E8E9ED] text-[#70727F] border border-[#70727F] border-opacity-30';
@@ -706,9 +718,8 @@ function StatusBadge({ status }: { status: OrderStatus }) {
         return 'bg-[#CDCED8] text-[#70727F] border border-[#70727F] border-opacity-30';
     }
   };
-
   const getStatusText = () => {
-    switch (status) {
+    switch (mappedStatus) {
       case 'pending':
         return 'Pending';
       case 'requested':
@@ -734,12 +745,11 @@ function StatusBadge({ status }: { status: OrderStatus }) {
       case 'rescheduled':
         return 'Rescheduled';
       default:
-        return status.charAt(0).toUpperCase() + status.slice(1);
+        return mappedStatus.charAt(0).toUpperCase() + mappedStatus.slice(1).replace('_', ' ');
     }
   };
-
   const getStatusIcon = () => {
-    switch (status) {
+    switch (mappedStatus) {
       case 'pending':
       case 'requested':
         return '⏳';
@@ -763,7 +773,6 @@ function StatusBadge({ status }: { status: OrderStatus }) {
         return '';
     }
   };
-
   return (
     <span className={`px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1 ${getStatusColor()}`}>
       <span>{getStatusIcon()}</span>

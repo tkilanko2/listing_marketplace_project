@@ -285,6 +285,7 @@ export interface TrackingInfo {
 
 // Define separate status types for Products and Services
 export type ProductStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'returned';
+// NOTE: Backend stores a single status field for service bookings. Frontend maps 'confirmed'/'scheduled' based on user role (buyer/seller) for display.
 export type ServiceStatus =
   | 'requested'       // Initial booking request
   | 'confirmed'       // Provider confirmed, payment processed
