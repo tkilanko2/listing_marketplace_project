@@ -16,7 +16,7 @@ import {
   Truck, 
   X 
 } from 'react-feather';
-import { mockOrders } from '../mockData';
+import { getAllOrdersWithBookings } from '../mockData';
 import { Order, OrderStatus } from '../types';
 
 interface MyOrdersPageProps {
@@ -52,8 +52,9 @@ export function MyOrdersPage({
 
   // Filtered and sorted orders
   const filteredOrders = useMemo(() => {
-    console.log('Total mockOrders:', mockOrders.length);
-    const filtered = mockOrders.filter(order => {
+    const allOrders = getAllOrdersWithBookings();
+    console.log('Total orders with bookings:', allOrders.length);
+    const filtered = allOrders.filter(order => {
       // Filter by search query
       const matchesSearch = 
         order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -355,7 +356,7 @@ export function MyOrdersPage({
               key={order.id}
               className={`${
                 order.type === 'service' 
-                  ? 'bg-gradient-to-r from-[#EBF4FF] to-[#E8E9ED] border-l-4 border-l-[#4299E1]' 
+                  ? 'bg-gradient-to-r from-[#EBF4FF] to-[#E8E9ED] border-l-4 border-l-[#DF678C]' 
                   : 'bg-gradient-to-r from-[#F8F8FA] to-[#E8E9ED] border-l-4 border-l-[#3D1560]'
               } rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-[#CDCED8] cursor-pointer hover:bg-opacity-80`}
               onClick={() => onViewOrderDetails(order.id)}
@@ -414,13 +415,30 @@ export function MyOrdersPage({
                       <StatusBadge status={order.status} userRole="buyer" />
                       {/* Priority indicator for services */}
                       {order.type === 'service' && order.appointmentDate && (
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          new Date(order.appointmentDate) <= new Date(Date.now() + 24 * 60 * 60 * 1000) 
-                            ? 'bg-[#DF678C] text-white' 
-                            : 'bg-[#EDD9FF] text-[#6D26AB]'
-                        }`}>
-                          {new Date(order.appointmentDate) <= new Date(Date.now() + 24 * 60 * 60 * 1000) ? 'Soon' : 'Upcoming'}
-                        </span>
+                        (() => {
+                          const appointmentDate = new Date(order.appointmentDate);
+                          const now = new Date();
+                          const timeDiff = appointmentDate.getTime() - now.getTime();
+                          const hoursUntilAppointment = timeDiff / (1000 * 60 * 60);
+                          
+                          // Only show indicator for future appointments
+                          if (appointmentDate > now && ['confirmed', 'scheduled', 'requested'].includes(order.status)) {
+                            if (hoursUntilAppointment <= 24) {
+                              return (
+                                <span className="px-2 py-1 text-xs font-medium rounded-full bg-[#DF678C] text-white">
+                                  Soon
+                                </span>
+                              );
+                            } else {
+                              return (
+                                <span className="px-2 py-1 text-xs font-medium rounded-full bg-[#EDD9FF] text-[#6D26AB]">
+                                  Upcoming
+                                </span>
+                              );
+                            }
+                          }
+                          return null;
+                        })()
                       )}
                     </div>
 

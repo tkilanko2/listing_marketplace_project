@@ -57,20 +57,20 @@ export function TrustElements({
     <div className="space-y-4 border-t pt-6">
       {/* Verified Business */}
       {verifiedBusiness && (
-        <div className="flex items-center text-green-600 bg-green-50 p-4 rounded-lg">
+        <div className="flex items-center text-[#3D1560] bg-[#EDD9FF] p-4 rounded-lg border border-[#CDCED8]">
           <Shield className="w-5 h-5 mr-2" />
           <span className="text-sm font-medium">Verified Business</span>
         </div>
       )}
 
       {/* Monthly Purchases */}
-      <div className="p-4 bg-gray-50 rounded-lg">
-        <p className="text-sm text-gray-600">
-          <span className="font-medium text-gray-900">{monthlyPurchases}</span> purchases in the last month
+      <div className="p-4 bg-[#E8E9ED] rounded-lg border border-[#CDCED8]">
+        <p className="text-sm text-[#70727F]">
+          <span className="font-medium text-[#383A47]">{monthlyPurchases}</span> purchases in the last month
         </p>
-        <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="mt-2 h-2 bg-[#CDCED8] rounded-full overflow-hidden">
           <div
-            className="h-full bg-blue-500 rounded-full"
+            className="h-full bg-[#3D1560] rounded-full transition-all duration-300"
             style={{ width: `${Math.min((monthlyPurchases / 100) * 100, 100)}%` }}
           />
         </div>
@@ -79,7 +79,7 @@ export function TrustElements({
       {/* Report Button */}
       <button
         onClick={() => setShowReportModal(true)}
-        className="flex items-center text-gray-600 hover:text-red-600 text-sm"
+        className="flex items-center text-[#70727F] hover:text-[#DF678C] text-sm transition-colors duration-200"
       >
         <Flag className="w-4 h-4 mr-1" />
         <span>Report this listing</span>

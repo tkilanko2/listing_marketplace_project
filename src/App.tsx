@@ -3,23 +3,30 @@ import { LandingPage } from './pages/LandingPage';
 import { ServiceDetailsPage } from './pages/ServiceDetailsPage';
 import { ProductDetailsPage } from './pages/ProductDetailsPage';
 import { BookingPage } from './pages/BookingPage';
-import { PaymentPage } from './pages/PaymentPage';
+import { BookingDetailsPage } from './pages/BookingDetailsPage';
 import { SellerProfilePage } from './pages/SellerProfilePage';
 import CreateListingPage from './pages/CreateListingPage';
-import { CartPage } from './pages/CartPage';
-import { BookingDetailsPage } from './pages/BookingDetailsPage';
+import { PaymentPage } from './pages/PaymentPage';
+import { CheckoutPage } from './pages/CheckoutPage';
+import { MyOrdersPage } from './pages/MyOrdersPage';
 import { ProductOrderDetailsPage } from './pages/ProductOrderDetailsPage';
-import { Service, Product, ListingItem, ServiceProvider } from './types';
-import { mockServices, mockProducts, mockListings, mockOrders } from './mockData';
-import { Navbar } from './components/Navbar';
+import RecentlyViewedPage from './pages/RecentlyViewedPage';
+import SavedItemsPage from './pages/SavedItemsPage';
+import { mockServices, mockProducts, mockListings, mockOrders, createBooking, mockBookings, getBookingsForProvider, getAllOrdersWithBookings } from './mockData';
 import { Sidebar } from './components/Sidebar';
+import { Navbar } from './components/Navbar';
+import { Service, Product, ListingItem, ServiceProvider, Order, OrderActionType, Appointment } from './types';
+import { CartItem } from './context/CartContext';
+import { CartPage } from './pages/CartPage';
+import { ShippingInfoPage } from './pages/ShippingInfoPage';
+import { OrderConfirmation } from './pages/OrderConfirmation';
+import { BookingSubmissionConfirmationPage } from './pages/BookingSubmissionConfirmationPage';
 import { 
   BarChart, Calendar, DollarSign, ShoppingCart, Package, TrendingUp, 
   ArrowUp, Wallet, ChevronDown, ChevronLeft, ChevronRight, Search, 
   Edit, Trash, Eye, PlusCircle, Zap, BarChart2, Settings, 
-  Users, Star, CheckCircle, MoreVertical, Film, X, Bookmark, ChevronUp, LayoutDashboard, Store, ExternalLink, Archive, Trash2, AlertTriangle, MapPin, Heart, Shield, Bell, SlidersHorizontal // Added new icons
+  Users, Star, CheckCircle, MoreVertical, Film, X, Bookmark, ChevronUp, LayoutDashboard, Store, ExternalLink, Archive, Trash2, AlertTriangle, MapPin, Heart, Shield, Bell, SlidersHorizontal, TrendingDown // Added new icons
 } from 'lucide-react';
-import { MyOrdersPage } from './pages/MyOrdersPage';
 import { 
   OrderDetailsPage, 
   OrderTrackingPage, 
@@ -27,16 +34,9 @@ import {
   OrderReturnPage,
   OrderReviewPage
 } from './pages/PlaceholderPages';
-import { CheckoutPage } from './pages/CheckoutPage';
-import { OrderConfirmation } from './pages/OrderConfirmation';
-import { CartItem } from './context/CartContext';
-import { ShippingInfoPage } from './pages/ShippingInfoPage';
 import { AppointmentDashboard } from './components/appointments';
-import { Appointment } from './types';
 import { AppointmentDetailsModal, RescheduleAppointmentModal } from './components/appointments';
 import { Box, Typography } from '@mui/material';
-import SavedItemsPage from './pages/SavedItemsPage';
-import RecentlyViewedPage from './pages/RecentlyViewedPage'; // Import the new page
 import { motion, AnimatePresence } from 'framer-motion';
 
 function App() {
@@ -1274,7 +1274,7 @@ function App() {
   
   {/* Compact container - adjusted max-h-52 to max-h-56 to slightly increase height */}
   <div className="space-y-2 flex-grow overflow-y-auto min-h-0 max-h-56"> 
-    {mockOrders
+    {getAllOrdersWithBookings()
       .filter(order => 
         (order.type === 'product' && ['pending', 'processing', 'shipped'].includes(order.status)) ||
         (order.type === 'service' && ['requested', 'confirmed', 'scheduled', 'in_progress'].includes(order.status))
@@ -1385,7 +1385,7 @@ function App() {
       ))}
 
     {/* Conditional rendering for empty state */}
-    {mockOrders.filter(order => 
+    {getAllOrdersWithBookings().filter(order => 
         (order.type === 'product' && ['pending', 'processing', 'shipped'].includes(order.status)) ||
         (order.type === 'service' && ['requested', 'confirmed', 'scheduled', 'in_progress'].includes(order.status))
       ).slice(0, 4).length === 0 && (
@@ -1397,13 +1397,13 @@ function App() {
   </div>
   
   {/* Quick action summary - consistently at the bottom if present */}
-  {mockOrders.filter(order => 
+  {getAllOrdersWithBookings().filter(order => 
       (order.type === 'product' && ['pending', 'processing', 'shipped'].includes(order.status)) ||
       (order.type === 'service' && ['requested', 'confirmed', 'scheduled', 'in_progress'].includes(order.status))
     ).length > 0 ? (
     <div className="mt-auto pt-3 border-t border-[#E8E9ED] flex justify-between items-center">
       <p className="text-xs text-[#70727F]">
-        {mockOrders.filter(order => 
+        {getAllOrdersWithBookings().filter(order => 
             (order.type === 'product' && ['pending', 'processing', 'shipped'].includes(order.status)) ||
             (order.type === 'service' && ['requested', 'confirmed', 'scheduled', 'in_progress'].includes(order.status))
           ).length} active items
@@ -3100,7 +3100,28 @@ function App() {
       visible: false
     });
 
-    // Mock appointments data
+    // Get current seller's bookings (in real app, this would be based on logged-in seller's ID)
+    // For demo purposes, we'll show all bookings, but in practice you'd filter by provider ID
+    const sellerBookings = mockBookings.length > 0 ? mockBookings : [];
+    
+    // Convert bookings to appointment format for compatibility with existing components
+    const realAppointments = sellerBookings.map((booking: any) => ({
+      id: booking.id,
+      service: booking.service,
+      provider: booking.provider,
+      customer: booking.customer,
+      start: booking.start,
+      end: booking.end,
+      status: booking.status,
+      paymentStatus: booking.paymentStatus,
+      price: booking.price,
+      notes: booking.notes || '',
+      location: booking.location || '',
+      createdAt: booking.createdAt,
+      updatedAt: booking.updatedAt
+    }));
+    
+    // Fallback mock appointments for demo purposes (shown when no real bookings exist)
     const mockAppointments = [
       {
         id: 'app-001',
@@ -3157,104 +3178,21 @@ function App() {
         price: mockServices[1].price,
         notes: '',
         createdAt: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        id: 'app-003',
-        service: mockServices[2],
-        provider: mockServices[2].provider,
-        customer: {
-          id: 'cust-003',
-          name: 'Sarah J.',
-          email: 'sarah@example.com',
-          phone: '(555) 765-4321',
-          avatar: 'https://randomuser.me/api/portraits/women/45.jpg'
-        },
-        start: new Date(new Date().getTime() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
-        end: new Date(new Date().getTime() + 24 * 60 * 60 * 1000 + 120 * 60 * 1000).toISOString(), // 2 hours later
-        status: 'confirmed' as 'pending' | 'confirmed' | 'completed' | 'canceled',
-        paymentStatus: 'paid' as 'paid' | 'unpaid' | 'refunded',
-        price: mockServices[2].price,
-        notes: 'First-time customer, referred by Emma W.',
-        createdAt: new Date(new Date().getTime() - 3 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        id: 'app-004',
-        service: mockServices[0],
-        provider: mockServices[0].provider,
-        customer: {
-          id: 'cust-004',
-          name: 'David L.',
-          email: 'david@example.com',
-          phone: '(555) 246-8101',
-        },
-        start: new Date(new Date().getTime() - 48 * 60 * 60 * 1000).toISOString(), // 2 days ago
-        end: new Date(new Date().getTime() - 48 * 60 * 60 * 1000 + 90 * 60 * 1000).toISOString(), // 1.5 hours later
-        status: 'completed' as 'pending' | 'confirmed' | 'completed' | 'canceled',
-        paymentStatus: 'paid' as 'paid' | 'unpaid' | 'refunded',
-        price: mockServices[0].price,
-        notes: 'Regular customer, prefers quick service',
-        createdAt: new Date(new Date().getTime() - 10 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        id: 'app-005',
-        service: mockServices[3],
-        provider: mockServices[3].provider,
-        customer: {
-          id: 'cust-005',
-          name: 'Jennifer K.',
-          email: 'jennifer@example.com',
-          phone: '(555) 213-4567',
-          avatar: 'https://randomuser.me/api/portraits/women/17.jpg'
-        },
-        start: new Date(new Date().getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
-        end: new Date(new Date().getTime() + 3 * 24 * 60 * 60 * 1000 + 60 * 60 * 1000).toISOString(), // 1 hour later
-        status: 'confirmed' as 'pending' | 'confirmed' | 'completed' | 'canceled',
-        paymentStatus: 'unpaid' as 'paid' | 'unpaid' | 'refunded',
-        price: mockServices[3].price,
-        notes: '',
-        createdAt: new Date(new Date().getTime() - 1 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        id: 'app-006',
-        service: mockServices[2],
-        provider: mockServices[2].provider,
-        customer: {
-          id: 'cust-006',
-          name: 'Thomas W.',
-          email: 'thomas@example.com',
-          phone: '(555) 876-5432',
-        },
-        start: new Date(new Date().getTime() - 24 * 60 * 60 * 1000).toISOString(), // Yesterday
-        end: new Date(new Date().getTime() - 24 * 60 * 60 * 1000 + 120 * 60 * 1000).toISOString(), // 2 hours later
-        status: 'canceled' as 'pending' | 'confirmed' | 'completed' | 'canceled',
-        paymentStatus: 'refunded' as 'paid' | 'unpaid' | 'refunded',
-        price: mockServices[2].price,
-        notes: 'Had to cancel due to emergency',
-        createdAt: new Date(new Date().getTime() - 5 * 24 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        id: 'app-007',
-        service: mockServices[1],
-        provider: mockServices[1].provider,
-        customer: {
-          id: 'cust-007',
-          name: 'Maria G.',
-          email: 'maria@example.com',
-          phone: '(555) 789-0123',
-          avatar: 'https://randomuser.me/api/portraits/women/28.jpg'
-        },
-        start: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week from now
-        end: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000 + 90 * 60 * 1000).toISOString(), // 1.5 hours later
-        status: 'confirmed' as 'pending' | 'confirmed' | 'completed' | 'canceled',
-        paymentStatus: 'paid' as 'paid' | 'unpaid' | 'refunded',
-        price: mockServices[1].price,
-        notes: 'Birthday gift appointment',
-        createdAt: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000).toISOString()
       }
+      // ... add more mock appointments if needed for demo
     ];
+    
+    // Use real bookings if available, otherwise show mock data for demo
+    const displayAppointments = realAppointments.length > 0 ? realAppointments : mockAppointments;
 
-    // Add state for appointments that can be updated AFTER mockAppointments is defined
-    const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments as Appointment[]);
+    // Add state for appointments that can be updated
+    const [appointments, setAppointments] = useState<Appointment[]>(displayAppointments as Appointment[]);
+    
+    // Update appointments when real bookings change
+    useEffect(() => {
+      const updatedAppointments = realAppointments.length > 0 ? realAppointments : mockAppointments;
+      setAppointments(updatedAppointments as Appointment[]);
+    }, [realAppointments.length]);
 
     const handleEditAppointment = (appointment: Appointment) => {
       setSelectedAppointment(appointment);
@@ -3388,47 +3326,25 @@ function App() {
       setDetailsModalOpen(false); // Close the details modal
       setRescheduleModalOpen(true); // Open the reschedule modal
     };
-    
+
     const handleRescheduleSubmit = (appointment: Appointment, newStart: Date, newEnd: Date) => {
-      console.log('Reschedule appointment:', appointment, 'to', newStart, '-', newEnd);
+      console.log('Reschedule appointment:', appointment, 'to', newStart, newEnd);
+      // In a real app, you would make an API call to update the appointment
       
-      // Simulate API call to update the appointment
+      // For now, just show feedback and close the modal
+      setActionFeedback({
+        message: `Appointment with ${formatCustomerName(appointment.customer.name)} has been rescheduled.`,
+        type: 'success',
+        visible: true
+      });
+      
+      // Auto-hide feedback after 3 seconds
       setTimeout(() => {
-        // Create a modified appointment with new start/end times
-        const updatedAppointment = { 
-          ...appointment, 
-          start: newStart.toISOString(), 
-          end: newEnd.toISOString() 
-        };
-        
-        // Update the selected appointment
-        setSelectedAppointment(updatedAppointment as Appointment);
-        
-        // Update the appointments list with the modified appointment
-        const updatedAppointments = appointments.map(app => 
-          app.id === appointment.id ? updatedAppointment : app
-        );
-        
-        // Set the updated appointments
-        setAppointments(updatedAppointments);
-        
-        // In a real app, this would be an API call to update the appointment
-        
-        // Show success feedback
-        setActionFeedback({
-          message: `Appointment with ${formatCustomerName(appointment.customer.name)} has been rescheduled to ${newStart.toLocaleDateString()} at ${newStart.toLocaleTimeString()}.`,
-          type: 'success',
-          visible: true
-        });
-        
-        // Close the reschedule modal
-        setRescheduleModalOpen(false);
-        
-        // Auto-hide feedback after 3 seconds
-        setTimeout(() => {
-          setActionFeedback(prev => ({ ...prev, visible: false }));
-        }, 3000);
-      }, 500);
+        setActionFeedback(prev => ({ ...prev, visible: false }));
+      }, 3000);
+      
+      // Close the reschedule modal
+      setRescheduleModalOpen(false);
     };
 
     const handleMessageCustomer = (appointment: Appointment) => {
@@ -3485,7 +3401,7 @@ function App() {
     };
 
     // Type assertion to resolve linter error with appointments
-    const typedAppointments = mockAppointments as Appointment[];
+    const typedAppointments = realAppointments as Appointment[];
 
     return (
       <PlaceholderPage title="Bookings">
@@ -3544,7 +3460,7 @@ function App() {
         />
       </PlaceholderPage>
     );
-  };
+  }
 
   // Seller Dashboard Finance placeholder
   const SellerDashboardFinance = () => (
@@ -4148,15 +4064,47 @@ function App() {
     timeSlot: any;
   }) => {
     console.log('Proceeding to payment with details:', details);
-    // This is where you'd handle the actual payment processing
-    setTimeout(() => {
-      handlePaymentComplete();
-    }, 1500);
+    
+    // Store booking details for payment completion
+    setBookingDetails(details);
+    
+    // Navigate to payment page
+    setCurrentPage('payment');
   };
 
   const handlePaymentComplete = () => {
-    // After successful payment, return to booking page with confirmation
-    setCurrentPage('booking');
+    console.log('Payment completed successfully');
+    
+    // Create booking record if we have all the necessary data
+    if (selectedListing && bookingDetails && bookingDetails.timeSlot) {
+      try {
+        const newBooking = createBooking({
+          service: selectedListing,
+          customerName: bookingDetails.customerName,
+          customerEmail: bookingDetails.customerEmail,
+          selectedSlot: bookingDetails.timeSlot,
+          notes: bookingDetails.notes,
+          paymentData: { status: 'authorized' } // Payment authorized, not charged yet
+        });
+        
+        console.log('Booking created successfully:', newBooking);
+        
+        // Navigate to booking submission confirmation page
+        setCurrentPage('booking-submission-confirmation');
+      } catch (error) {
+        console.error('Error creating booking:', error);
+        // Still navigate to confirmation even if booking creation failed
+        setCurrentPage('booking-submission-confirmation');
+      }
+    } else {
+      console.warn('Missing data for booking creation:', {
+        selectedListing: !!selectedListing,
+        bookingDetails: !!bookingDetails,
+        timeSlot: !!bookingDetails?.timeSlot
+      });
+      // Navigate to confirmation even if booking creation failed
+      setCurrentPage('booking-submission-confirmation');
+    }
   };
 
   // Add handler functions for order actions
@@ -4276,6 +4224,18 @@ function App() {
           />
         )}
 
+        {currentPage === 'booking-submission-confirmation' && selectedListing?.type === 'service' && bookingDetails && bookingDetails.timeSlot && (
+          <BookingSubmissionConfirmationPage
+            service={selectedListing}
+            customerName={bookingDetails.customerName}
+            customerEmail={bookingDetails.customerEmail}
+            selectedSlot={bookingDetails.timeSlot}
+            onBack={handleBackToLanding}
+            onViewMyRequests={() => handleNavigate('myOrders')}
+            onContinueBrowsing={handleBackToLanding}
+          />
+        )}
+
         {currentPage === 'sellerProfile' && selectedProvider && (
           <SellerProfilePage
             provider={selectedProvider}
@@ -4322,7 +4282,7 @@ function App() {
 
         {currentPage === 'myOrders' && selectedOrder && orderAction === 'details' && (
           (() => {
-            const order = mockOrders.find(o => o.id === selectedOrder);
+            const order = getAllOrdersWithBookings().find(o => o.id === selectedOrder);
             if (!order) return null;
             
             if (order.type === 'service') {
@@ -4348,28 +4308,28 @@ function App() {
 
         {currentPage === 'myOrders' && selectedOrder && orderAction === 'track' && (
           <OrderTrackingPage 
-            order={mockOrders.find(o => o.id === selectedOrder)!}
+            order={getAllOrdersWithBookings().find(o => o.id === selectedOrder)!}
             onBack={handleBackToOrders}
           />
         )}
 
         {currentPage === 'myOrders' && selectedOrder && orderAction === 'cancel' && (
           <OrderCancellationPage 
-            order={mockOrders.find(o => o.id === selectedOrder)!}
+            order={getAllOrdersWithBookings().find(o => o.id === selectedOrder)!}
             onBack={handleBackToOrders}
           />
         )}
 
         {currentPage === 'myOrders' && selectedOrder && orderAction === 'return' && (
           <OrderReturnPage 
-            order={mockOrders.find(o => o.id === selectedOrder)!}
+            order={getAllOrdersWithBookings().find(o => o.id === selectedOrder)!}
             onBack={handleBackToOrders}
           />
         )}
 
         {currentPage === 'myOrders' && selectedOrder && orderAction === 'review' && (
           <OrderReviewPage 
-            order={mockOrders.find(o => o.id === selectedOrder)!}
+            order={getAllOrdersWithBookings().find(o => o.id === selectedOrder)!}
             onBack={handleBackToOrders}
           />
         )}

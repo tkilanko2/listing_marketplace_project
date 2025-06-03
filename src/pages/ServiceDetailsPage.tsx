@@ -17,7 +17,11 @@ import {
   Bookmark,
   Heart,
   Share2,
-  Mail
+  Mail,
+  Shield,
+  Flag,
+  FileText,
+  CreditCard
 } from 'lucide-react';
 import { ServiceGallery } from '../components/ServiceGallery';
 import { ProviderProfile } from '../components/ProviderProfile';
@@ -370,70 +374,171 @@ export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelec
         {/* Right Column - Provider Profile and Booking */}
         <div className="lg:col-span-1">
           <FadeInOnScroll delay={0.4}>
-            <div className="bg-white p-6 rounded-xl shadow-sm lg:sticky lg:top-6">
-              {/* Price and Booking Section */}
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-4">
-                  <div>
-                    <span className="text-3xl font-bold text-[#1B1C20]">${service.price}</span>
-                    <span className="text-[#70727F] ml-2">per service</span>
+            <div className="space-y-6">
+              {/* Core Booking Section */}
+              <div className="bg-white pt-8 px-8 pb-6 rounded-xl shadow-sm border border-[#CDCED8]">
+                {/* Price and Booking Section */}
+                <div className="mb-8">
+                  <div className="flex justify-between items-center mb-6">
+                    <div>
+                      <span className="text-3xl font-bold text-[#1B1C20]">${service.price}</span>
+                      <span className="text-[#70727F] ml-2">per service</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-[#3D1560] font-medium bg-[#EDD9FF] px-3 py-1.5 rounded-full">
+                        Available Today
+                      </div>
+                    </div>
                   </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <button 
-                    onClick={onBookNow}
-                    className="w-full bg-[#3D1560] text-white px-6 py-4 rounded-xl font-semibold hover:bg-[#6D26AB] transition-colors shadow-sm hover:shadow-md"
-                  >
-                    Book Now
-                  </button>
                   
-                  <div className="flex items-center justify-center space-x-2 text-sm text-[#70727F]">
+                  <div className="space-y-5">
                     <button 
-                      onClick={toggleSaveItem}
-                      className="flex items-center hover:text-[#DF678C] transition-colors"
+                      onClick={onBookNow}
+                      className="w-full bg-[#3D1560] text-white px-6 py-4 rounded-xl font-semibold hover:bg-[#6D26AB] transition-colors shadow-sm hover:shadow-md"
                     >
-                      <Heart className={`w-4 h-4 mr-1 ${isItemSaved ? 'fill-current text-[#DF678C]' : ''}`} />
-                      <span>{isItemSaved ? "Unsave" : "Save"}</span>
+                      Book Now
                     </button>
-                    <span>•</span>
-                    <button className="flex items-center hover:text-[#DF678C] transition-colors">
-                      <Share2 className="w-4 h-4 mr-1" />
-                      <span>Share</span>
-                    </button>
-                    <span>•</span>
-                    <button className="flex items-center hover:text-[#DF678C] transition-colors">
-                      <Mail className="w-4 h-4 mr-1" />
-                      <span>Contact</span>
-                    </button>
+                    
+                    <div className="grid grid-cols-3 gap-3">
+                      <button 
+                        onClick={toggleSaveItem}
+                        className={`flex items-center justify-center px-4 py-3 rounded-lg border border-[#CDCED8] text-xs font-medium transition-colors ${isItemSaved ? 'bg-[#FFE5ED] text-[#DF678C] border-[#DF678C]' : 'text-[#70727F] hover:bg-[#E8E9ED]'}`}
+                      >
+                        <Heart className={`w-4 h-4 mr-1 ${isItemSaved ? 'fill-current' : ''}`} />
+                        <span>{isItemSaved ? "Saved" : "Save"}</span>
+                      </button>
+                      <button className="flex items-center justify-center px-4 py-3 rounded-lg border border-[#CDCED8] text-xs font-medium text-[#70727F] hover:bg-[#E8E9ED] transition-colors">
+                        <Share2 className="w-4 h-4 mr-1" />
+                        <span>Share</span>
+                      </button>
+                      <button className="flex items-center justify-center px-4 py-3 rounded-lg border border-[#CDCED8] text-xs font-medium text-[#70727F] hover:bg-[#E8E9ED] transition-colors">
+                        <Mail className="w-4 h-4 mr-1" />
+                        <span>Contact</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                <div className="mt-4 p-4 bg-[#E8E9ED] rounded-lg">
-                  <div className="flex items-center text-sm text-[#70727F]">
-                    <Clock className="w-4 h-4 mr-2" />
-                    <span>Instant confirmation</span>
+                  {/* Mini Trust Grid */}
+                  <div className="mt-6 grid grid-cols-2 gap-3">
+                    <div className="flex items-center p-3 bg-[#E8E9ED] rounded-lg">
+                      <CheckCircle className="w-4 h-4 text-[#3D1560] mr-2" />
+                      <span className="text-xs font-medium text-[#383A47]">Instant Booking</span>
+                    </div>
+                    <div className="flex items-center p-3 bg-[#E8E9ED] rounded-lg">
+                      <CreditCard className="w-4 h-4 text-[#3D1560] mr-2" />
+                      <span className="text-xs font-medium text-[#383A47]">Secure Payment</span>
+                    </div>
+                    <div className="flex items-center p-3 bg-[#E8E9ED] rounded-lg">
+                      <Clock className="w-4 h-4 text-[#3D1560] mr-2" />
+                      <span className="text-xs font-medium text-[#383A47]">24h Free Cancel</span>
+                    </div>
+                    <div className="flex items-center p-3 bg-[#EDD9FF] rounded-lg">
+                      <Shield className="w-4 h-4 text-[#3D1560] mr-2" />
+                      <span className="text-xs font-medium text-[#3D1560]">Verified Business</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Trust Elements */}
-              <TrustElements
-                monthlyPurchases={trustData.monthlyPurchases}
-                verifiedBusiness={trustData.verifiedBusiness}
-                onReport={() => {
-                  // Handle report action
-                  console.log('Report listing');
-                }}
-              />
+              {/* Trust & Verification Section - Normal Flow */}
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-[#CDCED8]">
+                <div className="p-4 bg-[#F8F8FA] rounded-lg border border-[#E8E9ED]">
+                  <h3 className="text-sm font-semibold text-[#1B1C20] mb-4 flex items-center">
+                    <Shield className="w-4 h-4 text-[#3D1560] mr-2" />
+                    Trust & Verification
+                  </h3>
+                  
+                  <div className="space-y-3">
+                    {/* Monthly Purchases */}
+                    <div className="p-3 bg-[#FFFFFF] rounded-lg border border-[#CDCED8]">
+                      <p className="text-xs text-[#70727F]">
+                        <span className="font-medium text-[#383A47]">{trustData.monthlyPurchases}</span> purchases in the last month
+                      </p>
+                      <div className="mt-2 h-1.5 bg-[#CDCED8] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[#3D1560] rounded-full transition-all duration-300"
+                          style={{ width: `${Math.min((trustData.monthlyPurchases / 100) * 100, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-              {/* Provider Profile */}
-              <ProviderProfile 
-                provider={provider}
-                otherListings={otherServices}
-                onProviderSelect={onProviderSelect}
-                onListingSelect={onListingSelect}
-              />
+                  {/* Report Button */}
+                  <div className="mt-3 pt-3 border-t border-[#E8E9ED]">
+                    <button
+                      onClick={() => {
+                        console.log('Report listing');
+                      }}
+                      className="flex items-center text-[#70727F] hover:text-[#DF678C] text-xs transition-colors duration-200"
+                    >
+                      <Flag className="w-3 h-3 mr-1" />
+                      <span>Report this listing</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Terms & Protection Section - Normal Flow */}
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-[#CDCED8]">
+                <div className="p-4 bg-[#F8F8FA] rounded-lg border border-[#E8E9ED]">
+                  <h3 className="text-sm font-semibold text-[#1B1C20] mb-4 flex items-center">
+                    <Shield className="w-4 h-4 text-[#3D1560] mr-2" />
+                    Terms & Protection
+                  </h3>
+                  
+                  <div className="space-y-3">
+                    {/* Refund Policy */}
+                    <div className="flex items-start space-x-3">
+                      <FileText className="w-3 h-3 text-[#70727F] mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs font-medium text-[#383A47]">Refund Policy</p>
+                        <p className="text-xs text-[#70727F] mt-1">
+                          Full refund if cancelled 24+ hours before service. 50% refund within 24 hours.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Payment Protection */}
+                    <div className="flex items-start space-x-3">
+                      <CreditCard className="w-3 h-3 text-[#70727F] mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs font-medium text-[#383A47]">Payment Protection</p>
+                        <p className="text-xs text-[#70727F] mt-1">
+                          Your payment is protected. Money held securely until service completion.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Service Terms */}
+                    <div className="flex items-start space-x-3">
+                      <CheckCircle className="w-3 h-3 text-[#70727F] mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs font-medium text-[#383A47]">Service Terms</p>
+                        <p className="text-xs text-[#70727F] mt-1">
+                          Service provided as described. Provider follows platform guidelines and standards.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* View Full Terms Link */}
+                  <div className="mt-3 pt-3 border-t border-[#E8E9ED]">
+                    <button className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium transition-colors">
+                      View full terms and conditions
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Provider Profile Card - Normal Flow */}
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-[#CDCED8]">
+                <ProviderProfile 
+                  provider={provider}
+                  otherListings={otherServices}
+                  onProviderSelect={onProviderSelect}
+                  onListingSelect={onListingSelect}
+                />
+              </div>
             </div>
           </FadeInOnScroll>
         </div>

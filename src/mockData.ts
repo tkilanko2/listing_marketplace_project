@@ -1320,7 +1320,7 @@ export const mockOrders: Order[] = [
     items: [],
     type: 'service',
     service: mockServices[3],
-    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 1)),
+    appointmentDate: new Date(new Date().setHours(new Date().getHours() - 1)), // Started 1 hour ago (currently in progress)
     status: 'in_progress',
     paymentStatus: 'paid' as PaymentStatus,
     orderDate: new Date(new Date().setDate(new Date().getDate() - 1)),
@@ -1398,6 +1398,25 @@ export const mockOrders: Order[] = [
       { label: 'Message Provider', handler: () => console.log('Message provider for booking BKG015'), type: 'message' },
       { label: 'View Details', handler: () => console.log('View details of booking BKG015'), type: 'reorder' }
     ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG016',
+    userId: 'USER001',
+    items: [],
+    type: 'service',
+    service: mockServices[1],
+    appointmentDate: new Date(new Date().setHours(new Date().getHours() + 3)), // 3 hours from now - should show "Soon"
+    status: 'confirmed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 2)),
+    totalAmount: 85.00,
+    location: 'Downtown Salon - 456 Style Street',
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    actions: [
+      { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG016'), type: 'reschedule' },
+      { label: 'Message Provider', handler: () => console.log('Message provider for booking BKG016'), type: 'message' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG016'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
   }
 ];
 
@@ -1417,3 +1436,99 @@ export const mockServiceOrders = [
     actions: ['reschedule', 'cancel']
   }
 ];
+
+// Bookings Data Store - Real bookings created when users complete payments
+export const mockBookings: any[] = [
+  // This will be populated when users complete booking payments
+  // Each booking represents a confirmed service appointment
+];
+
+// Helper function to generate unique booking ID
+export function generateBookingId(): string {
+  return 'BKG-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+}
+
+// Helper function to create a new booking
+export function createBooking(data: {
+  service: any;
+  customerName: string;
+  customerEmail: string;
+  selectedSlot: any;
+  paymentData?: any;
+  notes?: string;
+}): any {
+  const bookingId = generateBookingId();
+  
+  const newBooking = {
+    id: bookingId,
+    service: data.service,
+    provider: data.service.provider,
+    customer: {
+      id: 'current-customer', // In real app, this would be the logged-in user's ID
+      name: data.customerName,
+      email: data.customerEmail,
+      phone: '', // Could be collected in booking form if needed
+      avatar: '' // Could be user's avatar if logged in
+    },
+    start: data.selectedSlot.start.toISOString(),
+    end: data.selectedSlot.end.toISOString(),
+    status: 'requested' as 'pending' | 'requested' | 'confirmed' | 'completed' | 'canceled',
+    paymentStatus: 'authorized' as 'paid' | 'unpaid' | 'authorized' | 'refunded',
+    price: data.service.price,
+    notes: data.notes || '',
+    location: data.service.location?.city || 'Service location to be confirmed',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  
+  // Add to bookings array
+  mockBookings.push(newBooking);
+  
+  console.log('New booking created:', newBooking);
+  console.log('Total bookings:', mockBookings.length);
+  
+  return newBooking;
+}
+
+// Helper function to get bookings for a specific provider
+export function getBookingsForProvider(providerId: string): any[] {
+  return mockBookings.filter(booking => booking.service.provider.id === providerId);
+}
+
+// Helper function to get bookings for a specific customer
+export function getBookingsForCustomer(customerEmail: string): any[] {
+  return mockBookings.filter(booking => booking.customer.email === customerEmail);
+}
+
+// Helper function to convert mockBookings to Order format
+export function convertBookingToOrder(booking: any): any {
+  return {
+    id: booking.id,
+    userId: booking.customer.id || 'current-user',
+    items: [],
+    type: 'service' as const,
+    service: booking.service,
+    appointmentDate: new Date(booking.start),
+    status: booking.status,
+    paymentStatus: booking.paymentStatus === 'authorized' ? 'pending' : booking.paymentStatus,
+    orderDate: new Date(booking.createdAt),
+    totalAmount: booking.price,
+    location: booking.location,
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    actions: [
+      { label: 'Cancel Request', handler: () => console.log(`Cancel booking ${booking.id}`), type: 'cancel' },
+      { label: 'View Details', handler: () => console.log(`View details of booking ${booking.id}`), type: 'reorder' }
+    ]
+  };
+}
+
+// Helper function to get all orders including real bookings
+export function getAllOrdersWithBookings(): any[] {
+  // Convert bookings to order format
+  const convertedBookings = mockBookings.map(convertBookingToOrder);
+  
+  // Combine with existing mock orders and sort by orderDate (newest first)
+  const allOrders = [...mockOrders, ...convertedBookings];
+  
+  return allOrders.sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
+}
