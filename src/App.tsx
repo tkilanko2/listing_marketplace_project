@@ -1267,7 +1267,7 @@ function App() {
         {!isEditMode && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 items-start">
             {/* Ongoing Orders Card */}
-<div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 flex flex-col">
+<div className="bg-white rounded-lg shadow-lg p-3.5 hover:shadow-xl transition-shadow duration-300 flex flex-col">
   <div className="flex justify-between items-center mb-4"> 
     <h3 className="text-xl font-semibold text-[#1B1C20]">Recent Orders and Bookings</h3> 
   </div>
@@ -1283,8 +1283,9 @@ function App() {
       .map(order => (
         <div 
           key={order.id}
-          className="bg-[#F8F8FA] rounded-lg p-2.5 border border-[#CDCED8] hover:border-[#3D1560] transition-colors duration-200 cursor-pointer"
-          onClick={() => handleOrderSelect(order.id)} // This might need a different handler for services vs products
+          className="bg-[#F8F8FA] rounded-lg p-2.5 border border-[#CDCED8] hover:border-[#3D1560] hover:bg-white hover:shadow-md transition-all duration-200 cursor-pointer group"
+          onClick={() => handleOrderSelect(order.id)}
+          title={`Click to view ${order.type === 'service' ? 'booking' : 'order'} details`}
         >
           <div className="flex items-center gap-2.5">
             {/* Smaller image */}
@@ -1311,25 +1312,28 @@ function App() {
             <div className="flex-1 min-w-0">
               {/* Compact header with status */}
               <div className="flex items-center justify-between mb-1">
-                <h4 className="text-sm font-medium text-[#383A47] truncate">
+                <h4 className="text-sm font-medium text-[#383A47] truncate group-hover:text-[#3D1560] transition-colors duration-200">
                   {order.type === 'product' 
                     ? order.items?.[0]?.product?.name 
                     : order.service?.name}
                 </h4>
-                <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full flex-shrink-0 ${ 
-                  // Expanded status color logic to handle all service statuses
-                  order.status === 'pending' || order.status === 'requested' ? 'bg-[#FFF8DD] text-[#DAA520]' :
-                  order.status === 'processing' || order.status === 'in_progress' ? 'bg-[#F3E8F9] text-[#6D26AB]' :
-                  order.status === 'shipped' || order.status === 'scheduled' ? 'bg-[#E6FFFA] text-[#38B2AC]' :
-                  order.status === 'confirmed' ? 'bg-[#EBF4FF] text-[#4299E1]' :
-                  order.status === 'delivered' || order.status === 'completed' ? 'bg-[#E8F5E9] text-[#4CAF50]' :
-                  order.status === 'cancelled' || order.status === 'no_show' ? 'bg-[#FFE5E5] text-[#D32F2F]' :
-                  order.status === 'rescheduled' ? 'bg-[#FFF3CD] text-[#856404]' :
-                  order.status === 'returned' ? 'bg-[#E8E9ED] text-[#70727F]' :
-                  'bg-[#E8F5E9] text-[#4CAF50]' // Default fallback
-                }`}>
-                  {order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ')}
-                </span>
+                <div className="flex items-center gap-1">
+                  <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full flex-shrink-0 ${ 
+                    // Expanded status color logic to handle all service statuses
+                    order.status === 'pending' || order.status === 'requested' ? 'bg-[#FFF8DD] text-[#DAA520]' :
+                    order.status === 'processing' || order.status === 'in_progress' ? 'bg-[#F3E8F9] text-[#6D26AB]' :
+                    order.status === 'shipped' || order.status === 'scheduled' ? 'bg-[#E6FFFA] text-[#38B2AC]' :
+                    order.status === 'confirmed' ? 'bg-[#EBF4FF] text-[#4299E1]' :
+                    order.status === 'delivered' || order.status === 'completed' ? 'bg-[#E8F5E9] text-[#4CAF50]' :
+                    order.status === 'cancelled' || order.status === 'no_show' ? 'bg-[#FFE5E5] text-[#D32F2F]' :
+                    order.status === 'rescheduled' ? 'bg-[#FFF3CD] text-[#856404]' :
+                    order.status === 'returned' ? 'bg-[#E8E9ED] text-[#70727F]' :
+                    'bg-[#E8F5E9] text-[#4CAF50]' // Default fallback
+                  }`}>
+                    {order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ')}
+                  </span>
+                  <ChevronRight className="w-3 h-3 text-[#3D1560] opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                </div>
               </div>
               
               {/* Compact details in single line */}
@@ -1451,9 +1455,9 @@ function App() {
                 {/* Appointments List Section (md:w-2/5) */}
                 <div className="md:w-2/5 flex flex-col">
                   <h4 className="text-xs font-semibold text-[#383A47] mb-1.5 px-1">Upcoming</h4>
-                  {/* Removed max-h-48 to allow full growth, added min-h-0 for safety although parent has it */}
-                  <div className="space-y-1.5 flex-grow overflow-y-auto min-h-0 pr-1"> 
-                    {upcomingAppointments.length > 0 ? upcomingAppointments.slice(0, 3).map(booking => {
+                  {/* Show all appointments in scrollable container with height constraint */}
+                  <div className="space-y-1.5 overflow-y-auto pr-1 max-h-48"> 
+                    {upcomingAppointments.length > 0 ? upcomingAppointments.map(booking => {
                       const formattedDateInfo = formatAppointmentDate(booking.date, booking.time);
                       return (
                         <div key={booking.id} className="p-1.5 border border-gray-200 rounded-md bg-white hover:border-[#3D1560] leading-snug">
@@ -1469,15 +1473,6 @@ function App() {
                     )}
                   </div>
                 </div>
-              </div>
-
-              <div className="mt-auto pt-3 text-right"> {/* mt-auto to push to bottom */}
-                <button 
-                  onClick={() => handleNavigate('bookings')}
-                  className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center ml-auto"
-                >
-                  View All Appointments <ChevronRight className="ml-0.5 h-3.5 w-3.5" />
-                </button>
               </div>
             </div>
             
@@ -4111,6 +4106,7 @@ function App() {
   const handleOrderSelect = (orderId: string) => {
     setSelectedOrder(orderId);
     setOrderAction('details');
+    setCurrentPage('myOrders'); // Navigate to myOrders page to show order details
   };
 
   const handleOrderAction = (action: string) => {
