@@ -69,6 +69,223 @@ interface SellerActivityEntry {
   icon?: any;
 }
 
+// Separate Modal Component to prevent re-mounting issues
+interface AddTrackingModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  trackingNumber: string;
+  setTrackingNumber: (value: string) => void;
+  carrier: string;
+  setCarrier: (value: string) => void;
+  proofPhotos: File[];
+  setProofPhotos: React.Dispatch<React.SetStateAction<File[]>>;
+  importantNotes: string;
+  setImportantNotes: (value: string) => void;
+  onSubmit: () => void;
+}
+
+interface AddNotesModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  notes: string;
+  setNotes: (value: string) => void;
+  onSubmit: () => void;
+}
+
+const AddTrackingModal: React.FC<AddTrackingModalProps> = ({
+  isOpen,
+  onClose,
+  trackingNumber,
+  setTrackingNumber,
+  carrier,
+  setCarrier,
+  proofPhotos,
+  setProofPhotos,
+  importantNotes,
+  setImportantNotes,
+  onSubmit
+}) => {
+  if (!isOpen) return null;
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setProofPhotos(prev => [...prev, ...files]);
+  };
+
+  const removePhoto = (index: number) => {
+    setProofPhotos(prev => prev.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-[#FFFFFF] rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="bg-[#3D1560] text-white p-4 rounded-t-xl flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Add Tracking Information</h3>
+          <button 
+            onClick={onClose}
+            className="text-white hover:text-[#CDCED8] transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-6 space-y-4">
+          {/* Required Fields */}
+          <div>
+            <label className="block text-sm font-medium text-[#1B1C20] mb-2">Carrier *</label>
+            <select
+              value={carrier}
+              onChange={(e) => setCarrier(e.target.value)}
+              className="w-full border border-[#CDCED8] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560]"
+            >
+              <option value="">Select Carrier</option>
+              <option value="FedEx">FedEx</option>
+              <option value="UPS">UPS</option>
+              <option value="USPS">USPS</option>
+              <option value="DHL">DHL</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[#1B1C20] mb-2">Tracking Number *</label>
+            <input
+              type="text"
+              value={trackingNumber}
+              onChange={(e) => setTrackingNumber(e.target.value)}
+              placeholder="Enter tracking number or shipping id"
+              className="w-full border border-[#CDCED8] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560]"
+            />
+          </div>
+
+          {/* Optional Fields */}
+          <div className="border-t border-[#E8E9ED] pt-4">
+            <h4 className="text-sm font-medium text-[#383A47] mb-3">Optional Information</h4>
+            
+            {/* Photo Upload */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-[#1B1C20] mb-2">
+                Add Photos (Proof of Items Sent)
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handlePhotoUpload}
+                className="w-full border border-[#CDCED8] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#EDD9FF] file:text-[#3D1560] hover:file:bg-[#D0B0EE]"
+              />
+              <p className="text-xs text-[#70727F] mt-1">Upload photos showing items before shipping (optional)</p>
+              
+              {/* Photo Preview */}
+              {proofPhotos.length > 0 && (
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  {proofPhotos.map((photo, index) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={URL.createObjectURL(photo)}
+                        alt={`Proof ${index + 1}`}
+                        className="w-full h-20 object-cover rounded-lg border border-[#CDCED8]"
+                      />
+                      <button
+                        onClick={() => removePhoto(index)}
+                        className="absolute -top-2 -right-2 bg-[#DF678C] text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-[#D84773] transition-colors"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Important Notes */}
+            <div>
+              <label className="block text-sm font-medium text-[#1B1C20] mb-2">
+                Important Notes
+              </label>
+              <textarea
+                value={importantNotes}
+                onChange={(e) => setImportantNotes(e.target.value)}
+                placeholder="Add any important notes about shipping, handling, or special instructions..."
+                rows={3}
+                className="w-full border border-[#CDCED8] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] resize-none"
+              />
+              <p className="text-xs text-[#70727F] mt-1">These notes will be visible to the customer (optional)</p>
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              onClick={onSubmit}
+              disabled={!trackingNumber || !carrier}
+              className="flex-1 bg-[#3D1560] text-white px-4 py-2 rounded-lg hover:bg-[#6D26AB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Add Tracking
+            </button>
+            <button
+              onClick={onClose}
+              className="flex-1 border border-[#CDCED8] text-[#383A47] px-4 py-2 rounded-lg hover:bg-[#E8E9ED] transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AddNotesModal: React.FC<AddNotesModalProps> = ({
+  isOpen,
+  onClose,
+  notes,
+  setNotes,
+  onSubmit
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-[#FFFFFF] rounded-xl shadow-xl max-w-md w-full">
+        <div className="bg-[#3D1560] text-white p-4 rounded-t-xl flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Add Order Notes</h3>
+          <button 
+            onClick={onClose}
+            className="text-white hover:text-[#CDCED8] transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-[#1B1C20] mb-2">Notes</label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Add notes about this order..."
+              rows={4}
+              className="w-full border border-[#CDCED8] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] resize-none"
+            />
+          </div>
+          <div className="flex gap-3 pt-4">
+            <button
+              onClick={onSubmit}
+              disabled={!notes.trim()}
+              className="flex-1 bg-[#3D1560] text-white px-4 py-2 rounded-lg hover:bg-[#6D26AB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Add Notes
+            </button>
+            <button
+              onClick={onClose}
+              className="flex-1 border border-[#CDCED8] text-[#383A47] px-4 py-2 rounded-lg hover:bg-[#E8E9ED] transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export function SellerOrderDetailsPage({ order, onBack }: SellerOrderDetailsPageProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'earnings' | 'activity'>('details');
   const [trackingDetailsOpen, setTrackingDetailsOpen] = useState(false);
@@ -79,6 +296,9 @@ export function SellerOrderDetailsPage({ order, onBack }: SellerOrderDetailsPage
   const [notes, setNotes] = useState('');
   const [proofPhotos, setProofPhotos] = useState<File[]>([]);
   const [importantNotes, setImportantNotes] = useState('');
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [notesExpanded, setNotesExpanded] = useState(false);
 
   // Enhanced seller payment breakdown with comprehensive fee structure
   const calculateSellerPaymentBreakdown = (): SellerPaymentBreakdown => {
@@ -332,9 +552,21 @@ export function SellerOrderDetailsPage({ order, onBack }: SellerOrderDetailsPage
       });
     }
 
-    if (['shipped', 'delivered'].includes(order.status)) {
+    // Add tracking information activity if tracking details are available
+    if (trackingNumber && carrier) {
       baseActivities.push({
         id: 4,
+        type: 'tracking_added',
+        title: 'Tracking Information Added',
+        description: `${carrier} tracking: ${trackingNumber}${proofPhotos.length > 0 ? ` (${proofPhotos.length} proof photo${proofPhotos.length > 1 ? 's' : ''})` : ''}${importantNotes.trim() ? ' with notes' : ''}`,
+        timestamp: new Date(order.orderDate.getTime() + 1.5 * 24 * 60 * 60 * 1000),
+        icon: Truck
+      });
+    }
+
+    if (['shipped', 'delivered'].includes(order.status)) {
+      baseActivities.push({
+        id: 5,
         type: 'order_shipped',
         title: 'Package Shipped',
         description: 'You marked the order as shipped',
@@ -345,7 +577,7 @@ export function SellerOrderDetailsPage({ order, onBack }: SellerOrderDetailsPage
 
     if (order.status === 'delivered') {
       baseActivities.push({
-        id: 5,
+        id: 6,
         type: 'order_delivered',
         title: 'Order Delivered',
         description: 'Customer confirmed delivery',
@@ -406,10 +638,23 @@ export function SellerOrderDetailsPage({ order, onBack }: SellerOrderDetailsPage
 
   const handleAddTracking = () => {
     if (trackingNumber && carrier) {
-      console.log('Add tracking:', { orderId: order.id, trackingNumber, carrier });
+      console.log('Add tracking:', { 
+        orderId: order.id, 
+        trackingNumber, 
+        carrier,
+        proofPhotos: proofPhotos.length,
+        importantNotes: importantNotes.trim()
+      });
+      
+      // Here you would typically save this data to your backend
+      // For now, we'll simulate success and keep the data for display
+      
       setAddTrackingOpen(false);
-      setTrackingNumber('');
-      setCarrier('');
+      // Don't reset the form data so we can display it
+      // setTrackingNumber('');
+      // setCarrier('');
+      // setProofPhotos([]);
+      // setImportantNotes('');
     }
   };
 
@@ -429,184 +674,6 @@ export function SellerOrderDetailsPage({ order, onBack }: SellerOrderDetailsPage
       setAddNotesOpen(false);
       setNotes('');
     }
-  };
-
-  // Add Tracking Modal
-  const AddTrackingModal = () => {
-    if (!addTrackingOpen) return null;
-
-    const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const files = Array.from(e.target.files || []);
-      setProofPhotos(prev => [...prev, ...files]);
-    };
-
-    const removePhoto = (index: number) => {
-      setProofPhotos(prev => prev.filter((_, i) => i !== index));
-    };
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-[#FFFFFF] rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-          <div className="bg-[#3D1560] text-white p-4 rounded-t-xl flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Add Tracking Information</h3>
-            <button 
-              onClick={() => setAddTrackingOpen(false)}
-              className="text-white hover:text-[#CDCED8] transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-          <div className="p-6 space-y-4">
-            {/* Required Fields */}
-            <div>
-              <label className="block text-sm font-medium text-[#1B1C20] mb-2">Carrier *</label>
-              <select
-                value={carrier}
-                onChange={(e) => setCarrier(e.target.value)}
-                className="w-full border border-[#CDCED8] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560]"
-              >
-                <option value="">Select Carrier</option>
-                <option value="FedEx">FedEx</option>
-                <option value="UPS">UPS</option>
-                <option value="USPS">USPS</option>
-                <option value="DHL">DHL</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#1B1C20] mb-2">Tracking Number *</label>
-              <input
-                type="text"
-                value={trackingNumber}
-                onChange={(e) => setTrackingNumber(e.target.value)}
-                placeholder="Enter tracking number or shipping id"
-                className="w-full border border-[#CDCED8] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560]"
-              />
-            </div>
-
-            {/* Optional Fields */}
-            <div className="border-t border-[#E8E9ED] pt-4">
-              <h4 className="text-sm font-medium text-[#383A47] mb-3">Optional Information</h4>
-              
-              {/* Photo Upload */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-[#1B1C20] mb-2">
-                  Add Photos (Proof of Items Sent)
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handlePhotoUpload}
-                  className="w-full border border-[#CDCED8] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#EDD9FF] file:text-[#3D1560] hover:file:bg-[#D0B0EE]"
-                />
-                <p className="text-xs text-[#70727F] mt-1">Upload photos showing items before shipping (optional)</p>
-                
-                {/* Photo Preview */}
-                {proofPhotos.length > 0 && (
-                  <div className="mt-3 grid grid-cols-3 gap-2">
-                    {proofPhotos.map((photo, index) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={URL.createObjectURL(photo)}
-                          alt={`Proof ${index + 1}`}
-                          className="w-full h-20 object-cover rounded-lg border border-[#CDCED8]"
-                        />
-                        <button
-                          onClick={() => removePhoto(index)}
-                          className="absolute -top-2 -right-2 bg-[#DF678C] text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-[#D84773] transition-colors"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Important Notes */}
-              <div>
-                <label className="block text-sm font-medium text-[#1B1C20] mb-2">
-                  Important Notes
-                </label>
-                <textarea
-                  value={importantNotes}
-                  onChange={(e) => setImportantNotes(e.target.value)}
-                  placeholder="Add any important notes about shipping, handling, or special instructions..."
-                  rows={3}
-                  className="w-full border border-[#CDCED8] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] resize-none"
-                />
-                <p className="text-xs text-[#70727F] mt-1">These notes will be visible to the customer (optional)</p>
-              </div>
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <button
-                onClick={handleAddTracking}
-                disabled={!trackingNumber || !carrier}
-                className="flex-1 bg-[#3D1560] text-white px-4 py-2 rounded-lg hover:bg-[#6D26AB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Add Tracking
-              </button>
-              <button
-                onClick={() => setAddTrackingOpen(false)}
-                className="flex-1 border border-[#CDCED8] text-[#383A47] px-4 py-2 rounded-lg hover:bg-[#E8E9ED] transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Add Notes Modal
-  const AddNotesModal = () => {
-    if (!addNotesOpen) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-[#FFFFFF] rounded-xl shadow-xl max-w-md w-full">
-          <div className="bg-[#3D1560] text-white p-4 rounded-t-xl flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Add Order Notes</h3>
-            <button 
-              onClick={() => setAddNotesOpen(false)}
-              className="text-white hover:text-[#CDCED8] transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-          <div className="p-6 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-[#1B1C20] mb-2">Notes</label>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add notes about this order..."
-                rows={4}
-                className="w-full border border-[#CDCED8] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] resize-none"
-              />
-            </div>
-            <div className="flex gap-3 pt-4">
-              <button
-                onClick={handleAddNotes}
-                disabled={!notes.trim()}
-                className="flex-1 bg-[#3D1560] text-white px-4 py-2 rounded-lg hover:bg-[#6D26AB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Add Notes
-              </button>
-              <button
-                onClick={() => setAddNotesOpen(false)}
-                className="flex-1 border border-[#CDCED8] text-[#383A47] px-4 py-2 rounded-lg hover:bg-[#E8E9ED] transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
   };
 
   return (
@@ -672,6 +739,7 @@ export function SellerOrderDetailsPage({ order, onBack }: SellerOrderDetailsPage
                 currentStatus={order.status}
                 orderType="product"
                 orderDate={order.orderDate}
+                userRole="seller"
               />
             </div>
 
@@ -812,21 +880,113 @@ export function SellerOrderDetailsPage({ order, onBack }: SellerOrderDetailsPage
                         </div>
                       </div>
 
-                      {/* Tracking Info */}
-                      {order.trackingInfo && (
+                      {/* Enhanced Tracking Info */}
+                      {(order.trackingInfo || (trackingNumber && carrier)) && (
                         <div className="mt-6 pt-6 border-t border-[#CDCED8]">
-                          <h4 className="font-semibold text-[#1B1C20] mb-3">Tracking Information</h4>
-                          <div className="flex items-center gap-3">
-                            <Truck className="w-5 h-5 text-[#3D1560]" />
-                            <div>
-                              <p className="font-medium text-[#383A47]">
-                                {order.trackingInfo.carrier}: {order.trackingInfo.trackingNumber}
-                              </p>
-                              <p className="text-sm text-[#70727F]">
-                                Last updated: {formatDateTime(new Date())}
-                              </p>
+                          <h4 className="font-semibold text-[#1B1C20] mb-4">Tracking Information</h4>
+                          
+                          {/* Basic Tracking Details */}
+                          <div className="bg-[#F8F8FA] rounded-lg p-4 mb-4">
+                            <div className="flex items-center gap-3 mb-3">
+                              <Truck className="w-6 h-6 text-[#3D1560]" />
+                              <div className="flex-1">
+                                <p className="font-semibold text-[#1B1C20] text-lg">
+                                  {order.trackingInfo?.carrier || carrier}: {order.trackingInfo?.trackingNumber || trackingNumber}
+                                </p>
+                                <p className="text-sm text-[#70727F]">
+                                  Last updated: {formatDateTime(new Date())}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => navigator.clipboard.writeText(order.trackingInfo?.trackingNumber || trackingNumber)}
+                                className="text-[#3D1560] hover:text-[#6D26AB] p-2 rounded-md hover:bg-[#EDD9FF] transition-colors"
+                                title="Copy tracking number"
+                              >
+                                <Copy className="w-4 h-4" />
+                              </button>
+                            </div>
+                            
+                            {/* Status Badge */}
+                            <div className="flex items-center gap-2">
+                              <div className="bg-[#3D1560] text-white px-3 py-1 rounded-full text-xs font-medium">
+                                In Transit
+                              </div>
+                              <span className="text-xs text-[#70727F]">
+                                Estimated delivery: {new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                              </span>
                             </div>
                           </div>
+
+                          {/* Proof Photos */}
+                          {proofPhotos.length > 0 && (
+                            <div className="mb-4">
+                              <h5 className="font-medium text-[#1B1C20] mb-3">Proof of Shipment</h5>
+                              <div className="grid grid-cols-4 gap-2">
+                                {proofPhotos.slice(0, 3).map((photo, index) => (
+                                  <button
+                                    key={index}
+                                    onClick={() => {
+                                      setCurrentImageIndex(index);
+                                      setLightboxOpen(true);
+                                    }}
+                                    className="relative aspect-square rounded-lg overflow-hidden border border-[#CDCED8] hover:border-[#3D1560] transition-colors group"
+                                  >
+                                    <img
+                                      src={URL.createObjectURL(photo)}
+                                      alt={`Proof ${index + 1}`}
+                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                    />
+                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center">
+                                      <Eye className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    </div>
+                                  </button>
+                                ))}
+                                {proofPhotos.length > 3 && (
+                                  <button
+                                    onClick={() => {
+                                      setCurrentImageIndex(3);
+                                      setLightboxOpen(true);
+                                    }}
+                                    className="relative aspect-square rounded-lg overflow-hidden border border-[#CDCED8] hover:border-[#3D1560] transition-colors bg-[#E8E9ED] flex items-center justify-center"
+                                  >
+                                    <div className="text-center">
+                                      <Plus className="w-6 h-6 text-[#3D1560] mx-auto mb-1" />
+                                      <span className="text-xs font-medium text-[#3D1560]">
+                                        +{proofPhotos.length - 3}
+                                      </span>
+                                    </div>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Important Notes - Collapsible */}
+                          {importantNotes.trim() && (
+                            <div className="border border-[#CDCED8] rounded-lg">
+                              <button
+                                onClick={() => setNotesExpanded(!notesExpanded)}
+                                className="w-full flex items-center justify-between p-3 hover:bg-[#F8F8FA] transition-colors"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <FileText className="w-4 h-4 text-[#3D1560]" />
+                                  <span className="font-medium text-[#1B1C20]">Important Shipping Notes</span>
+                                </div>
+                                <div className={`transform transition-transform ${notesExpanded ? 'rotate-180' : ''}`}>
+                                  <ArrowLeft className="w-4 h-4 text-[#70727F] rotate-90" />
+                                </div>
+                              </button>
+                              {notesExpanded && (
+                                <div className="px-3 pb-3 border-t border-[#E8E9ED]">
+                                  <div className="bg-[#F8F8FA] rounded-md p-3 mt-3">
+                                    <p className="text-sm text-[#383A47] whitespace-pre-wrap">
+                                      {importantNotes}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -1180,8 +1340,81 @@ export function SellerOrderDetailsPage({ order, onBack }: SellerOrderDetailsPage
       </div>
 
       {/* Modals */}
-      <AddTrackingModal />
-      <AddNotesModal />
+      <AddTrackingModal
+        isOpen={addTrackingOpen}
+        onClose={() => setAddTrackingOpen(false)}
+        trackingNumber={trackingNumber}
+        setTrackingNumber={setTrackingNumber}
+        carrier={carrier}
+        setCarrier={setCarrier}
+        proofPhotos={proofPhotos}
+        setProofPhotos={setProofPhotos}
+        importantNotes={importantNotes}
+        setImportantNotes={setImportantNotes}
+        onSubmit={handleAddTracking}
+      />
+      <AddNotesModal
+        isOpen={addNotesOpen}
+        onClose={() => setAddNotesOpen(false)}
+        notes={notes}
+        setNotes={setNotes}
+        onSubmit={handleAddNotes}
+      />
+      
+      {/* Lightbox for Photo Gallery */}
+      {lightboxOpen && proofPhotos.length > 0 && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
+          <div className="relative max-w-4xl max-h-full">
+            {/* Close Button */}
+            <button
+              onClick={() => setLightboxOpen(false)}
+              className="absolute top-4 right-4 text-white hover:text-[#CDCED8] transition-colors z-10 bg-black bg-opacity-50 rounded-full p-2"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            
+            {/* Navigation Buttons */}
+            {proofPhotos.length > 1 && (
+              <>
+                <button
+                  onClick={() => setCurrentImageIndex(prev => prev > 0 ? prev - 1 : proofPhotos.length - 1)}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-[#CDCED8] transition-colors bg-black bg-opacity-50 rounded-full p-3"
+                >
+                  <ArrowLeft className="w-6 h-6" />
+                </button>
+                <button
+                  onClick={() => setCurrentImageIndex(prev => prev < proofPhotos.length - 1 ? prev + 1 : 0)}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-[#CDCED8] transition-colors bg-black bg-opacity-50 rounded-full p-3"
+                >
+                  <ArrowLeft className="w-6 h-6 rotate-180" />
+                </button>
+              </>
+            )}
+            
+            {/* Current Image */}
+            <div className="flex items-center justify-center max-h-full">
+              <img
+                src={URL.createObjectURL(proofPhotos[currentImageIndex])}
+                alt={`Proof ${currentImageIndex + 1}`}
+                className="max-w-full max-h-full object-contain rounded-lg"
+              />
+            </div>
+            
+            {/* Image Counter */}
+            {proofPhotos.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full text-sm">
+                {currentImageIndex + 1} / {proofPhotos.length}
+              </div>
+            )}
+            
+            {/* Image Info */}
+            <div className="absolute bottom-4 right-4 bg-black bg-opacity-50 text-white px-4 py-2 rounded-lg text-sm">
+              <p className="font-medium">Proof of Shipment</p>
+              <p className="text-xs opacity-80">Added: {formatDateTime(new Date())}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

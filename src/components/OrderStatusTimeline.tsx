@@ -68,11 +68,19 @@ export function OrderStatusTimeline({ currentStatus, orderType, orderDate, booki
 
   const getStatusDisplayBadge = () => { // Renamed for clarity
     switch (mappedDisplayStatus) {
+      // Product statuses
+      case 'pending': return { label: 'Status: Pending', color: 'text-[#70727F]', bgColor: 'bg-[#E8E9ED]', borderColor: 'border-[#70727F]' };
+      case 'processing': return { label: 'Status: Processing', color: 'text-[#6D26AB]', bgColor: 'bg-[#EDD9FF]', borderColor: 'border-[#6D26AB]' };
+      case 'shipped': return { label: 'Status: Shipped', color: 'text-[#3D1560]', bgColor: 'bg-[#EDD9FF]', borderColor: 'border-[#3D1560]' };
+      case 'delivered': return { label: 'Status: Delivered', color: 'text-[#4CAF50]', bgColor: 'bg-[#E8F5E9]', borderColor: 'border-[#4CAF50]' };
+      case 'returned': return { label: 'Status: Returned', color: 'text-[#DF678C]', bgColor: 'bg-[#FFE5ED]', borderColor: 'border-[#DF678C]' };
+      // Service statuses
       case 'requested': return { label: 'Status: Booking Requested', color: 'text-[#70727F]', bgColor: 'bg-[#E8E9ED]', borderColor: 'border-[#70727F]' };
       case 'confirmed': return { label: 'Status: Confirmed', color: 'text-[#3D1560]', bgColor: 'bg-[#EDD9FF]', borderColor: 'border-[#3D1560]' };
       case 'scheduled': return { label: 'Status: Scheduled', color: 'text-[#6D26AB]', bgColor: 'bg-[#EDD9FF]', borderColor: 'border-[#6D26AB]' }; // Only for seller role display
       case 'in_progress': return { label: 'Status: In Progress', color: 'text-[#6D26AB]', bgColor: 'bg-[#EDD9FF]', borderColor: 'border-[#6D26AB]' };
       case 'completed': return { label: 'Status: Completed', color: 'text-[#4CAF50]', bgColor: 'bg-[#E8F5E9]', borderColor: 'border-[#4CAF50]' };
+      // Common statuses
       case 'cancelled': return { label: 'Status: Cancelled', color: 'text-[#DF678C]', bgColor: 'bg-[#FFE5ED]', borderColor: 'border-[#DF678C]' };
       case 'no_show': return { label: 'Status: No Show', color: 'text-[#DF678C]', bgColor: 'bg-[#FFE5ED]', borderColor: 'border-[#DF678C]' };
       case 'rescheduled': return { label: 'Status: Rescheduled', color: 'text-[#70727F]', bgColor: 'bg-[#E8E9ED]', borderColor: 'border-[#70727F]' };
