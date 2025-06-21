@@ -1071,14 +1071,18 @@ const productSellers: ProductSeller[] = [
 ];
 
 // Generate products with curated images
-const mockProducts: Product[] = productCategories.flatMap(category =>
-  category.products.map((product) => {
+const mockProducts: Product[] = productCategories.flatMap((category, categoryIndex) =>
+  category.products.map((product, productIndex) => {
     const provider = providers[Math.floor(Math.random() * providers.length)];
     const seller = productSellers[Math.floor(Math.random() * productSellers.length)];
     const price = Math.floor(Math.random() * 1000) + 100;
     
+    // Generate predictable listing IDs: LISTING_PROD_001, LISTING_PROD_002, etc.
+    const globalProductIndex = productCategories.slice(0, categoryIndex).reduce((sum, cat) => sum + cat.products.length, 0) + productIndex + 1;
+    const listingId = `LISTING_PROD_${globalProductIndex.toString().padStart(3, '0')}`;
+    
     return {
-      id: Math.random().toString(36).substr(2, 9),
+      id: listingId,
       type: 'product' as const,
       name: product.name,
       price,
@@ -1106,14 +1110,18 @@ const mockProducts: Product[] = productCategories.flatMap(category =>
 );
 
 // Update service generation to include new service-specific fields
-const mockServices: Service[] = serviceCategories.flatMap(category =>
-  category.services.map((service) => {
+const mockServices: Service[] = serviceCategories.flatMap((category, categoryIndex) =>
+  category.services.map((service, serviceIndex) => {
     const provider = providers[Math.floor(Math.random() * providers.length)];
     const price = Math.floor(Math.random() * 150) + 50;
     const duration = [30, 45, 60, 90, 120][Math.floor(Math.random() * 5)];
     
+    // Generate predictable listing IDs: LISTING_SERV_001, LISTING_SERV_002, etc.
+    const globalServiceIndex = serviceCategories.slice(0, categoryIndex).reduce((sum, cat) => sum + cat.services.length, 0) + serviceIndex + 1;
+    const listingId = `LISTING_SERV_${globalServiceIndex.toString().padStart(3, '0')}`;
+    
     return {
-      id: Math.random().toString(36).substr(2, 9),
+      id: listingId,
       type: 'service' as const,
       name: service.name,
       duration,
@@ -1151,6 +1159,7 @@ export { mockServices, mockProducts };
 export const mockOrders: Order[] = [
   {
     id: 'BKG001',
+    listingId: mockServices[0].id, // Reference to the parent service listing
     userId: 'USER001',
     items: [],
     type: 'service',
@@ -1171,6 +1180,7 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'ORD002',
+    listingId: mockProducts[0].id, // Reference to the parent product listing
     userId: 'USER001',
     items: [{ id: 'ITEM002', product: mockProducts[0], quantity: 1, price: 45.99 }],
     type: 'product',
@@ -1191,6 +1201,7 @@ export const mockOrders: Order[] = [
   // Additional product orders for SELLER001
   {
     id: 'ORD015',
+    listingId: mockProducts[0].id, // Reference to the parent product listing
     userId: 'USER002',
     items: [{ id: 'ITEM015', product: {...mockProducts[0], seller: productSellers[0]}, quantity: 2, price: 299.99 }],
     type: 'product',
@@ -1213,6 +1224,7 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'ORD016',
+    listingId: mockProducts[1].id, // Reference to the parent product listing
     userId: 'USER003',
     items: [{ id: 'ITEM016', product: {...mockProducts[1], seller: productSellers[0]}, quantity: 1, price: 89.99 }],
     type: 'product',
@@ -1235,6 +1247,7 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'ORD017',
+    listingId: mockProducts[2].id, // Reference to the parent product listing
     userId: 'USER004',
     items: [{ id: 'ITEM017', product: {...mockProducts[2], seller: productSellers[0]}, quantity: 1, price: 149.99 }],
     type: 'product',
@@ -1262,6 +1275,7 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'ORD018',
+    listingId: mockProducts[3].id, // Reference to the parent product listing
     userId: 'USER005',
     items: [{ id: 'ITEM018', product: {...mockProducts[3], seller: productSellers[0]}, quantity: 3, price: 25.99 }],
     type: 'product',
@@ -1288,6 +1302,7 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'ORD019',
+    listingId: mockProducts[4].id, // Reference to the parent product listing
     userId: 'USER006',
     items: [{ id: 'ITEM019', product: {...mockProducts[4], seller: productSellers[0]}, quantity: 1, price: 199.99 }],
     type: 'product',
@@ -1309,6 +1324,7 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'ORD020',
+    listingId: mockProducts[5].id, // Reference to the parent product listing
     userId: 'USER007',
     items: [{ id: 'ITEM020', product: {...mockProducts[5], seller: productSellers[0]}, quantity: 2, price: 59.99 }],
     type: 'product',
@@ -1330,6 +1346,7 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'BKG003',
+    listingId: mockServices[1].id, // Reference to the parent service listing
     userId: 'USER001',
     items: [],
     type: 'service',
@@ -1349,7 +1366,8 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'ORD004',
-    userId: 'USER001',
+    listingId: mockProducts[1].id, // Reference to the parent product listing
+    userId: 'USER002',
     items: [{ id: 'ITEM004', product: mockProducts[1], quantity: 1, price: 25.50 }],
     type: 'product',
     status: 'processing',
@@ -1362,7 +1380,8 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'BKG005',
-    userId: 'USER001',
+    listingId: mockServices[2].id, // Reference to the parent service listing
+    userId: 'USER003',
     items: [],
     type: 'service',
     service: mockServices[2],
@@ -1380,7 +1399,8 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'ORD006',
-    userId: 'USER001',
+    listingId: mockProducts[2].id, // Reference to the parent product listing
+    userId: 'USER004',
     items: [{ id: 'ITEM006', product: mockProducts[2], quantity: 2, price: 99.99 }],
     type: 'product',
     status: 'pending',
@@ -1394,7 +1414,8 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'ORD007',
-    userId: 'USER001',
+    listingId: mockProducts[3].id, // Reference to the parent product listing
+    userId: 'USER005',
     items: [{ id: 'ITEM007', product: mockProducts[3], quantity: 1, price: 149.99 }],
     type: 'product',
     status: 'processing',
@@ -1407,7 +1428,8 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'ORD008',
-    userId: 'USER001',
+    listingId: mockProducts[4].id, // Reference to the parent product listing
+    userId: 'USER006',
     items: [{ id: 'ITEM008', product: mockProducts[4], quantity: 1, price: 79.99 }],
     type: 'product',
     status: 'shipped',
@@ -1426,7 +1448,8 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'ORD009',
-    userId: 'USER001',
+    listingId: mockProducts[5].id, // Reference to the parent product listing
+    userId: 'USER007',
     items: [{ id: 'ITEM009', product: mockProducts[5], quantity: 3, price: 29.99 }],
     type: 'product',
     status: 'delivered',
@@ -1441,7 +1464,8 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'ORD010',
-    userId: 'USER001',
+    listingId: mockProducts[6].id, // Reference to the parent product listing
+    userId: 'USER008',
     items: [{ id: 'ITEM010', product: mockProducts[6], quantity: 1, price: 199.99 }],
     type: 'product',
     status: 'delivered',
@@ -1456,7 +1480,8 @@ export const mockOrders: Order[] = [
   // Additional service orders with diverse statuses
   {
     id: 'BKG011',
-    userId: 'USER001',
+    listingId: mockServices[3].id, // Reference to the parent service listing
+    userId: 'USER009',
     items: [],
     type: 'service',
     service: mockServices[3],
@@ -1474,7 +1499,8 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'BKG012',
-    userId: 'USER001',
+    listingId: mockServices[4].id, // Reference to the parent service listing
+    userId: 'USER010',
     items: [],
     type: 'service',
     service: mockServices[4],
@@ -1491,10 +1517,11 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'BKG013',
-    userId: 'USER001',
+    listingId: mockServices[5].id, // Reference to the parent service listing
+    userId: 'USER011',
     items: [],
     type: 'service',
-    service: mockServices[0],
+    service: mockServices[5],
     appointmentDate: new Date(new Date().setDate(new Date().getDate() + 5)),
     status: 'requested',
     paymentStatus: 'pending' as PaymentStatus,
@@ -1507,10 +1534,11 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'BKG014',
-    userId: 'USER001',
+    listingId: mockServices[6].id, // Reference to the parent service listing
+    userId: 'USER012',
     items: [],
     type: 'service',
-    service: mockServices[1],
+    service: mockServices[6],
     appointmentDate: new Date(new Date().setDate(new Date().getDate() - 1)),
     status: 'no_show',
     paymentStatus: 'paid' as PaymentStatus,
@@ -1524,10 +1552,11 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'BKG015',
-    userId: 'USER001',
+    listingId: mockServices[7].id, // Reference to the parent service listing
+    userId: 'USER013',
     items: [],
     type: 'service',
-    service: mockServices[2],
+    service: mockServices[7],
     appointmentDate: new Date(new Date().setDate(new Date().getDate() + 10)),
     status: 'rescheduled',
     paymentStatus: 'paid' as PaymentStatus,
@@ -1541,10 +1570,11 @@ export const mockOrders: Order[] = [
   },
   {
     id: 'BKG016',
-    userId: 'USER001',
+    listingId: mockServices[8].id, // Reference to the parent service listing
+    userId: 'USER014',
     items: [],
     type: 'service',
-    service: mockServices[1],
+    service: mockServices[8],
     appointmentDate: new Date(new Date().setHours(new Date().getHours() + 3)), // 3 hours from now - should show "Soon"
     status: 'confirmed',
     paymentStatus: 'paid' as PaymentStatus,

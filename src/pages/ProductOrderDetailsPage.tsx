@@ -39,6 +39,7 @@ interface ProductOrderDetailsPageProps {
   order: Order;
   onBack: () => void;
   userRegion?: 'US' | 'EU' | 'UK'; // For tax calculation display
+  onNavigateToProduct?: (productId: string) => void; // For buyer navigation to product details
 }
 
 interface PaymentBreakdown {
@@ -50,7 +51,7 @@ interface PaymentBreakdown {
   total: number;
 }
 
-export function ProductOrderDetailsPage({ order, onBack, userRegion = 'US' }: ProductOrderDetailsPageProps) {
+export function ProductOrderDetailsPage({ order, onBack, userRegion = 'US', onNavigateToProduct }: ProductOrderDetailsPageProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'payment' | 'activity'>('details');
   const [trackingDetailsOpen, setTrackingDetailsOpen] = useState(false);
   const [productTermsOpen, setProductTermsOpen] = useState(false);
@@ -266,10 +267,12 @@ export function ProductOrderDetailsPage({ order, onBack, userRegion = 'US' }: Pr
     // Check if product is still active/live
     const product = order.items?.[0]?.product;
     if (product && (product.status === 'active' || !product.status)) {
-      // Navigate to product details page
-      console.log('Navigate to product:', productId);
-      // This would typically call a navigation function passed as prop
-      // onNavigateToProduct?.(productId);
+      // Navigate to product details page (buyer view)
+      if (onNavigateToProduct) {
+        onNavigateToProduct(productId);
+      } else {
+        console.log('Navigate to product details:', productId);
+      }
     }
   };
 

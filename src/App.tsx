@@ -61,8 +61,58 @@ function App() {
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [orderAction, setOrderAction] = useState<string | null>(null);
   const [selectedSellerOrder, setSelectedSellerOrder] = useState<Order | null>(null);
+  const [highlightedProductId, setHighlightedProductId] = useState<string | null>(null);
   const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]);
+  
+  // State for My Shop modal (moved to App level to persist across navigation)
+  const [showMyShopModal, setShowMyShopModal] = useState(false);
+  const [selectedMyShopListing, setSelectedMyShopListing] = useState<any>(null);
   const [checkoutStep, setCheckoutStep] = useState<'auth' | 'shipping' | 'payment' | 'review'>('auth');
+
+  // Effect to handle highlighted product and show modal (moved to App level)
+  useEffect(() => {
+    if (highlightedProductId && currentPage === 'sellerDashboard_myShop') {
+      console.log('🔍 App level: Looking for highlighted product:', highlightedProductId);
+      // Find the listing in combined products and services
+      const combinedListings = [...mockServices, ...mockProducts].map(item => ({
+        id: item.id,
+        name: item.name,
+        type: item.type,
+        category: item.category,
+        price: item.price,
+        status: item.status || 'active',
+        createdAt: item.createdAt instanceof Date ? item.createdAt.toISOString() : new Date().toISOString(),
+        lastUpdated: item.createdAt instanceof Date ? item.createdAt.toISOString() : new Date().toISOString(),
+        views: item.views || 0,
+        saves: item.saves || 0,
+        orders: 0,
+        rating: 0,
+        location: item.location?.city || 'Location not specified',
+        image: item.images && item.images.length > 0 ? item.images[0] : 'https://placehold.co/100x100',
+        quantity: item.type === 'service' ? 'Unlimited' : '10'
+      }));
+      
+      console.log('📋 App level: Available listings:', combinedListings.map(l => l.id));
+      const highlightedListing = combinedListings.find(listing => listing.id === highlightedProductId);
+      console.log('✅ App level: Found listing:', highlightedListing);
+      
+      if (highlightedListing) {
+        console.log('🎯 App level: Setting modal state...');
+        setSelectedMyShopListing(highlightedListing);
+        setShowMyShopModal(true);
+        console.log('🎯 App level: Modal state set - should be showing now');
+        // Clear the highlighted product ID after showing the modal
+        setHighlightedProductId(null);
+      } else {
+        console.log('❌ App level: No listing found with ID:', highlightedProductId);
+      }
+    }
+  }, [highlightedProductId, currentPage]);
+
+  // Debug effect to track modal state changes at App level
+  useEffect(() => {
+    console.log('🔧 App level modal state changed:', { showMyShopModal, selectedMyShopListing: selectedMyShopListing?.id });
+  }, [showMyShopModal, selectedMyShopListing]);
   // Add a state to keep track if the user came from checkout
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [savedItemIds, setSavedItemIds] = useState<string[]>([]); // Initial saved items (e.g., first product)
@@ -236,6 +286,10 @@ function App() {
     if (page === 'myOrders') {
       setOrderAction(null);
       setSelectedOrder(null);
+    }
+    // Clear highlighted product ID when navigating away from My Shop
+    if (page !== 'sellerDashboard_myShop') {
+      setHighlightedProductId(null);
     }
     // Reset scroll position when navigating
     window.scrollTo(0, 0);
@@ -2227,9 +2281,7 @@ function App() {
     // State for menu dropdowns
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     
-    // State for view listing modal
-    const [showViewModal, setShowViewModal] = useState(false);
-    const [selectedViewListing, setSelectedViewListing] = useState<any>(null);
+    // Modal state is now managed at App level - no local state needed
     
     // Handle menu toggle
     const toggleMenu = (id: string) => {
@@ -2260,8 +2312,8 @@ function App() {
     // Handle view listing details in modal
     const handleViewListingDetails = (listing: any, e?: React.MouseEvent) => {
       if (e) e.stopPropagation();
-      setSelectedViewListing(listing);
-      setShowViewModal(true);
+      setSelectedMyShopListing(listing);
+      setShowMyShopModal(true);
     };
     
     // Handle view/edit listing when row is clicked
@@ -2283,6 +2335,8 @@ function App() {
       }
       return combinedListings.filter(listing => listing.type === activeTab);
     }, [activeTab, combinedListings]);
+
+    // Modal handling is now done at App level - no local useEffect needed
 
     return (
     <PlaceholderPage title="My Shop">
@@ -2848,178 +2902,7 @@ function App() {
             </div>
           </div>
           
-          {/* View Listing Modal */}
-          {showViewModal && selectedViewListing && (
-            <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
-                {/* Modal Header with Actions */}
-                <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-                  <div className="flex items-center">
-                    <h3 className="text-xl font-semibold text-[#1B1C20]">Listing Details</h3>
-                    <span className={`ml-3 px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getStatusColor(selectedViewListing.status).badge}`}>
-                      {selectedViewListing.status === 'active' ? 'Live' : selectedViewListing.status}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button 
-                      onClick={() => {
-                        setShowViewModal(false);
-                        handleEdit(selectedViewListing.id);
-                      }}
-                      className="px-3 py-1.5 text-sm font-medium rounded-md text-[#3D1560] bg-[#EDD9FF] hover:bg-[#9B53D9] hover:text-white transition-colors duration-200"
-                    >
-                      <Edit className="w-4 h-4 inline mr-1" />
-                      Edit
-                    </button>
-                    <button 
-                      className="px-3 py-1.5 text-sm font-medium rounded-md text-white bg-[#3D1560] hover:bg-[#6D26AB] transition-colors duration-200"
-                    >
-                      <ExternalLink className="w-4 h-4 inline mr-1" />
-                      View Live
-                    </button>
-                    <button 
-                      onClick={() => setShowViewModal(false)}
-                      className="ml-2 text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Modal Content - Scrollable Area */}
-                <div className="flex-1 overflow-y-auto">
-                  <div className="p-6">
-                    {/* Main Info Section */}
-                    <div className="flex flex-col lg:flex-row gap-6 mb-8">
-                      {/* Left Column - Image and Gallery */}
-                      <div className="lg:w-2/5">
-                        <div className="aspect-w-4 aspect-h-3 rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
-                          <img 
-                            src={selectedViewListing.image} 
-                            alt={selectedViewListing.name} 
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=No+Image';
-                            }}
-                          />
-                        </div>
-                        <div className="mt-3 flex justify-between">
-                          <span className="text-sm text-gray-500">Product ID: <span className="font-medium text-gray-700">{selectedViewListing.id}</span></span>
-                          <span className="text-sm text-gray-500 capitalize">{selectedViewListing.type} in <span className="font-medium text-gray-700">{selectedViewListing.category}</span></span>
-                        </div>
-                      </div>
-                      
-                      {/* Right Column - Listing Details */}
-                      <div className="lg:w-3/5">
-                        <h2 className="text-2xl font-bold text-[#1B1C20] mb-4">{selectedViewListing.name}</h2>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-6">
-                          <div>
-                            <p className="text-sm text-[#70727F] mb-1">Price</p>
-                            <p className="font-semibold text-xl text-[#1B1C20]">${selectedViewListing.price.toFixed(2)}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-[#70727F] mb-1">Available Quantity</p>
-                            <p className="font-semibold text-[#1B1C20]">{selectedViewListing.quantity}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-[#70727F] mb-1">Created</p>
-                            <p className="font-medium text-[#383A47]">{formatDate(selectedViewListing.createdAt)}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-[#70727F] mb-1">Last Updated</p>
-                            <p className="font-medium text-[#383A47]">{formatDate(selectedViewListing.lastUpdated || selectedViewListing.createdAt)}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-[#70727F] mb-1">Location</p>
-                            <p className="font-medium text-[#383A47] flex items-center">
-                              <MapPin className="w-4 h-4 mr-1 text-[#DF678C]" />
-                              {selectedViewListing.location}
-                            </p>
-                          </div>
-                          {selectedViewListing.rating > 0 && (
-                            <div>
-                              <p className="text-sm text-[#70727F] mb-1">Rating</p>
-                              <div className="flex items-center">
-                                <div className="flex">
-                                  {[...Array(5)].map((_, i) => (
-                                    <Star 
-                                      key={i} 
-                                      className={`w-4 h-4 ${i < Math.floor(selectedViewListing.rating) 
-                                        ? 'text-yellow-400 fill-current' 
-                                        : i < selectedViewListing.rating 
-                                          ? 'text-yellow-400 fill-current opacity-50' 
-                                          : 'text-gray-300'}`} 
-                                    />
-                                  ))}
-                                </div>
-                                <span className="ml-2 font-medium text-[#383A47]">{selectedViewListing.rating.toFixed(1)}</span>
-                                <span className="text-sm text-[#70727F] ml-1">({selectedViewListing.orders} reviews)</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Description placeholder */}
-                        <div className="mb-6">
-                          <p className="text-sm text-[#70727F] mb-1">Description</p>
-                          <p className="text-[#383A47]">
-                            {selectedViewListing.description || 
-                              `This ${selectedViewListing.type} offers exceptional value and quality. ${
-                                selectedViewListing.type === 'service' 
-                                  ? 'Our professional staff ensures a premium experience tailored to your needs.' 
-                                  : 'Made with premium materials and attention to detail for long-lasting use.'
-                              }`
-                            }
-                          </p>
-                        </div>
-                        
-                        {/* Tags */}
-                        <div className="mb-6">
-                          <p className="text-sm text-[#70727F] mb-2">Tags</p>
-                          <div className="flex flex-wrap gap-2">
-                            <span className="bg-[#F8F8FA] text-[#383A47] text-xs px-3 py-1 rounded-full">{selectedViewListing.category}</span>
-                            <span className="bg-[#F8F8FA] text-[#383A47] text-xs px-3 py-1 rounded-full capitalize">{selectedViewListing.type}</span>
-                            {selectedViewListing.type === 'service' && (
-                              <span className="bg-[#F8F8FA] text-[#383A47] text-xs px-3 py-1 rounded-full">Professional</span>
-                            )}
-                            {selectedViewListing.type === 'product' && (
-                              <span className="bg-[#F8F8FA] text-[#383A47] text-xs px-3 py-1 rounded-full">Premium</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Horizontal divider */}
-                    <div className="border-t border-gray-200 my-6"></div>
-                  </div>
-                </div>
-                
-                {/* Modal Footer */}
-                <div className="px-6 py-4 border-t border-gray-200 bg-[#F8F8FA] flex justify-between items-center">
-                  <div className="flex items-center space-x-2">
-                    <button className="px-3 py-1.5 text-sm rounded-md text-[#383A47] hover:bg-[#E8E9ED] border border-[#CDCED8] transition-colors">
-                      <Archive className="w-4 h-4 inline mr-1" />
-                      {selectedViewListing.status === 'active' ? 'Deactivate' : 'Activate'}
-                    </button>
-                    <button className="px-3 py-1.5 text-sm rounded-md text-red-600 hover:bg-red-50 border border-red-200 transition-colors">
-                      <Trash2 className="w-4 h-4 inline mr-1" />
-                      Delete
-                    </button>
-                  </div>
-                  <div>
-                    <button 
-                      onClick={() => setShowViewModal(false)}
-                      className="px-4 py-1.5 text-sm font-medium rounded-md text-[#383A47] hover:bg-[#E8E9ED] border border-[#CDCED8] transition-colors"
-                    >
-                      Close
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Modal is now rendered at App level */}
       </div>
     </PlaceholderPage>
   );
@@ -4537,6 +4420,15 @@ function App() {
                   order={order}
                   onBack={handleBackToOrders}
                   userRegion="US" // This could be dynamic based on user location
+                  onNavigateToProduct={(productId) => {
+                    console.log('Navigate to product details:', productId);
+                    // For buyer view, navigate to regular product details page
+                    const product = mockProducts.find(p => p.id === productId);
+                    if (product) {
+                      setSelectedListing(product);
+                      setCurrentPage('productDetails');
+                    }
+                  }}
                 />
               );
             }
@@ -4591,6 +4483,15 @@ function App() {
           <SellerOrderDetailsPage 
             order={selectedSellerOrder}
             onBack={handleBackToSellerOrders}
+            onNavigateToListing={(listingId) => {
+              console.log('🚀 Navigate to listing:', listingId);
+              // Set the product to highlight and show details for
+              setHighlightedProductId(listingId);
+              console.log('🎯 Set highlightedProductId to:', listingId);
+              // Navigate to seller dashboard My Shop section
+              setCurrentPage('sellerDashboard_myShop');
+              console.log('📍 Navigated to sellerDashboard_myShop');
+            }}
           />
         )}
 
@@ -4981,6 +4882,158 @@ function App() {
             onListingSelect={handleListingSelect}
             onBack={() => handleNavigate('profile')}
           />
+        )}
+
+        {/* My Shop Modal - Rendered at App level to persist across navigation */}
+        {showMyShopModal && selectedMyShopListing && (
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+              {/* Modal Header with Actions */}
+              <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
+                <div className="flex items-center">
+                  <h3 className="text-xl font-semibold text-[#1B1C20]">Listing Details</h3>
+                  <span className={`ml-3 px-2.5 py-0.5 rounded-full text-xs font-medium capitalize bg-[#E8F5E9] text-[#4CAF50]`}>
+                    {selectedMyShopListing.status === 'active' ? 'Live' : selectedMyShopListing.status}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button 
+                    onClick={() => {
+                      setShowMyShopModal(false);
+                      // Handle edit navigation if needed
+                    }}
+                    className="px-3 py-1.5 text-sm font-medium rounded-md text-[#3D1560] bg-[#EDD9FF] hover:bg-[#9B53D9] hover:text-white transition-colors duration-200"
+                  >
+                    <Edit className="w-4 h-4 inline mr-1" />
+                    Edit
+                  </button>
+                  <button 
+                    className="px-3 py-1.5 text-sm font-medium rounded-md text-white bg-[#3D1560] hover:bg-[#6D26AB] transition-colors duration-200"
+                  >
+                    <ExternalLink className="w-4 h-4 inline mr-1" />
+                    View Live
+                  </button>
+                  <button 
+                    onClick={() => setShowMyShopModal(false)}
+                    className="ml-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+              
+              {/* Modal Content - Scrollable Area */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="p-6">
+                  {/* Main Info Section */}
+                  <div className="flex flex-col lg:flex-row gap-6 mb-8">
+                    {/* Left Column - Image and Gallery */}
+                    <div className="lg:w-2/5">
+                      <div className="aspect-w-4 aspect-h-3 rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
+                        <img 
+                          src={selectedMyShopListing.image} 
+                          alt={selectedMyShopListing.name} 
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=No+Image';
+                          }}
+                        />
+                      </div>
+                      <div className="mt-3 flex justify-between">
+                        <span className="text-sm text-gray-500">Product ID: <span className="font-medium text-gray-700">{selectedMyShopListing.id}</span></span>
+                        <span className="text-sm text-gray-500 capitalize">{selectedMyShopListing.type} in <span className="font-medium text-gray-700">{selectedMyShopListing.category}</span></span>
+                      </div>
+                    </div>
+                    
+                    {/* Right Column - Listing Details */}
+                    <div className="lg:w-3/5">
+                      <h2 className="text-2xl font-bold text-[#1B1C20] mb-4">{selectedMyShopListing.name}</h2>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-6">
+                        <div>
+                          <p className="text-sm text-[#70727F] mb-1">Price</p>
+                          <p className="font-semibold text-xl text-[#1B1C20]">${selectedMyShopListing.price.toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-[#70727F] mb-1">Available Quantity</p>
+                          <p className="font-semibold text-[#1B1C20]">{selectedMyShopListing.quantity}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-[#70727F] mb-1">Created</p>
+                          <p className="font-medium text-[#383A47]">{new Date(selectedMyShopListing.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-[#70727F] mb-1">Last Updated</p>
+                          <p className="font-medium text-[#383A47]">{new Date(selectedMyShopListing.lastUpdated || selectedMyShopListing.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-[#70727F] mb-1">Location</p>
+                          <p className="font-medium text-[#383A47] flex items-center">
+                            <MapPin className="w-4 h-4 mr-1 text-[#DF678C]" />
+                            {selectedMyShopListing.location}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Description placeholder */}
+                      <div className="mb-6">
+                        <p className="text-sm text-[#70727F] mb-1">Description</p>
+                        <p className="text-[#383A47]">
+                          {selectedMyShopListing.description || 
+                            `This ${selectedMyShopListing.type} offers exceptional value and quality. ${
+                              selectedMyShopListing.type === 'service' 
+                                ? 'Our professional staff ensures a premium experience tailored to your needs.' 
+                                : 'Made with premium materials and attention to detail for long-lasting use.'
+                            }`
+                          }
+                        </p>
+                      </div>
+                      
+                      {/* Tags */}
+                      <div className="mb-6">
+                        <p className="text-sm text-[#70727F] mb-2">Tags</p>
+                        <div className="flex flex-wrap gap-2">
+                          <span className="bg-[#F8F8FA] text-[#383A47] text-xs px-3 py-1 rounded-full">{selectedMyShopListing.category}</span>
+                          <span className="bg-[#F8F8FA] text-[#383A47] text-xs px-3 py-1 rounded-full capitalize">{selectedMyShopListing.type}</span>
+                          {selectedMyShopListing.type === 'service' && (
+                            <span className="bg-[#F8F8FA] text-[#383A47] text-xs px-3 py-1 rounded-full">Professional</span>
+                          )}
+                          {selectedMyShopListing.type === 'product' && (
+                            <span className="bg-[#F8F8FA] text-[#383A47] text-xs px-3 py-1 rounded-full">Premium</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Horizontal divider */}
+                  <div className="border-t border-gray-200 my-6"></div>
+                </div>
+              </div>
+              
+              {/* Modal Footer */}
+              <div className="px-6 py-4 border-t border-gray-200 bg-[#F8F8FA] flex justify-between items-center">
+                <div className="flex items-center space-x-2">
+                  <button className="px-3 py-1.5 text-sm rounded-md text-[#383A47] hover:bg-[#E8E9ED] border border-[#CDCED8] transition-colors">
+                    <Archive className="w-4 h-4 inline mr-1" />
+                    {selectedMyShopListing.status === 'active' ? 'Deactivate' : 'Activate'}
+                  </button>
+                  <button className="px-3 py-1.5 text-sm rounded-md text-red-600 hover:bg-red-50 border border-red-200 transition-colors">
+                    <Trash2 className="w-4 h-4 inline mr-1" />
+                    Delete
+                  </button>
+                </div>
+                <div>
+                  <button 
+                    onClick={() => setShowMyShopModal(false)}
+                    className="px-4 py-1.5 text-sm font-medium rounded-md text-[#383A47] hover:bg-[#E8E9ED] border border-[#CDCED8] transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

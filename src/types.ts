@@ -313,6 +313,7 @@ export interface ActivityLogEntry {
 
 export interface Order {
   id: string;
+  listingId: string; // Reference to the parent listing that was ordered/booked
   userId: string;
   type: 'product' | 'service';
   status: OrderStatus;

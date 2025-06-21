@@ -43,6 +43,7 @@ import { OrderStatusTimeline } from '../components/OrderStatusTimeline';
 interface SellerOrderDetailsPageProps {
   order: Order;
   onBack: () => void;
+  onNavigateToListing?: (productId: string) => void;
 }
 
 interface SellerPaymentBreakdown {
@@ -286,7 +287,7 @@ const AddNotesModal: React.FC<AddNotesModalProps> = ({
   );
 };
 
-export function SellerOrderDetailsPage({ order, onBack }: SellerOrderDetailsPageProps) {
+export function SellerOrderDetailsPage({ order, onBack, onNavigateToListing }: SellerOrderDetailsPageProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'earnings' | 'activity'>('details');
   const [trackingDetailsOpen, setTrackingDetailsOpen] = useState(false);
   const [addTrackingOpen, setAddTrackingOpen] = useState(false);
@@ -299,6 +300,7 @@ export function SellerOrderDetailsPage({ order, onBack }: SellerOrderDetailsPage
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [notesExpanded, setNotesExpanded] = useState(false);
+  const [addedNotes, setAddedNotes] = useState<Array<{id: number, note: string, timestamp: Date}>>([]);
 
   // Enhanced seller payment breakdown with comprehensive fee structure
   const calculateSellerPaymentBreakdown = (): SellerPaymentBreakdown => {
@@ -586,6 +588,18 @@ export function SellerOrderDetailsPage({ order, onBack }: SellerOrderDetailsPage
       });
     }
 
+    // Add notes activities
+    addedNotes.forEach((noteEntry, index) => {
+      baseActivities.push({
+        id: 100 + noteEntry.id, // Ensure unique IDs
+        type: 'note_added',
+        title: 'Order Note Added',
+        description: noteEntry.note,
+        timestamp: noteEntry.timestamp,
+        icon: Info
+      });
+    });
+
     return baseActivities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   };
 
@@ -670,7 +684,14 @@ export function SellerOrderDetailsPage({ order, onBack }: SellerOrderDetailsPage
 
   const handleAddNotes = () => {
     if (notes.trim()) {
-      console.log('Add notes:', { orderId: order.id, notes });
+      const newNote = {
+        id: Date.now(), // Simple ID generation
+        note: notes.trim(),
+        timestamp: new Date()
+      };
+      
+      setAddedNotes(prev => [...prev, newNote]);
+      console.log('Add notes:', { orderId: order.id, notes: notes.trim() });
       setAddNotesOpen(false);
       setNotes('');
     }
@@ -783,7 +804,17 @@ export function SellerOrderDetailsPage({ order, onBack }: SellerOrderDetailsPage
                           <div key={index} className="bg-[#F8F8FA] rounded-lg p-4 border border-[#CDCED8]">
                             <div className="flex gap-4">
                               {item.product.images && item.product.images.length > 0 && (
-                                <div className="w-20 h-20 rounded-lg overflow-hidden border border-[#CDCED8] flex-shrink-0">
+                                <div 
+                                  className="w-20 h-20 rounded-lg overflow-hidden border border-[#CDCED8] flex-shrink-0 cursor-pointer hover:opacity-80 hover:border-[#3D1560] transition-all duration-200"
+                                  onClick={() => {
+                                    if (order.listingId && onNavigateToListing) {
+                                      onNavigateToListing(order.listingId);
+                                    } else {
+                                      console.log('Navigate to listing details:', order.listingId);
+                                    }
+                                  }}
+                                  title="View listing details"
+                                >
                                   <img 
                                     src={item.product.images[0]} 
                                     alt={item.product.name}
@@ -793,12 +824,29 @@ export function SellerOrderDetailsPage({ order, onBack }: SellerOrderDetailsPage
                               )}
                               <div className="flex-1">
                                 <div className="flex items-start justify-between mb-2">
-                                  <h4 className="text-lg font-semibold text-[#1B1C20]">
+                                  <h4 
+                                    className="text-lg font-semibold text-[#3D1560] cursor-pointer hover:text-[#6D26AB] transition-colors duration-200"
+                                    onClick={() => {
+                                      if (order.listingId && onNavigateToListing) {
+                                        onNavigateToListing(order.listingId);
+                                      } else {
+                                        console.log('Navigate to listing details:', order.listingId);
+                                      }
+                                    }}
+                                    title="View listing details"
+                                  >
                                     {item.product.name}
                                   </h4>
                                   <button
-                                    onClick={() => console.log('Edit listing')}
+                                    onClick={() => {
+                                      if (order.listingId && onNavigateToListing) {
+                                        onNavigateToListing(order.listingId);
+                                      } else {
+                                        console.log('Navigate to edit listing for:', order.listingId);
+                                      }
+                                    }}
                                     className="text-[#3D1560] hover:text-[#6D26AB] p-1 rounded"
+                                    title="Edit listing"
                                   >
                                     <Edit className="w-4 h-4" />
                                   </button>
@@ -1174,7 +1222,13 @@ export function SellerOrderDetailsPage({ order, onBack }: SellerOrderDetailsPage
                     </button>
                   )}
                   <button
-                    onClick={() => console.log('View order analytics')}
+                    onClick={() => {
+                      if (order.listingId && onNavigateToListing) {
+                        onNavigateToListing(order.listingId);
+                      } else {
+                        console.log('Navigate to listing performance for:', order.listingId);
+                      }
+                    }}
                     className="w-full flex items-center gap-2 text-[#3D1560] hover:text-[#6D26AB] hover:bg-[#EDD9FF] transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium"
                   >
                     <Eye className="w-4 h-4" />
