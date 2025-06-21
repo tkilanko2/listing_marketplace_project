@@ -15,7 +15,8 @@ export function Sidebar({ onNavigate, currentPage }: SidebarProps) {
       { id: 'sellerDashboard_myShop', label: 'My Shop', icon: Store },
       { id: 'sellerDashboard_orders', label: 'Orders', icon: Package },
       { id: 'sellerDashboard_appointments', label: 'Bookings', icon: Calendar },
-      { id: 'sellerDashboard_finance', label: 'Finance', icon: DollarSign }
+      { id: 'sellerDashboard_finance', label: 'Finance', icon: DollarSign },
+      { id: 'sellerDashboard_settings', label: 'Settings', icon: Settings }
     ]},
     { id: 'settings', label: 'Settings', icon: Settings }
   ];

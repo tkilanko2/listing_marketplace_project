@@ -15,7 +15,7 @@ import SavedItemsPage from './pages/SavedItemsPage';
 import { mockServices, mockProducts, mockListings, mockOrders, createBooking, mockBookings, getBookingsForProvider, getAllOrdersWithBookings } from './mockData';
 import { Sidebar } from './components/Sidebar';
 import { Navbar } from './components/Navbar';
-import { Service, Product, ListingItem, ServiceProvider, Order, OrderActionType, Appointment } from './types';
+import { Service, Product, ListingItem, ServiceProvider, Order, OrderActionType, Appointment, OrderItem } from './types';
 import { CartItem } from './context/CartContext';
 import { CartPage } from './pages/CartPage';
 import { ShippingInfoPage } from './pages/ShippingInfoPage';
@@ -1345,7 +1345,7 @@ function App() {
                   <>
                     <span>•</span>
                     <span className="text-[10px]">
-                      Qty: {order.items.reduce((total, item) => total + (item.quantity || 1), 0)}
+                      Qty: {order.items.reduce((total: number, item: OrderItem) => total + (item.quantity || 1), 0)}
                     </span>
                   </>
                 )}
@@ -3478,6 +3478,277 @@ function App() {
     </PlaceholderPage>
   );
 
+  // Seller Dashboard Settings placeholder
+  const SellerDashboardSettings = () => (
+    <PlaceholderPage title="Seller Settings">
+      <div className="space-y-8">
+        {/* Account Management Section */}
+        <div className="bg-white rounded-lg shadow-lg border border-[#E8E9ED]">
+          <div className="px-6 py-4 border-b border-[#E8E9ED]">
+            <h2 className="text-xl font-semibold text-[#1B1C20] flex items-center">
+              <Settings className="h-5 w-5 mr-2 text-[#3D1560]" />
+              Account Management
+            </h2>
+            <p className="text-sm text-[#70727F] mt-1">Configure global seller settings and automation</p>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Auto Confirm Bookings */}
+              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-md font-medium text-[#383A47]">Auto-Confirm Bookings</h3>
+                  <label htmlFor="auto-bookings" className="flex items-center cursor-pointer">
+                    <div className="relative">
+                      <input type="checkbox" id="auto-bookings" className="sr-only peer" />
+                      <div className="block bg-[#E8E9ED] w-12 h-6 rounded-full peer-checked:bg-[#3D1560]"></div>
+                      <div className="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out transform peer-checked:translate-x-full"></div>
+                    </div>
+                  </label>
+                </div>
+                <p className="text-sm text-[#70727F]">Automatically confirm service bookings without manual approval</p>
+              </div>
+
+              {/* Auto Confirm Orders */}
+              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-md font-medium text-[#383A47]">Auto-Confirm Orders</h3>
+                  <label htmlFor="auto-orders" className="flex items-center cursor-pointer">
+                    <div className="relative">
+                      <input type="checkbox" id="auto-orders" className="sr-only peer" defaultChecked />
+                      <div className="block bg-[#E8E9ED] w-12 h-6 rounded-full peer-checked:bg-[#3D1560]"></div>
+                      <div className="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out transform peer-checked:translate-x-full"></div>
+                    </div>
+                  </label>
+                </div>
+                <p className="text-sm text-[#70727F]">Automatically process product orders when payment is received</p>
+              </div>
+
+              {/* Global Seller Policy */}
+              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED] md:col-span-2">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-md font-medium text-[#383A47]">Global Seller Policy</h3>
+                  <button 
+                    onClick={() => alert('Configure Global Seller Policy (Coming Soon)')}
+                    className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                  >
+                    Configure
+                  </button>
+                </div>
+                <p className="text-sm text-[#70727F]">Set default cancellation, refund, and service policies for all listings</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Business Profile & KYC Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Business Profile */}
+          <div className="bg-white rounded-lg shadow-lg border border-[#E8E9ED]">
+            <div className="px-6 py-4 border-b border-[#E8E9ED]">
+              <h2 className="text-xl font-semibold text-[#1B1C20] flex items-center">
+                <Store className="h-5 w-5 mr-2 text-[#3D1560]" />
+                Business Profile
+              </h2>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-md font-medium text-[#383A47]">Business Information</h3>
+                    <p className="text-sm text-[#70727F]">Company details, tax info, and legal structure</p>
+                  </div>
+                  <span className="px-2 py-1 text-xs bg-[#FFE5ED] text-[#DF678C] rounded-full">Incomplete</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-md font-medium text-[#383A47]">Business Address</h3>
+                    <p className="text-sm text-[#70727F]">Primary business location and contact details</p>
+                  </div>
+                  <span className="px-2 py-1 text-xs bg-[#E8F5E9] text-[#4CAF50] rounded-full">Complete</span>
+                </div>
+                <button
+                  onClick={() => alert('Manage Business Profile (Coming Soon)')}
+                  className="w-full text-sm text-white bg-[#3D1560] hover:bg-[#6D26AB] py-2 px-4 rounded-lg transition-colors"
+                >
+                  Manage Profile
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* KYC Verification */}
+          <div className="bg-white rounded-lg shadow-lg border border-[#E8E9ED]">
+            <div className="px-6 py-4 border-b border-[#E8E9ED]">
+              <h2 className="text-xl font-semibold text-[#1B1C20] flex items-center">
+                <Shield className="h-5 w-5 mr-2 text-[#3D1560]" />
+                KYC Verification
+              </h2>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-md font-medium text-[#383A47]">Identity Verification</h3>
+                    <p className="text-sm text-[#70727F]">Government-issued ID verification</p>
+                  </div>
+                  <span className="px-2 py-1 text-xs bg-[#E8F5E9] text-[#4CAF50] rounded-full">Verified</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-md font-medium text-[#383A47]">Business Verification</h3>
+                    <p className="text-sm text-[#70727F]">Business license and registration documents</p>
+                  </div>
+                  <span className="px-2 py-1 text-xs bg-[#FFF8DD] text-[#DAA520] rounded-full">Pending</span>
+                </div>
+                <button
+                  onClick={() => alert('Complete KYC Verification (Coming Soon)')}
+                  className="w-full text-sm text-white bg-[#3D1560] hover:bg-[#6D26AB] py-2 px-4 rounded-lg transition-colors"
+                >
+                  Complete Verification
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Integrations Section */}
+        <div className="bg-white rounded-lg shadow-lg border border-[#E8E9ED]">
+          <div className="px-6 py-4 border-b border-[#E8E9ED]">
+            <h2 className="text-xl font-semibold text-[#1B1C20] flex items-center">
+              <Package className="h-5 w-5 mr-2 text-[#3D1560]" />
+              Integrations
+            </h2>
+            <p className="text-sm text-[#70727F] mt-1">Connect external services to enhance your business</p>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* AI Features */}
+              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED] text-center">
+                <div className="w-12 h-12 bg-[#EDD9FF] rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Zap className="h-6 w-6 text-[#3D1560]" />
+                </div>
+                <h3 className="text-md font-medium text-[#383A47] mb-2">AI Features</h3>
+                <p className="text-xs text-[#70727F] mb-3">Smart pricing, automated responses, content generation</p>
+                <div className="flex items-center justify-center mb-2">
+                  <span className="px-2 py-1 text-xs bg-[#FFE5ED] text-[#DF678C] rounded-full">Not Connected</span>
+                </div>
+                <button
+                  onClick={() => alert('Connect AI Features (Coming Soon)')}
+                  className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                >
+                  Connect
+                </button>
+              </div>
+
+              {/* Calendar Integration */}
+              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED] text-center">
+                <div className="w-12 h-12 bg-[#EDD9FF] rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Calendar className="h-6 w-6 text-[#3D1560]" />
+                </div>
+                <h3 className="text-md font-medium text-[#383A47] mb-2">Calendar</h3>
+                <p className="text-xs text-[#70727F] mb-3">Google Calendar, Outlook sync for bookings</p>
+                <div className="flex items-center justify-center mb-2">
+                  <span className="px-2 py-1 text-xs bg-[#E8F5E9] text-[#4CAF50] rounded-full">Connected</span>
+                </div>
+                <button
+                  onClick={() => alert('Manage Calendar Integration (Coming Soon)')}
+                  className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                >
+                  Manage
+                </button>
+              </div>
+
+              {/* Shipping Integration */}
+              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED] text-center">
+                <div className="w-12 h-12 bg-[#EDD9FF] rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Package className="h-6 w-6 text-[#3D1560]" />
+                </div>
+                <h3 className="text-md font-medium text-[#383A47] mb-2">Shipping</h3>
+                <p className="text-xs text-[#70727F] mb-3">FedEx, UPS, USPS integration for order fulfillment</p>
+                <div className="flex items-center justify-center mb-2">
+                  <span className="px-2 py-1 text-xs bg-[#FFF8DD] text-[#DAA520] rounded-full">Partial</span>
+                </div>
+                <button
+                  onClick={() => alert('Configure Shipping (Coming Soon)')}
+                  className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                >
+                  Configure
+                </button>
+              </div>
+
+              {/* Accounting Integration */}
+              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED] text-center">
+                <div className="w-12 h-12 bg-[#EDD9FF] rounded-full flex items-center justify-center mx-auto mb-3">
+                  <DollarSign className="h-6 w-6 text-[#3D1560]" />
+                </div>
+                <h3 className="text-md font-medium text-[#383A47] mb-2">Accounting</h3>
+                <p className="text-xs text-[#70727F] mb-3">QuickBooks, Xero sync for financial tracking</p>
+                <div className="flex items-center justify-center mb-2">
+                  <span className="px-2 py-1 text-xs bg-[#FFE5ED] text-[#DF678C] rounded-full">Not Connected</span>
+                </div>
+                <button
+                  onClick={() => alert('Connect Accounting (Coming Soon)')}
+                  className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                >
+                  Connect
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Payment & Payouts Section */}
+        <div className="bg-white rounded-lg shadow-lg border border-[#E8E9ED]">
+          <div className="px-6 py-4 border-b border-[#E8E9ED]">
+            <h2 className="text-xl font-semibold text-[#1B1C20] flex items-center">
+              <Wallet className="h-5 w-5 mr-2 text-[#3D1560]" />
+              Payment & Payouts
+            </h2>
+            <p className="text-sm text-[#70727F] mt-1">Manage how you receive payments from customers</p>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
+                <h3 className="text-md font-medium text-[#383A47] mb-2">Bank Account</h3>
+                <p className="text-sm text-[#70727F] mb-3">Primary account for receiving payouts</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-[#70727F]">****1234</span>
+                  <span className="px-2 py-1 text-xs bg-[#E8F5E9] text-[#4CAF50] rounded-full">Active</span>
+                </div>
+              </div>
+              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
+                <h3 className="text-md font-medium text-[#383A47] mb-2">Payout Schedule</h3>
+                <p className="text-sm text-[#70727F] mb-3">How often you receive payments</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-[#383A47] font-medium">Weekly</span>
+                  <button 
+                    onClick={() => alert('Change Payout Schedule (Coming Soon)')}
+                    className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                  >
+                    Change
+                  </button>
+                </div>
+              </div>
+              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
+                <h3 className="text-md font-medium text-[#383A47] mb-2">Tax Information</h3>
+                <p className="text-sm text-[#70727F] mb-3">W-9, tax ID, and reporting settings</p>
+                <div className="flex items-center justify-between">
+                  <span className="px-2 py-1 text-xs bg-[#FFF8DD] text-[#DAA520] rounded-full">Incomplete</span>
+                  <button 
+                    onClick={() => alert('Complete Tax Info (Coming Soon)')}
+                    className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                  >
+                    Complete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </PlaceholderPage>
+  );
+
   // Mock data for saved items
   const savedItems = [
     { id: 1, name: 'Product 1', description: 'Description for product 1', image: 'https://via.placeholder.com/150' },
@@ -4352,6 +4623,10 @@ function App() {
 
         {currentPage === 'sellerDashboard_finance' && (
           <SellerDashboardFinance />
+        )}
+
+        {currentPage === 'sellerDashboard_settings' && (
+          <SellerDashboardSettings />
         )}
 
         {currentPage === 'settings' && (
