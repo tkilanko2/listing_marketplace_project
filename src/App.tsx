@@ -12,7 +12,9 @@ import { MyOrdersPage } from './pages/MyOrdersPage';
 import { ProductOrderDetailsPage } from './pages/ProductOrderDetailsPage';
 import RecentlyViewedPage from './pages/RecentlyViewedPage';
 import SavedItemsPage from './pages/SavedItemsPage';
-import { mockServices, mockProducts, mockListings, mockOrders, createBooking, mockBookings, getBookingsForProvider, getAllOrdersWithBookings } from './mockData';
+import { mockServices, mockProducts, mockListings, mockOrders, createBooking, mockBookings, getBookingsForProvider, getAllOrdersWithBookings, getOrdersForSeller } from './mockData';
+import { SellerOrdersPage } from './pages/SellerOrdersPage';
+import { SellerOrderDetailsPage } from './pages/SellerOrderDetailsPage';
 import { Sidebar } from './components/Sidebar';
 import { Navbar } from './components/Navbar';
 import { Service, Product, ListingItem, ServiceProvider, Order, OrderActionType, Appointment, OrderItem } from './types';
@@ -58,6 +60,7 @@ function App() {
   } | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [orderAction, setOrderAction] = useState<string | null>(null);
+  const [selectedSellerOrder, setSelectedSellerOrder] = useState<Order | null>(null);
   const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]);
   const [checkoutStep, setCheckoutStep] = useState<'auth' | 'shipping' | 'payment' | 'review'>('auth');
   // Add a state to keep track if the user came from checkout
@@ -3022,60 +3025,27 @@ function App() {
   );
   };
 
-  // Seller Dashboard Orders placeholder
+  // Handle seller order details view
+  const handleSellerOrderDetails = (orderId: string) => {
+    const allOrders = getOrdersForSeller('SELLER001');
+    const order = allOrders.find(o => o.id === orderId);
+    if (order) {
+      setSelectedSellerOrder(order);
+      setCurrentPage('sellerOrderDetails');
+    }
+  };
+
+  const handleBackToSellerOrders = () => {
+    setSelectedSellerOrder(null);
+    setCurrentPage('sellerDashboard_orders');
+  };
+
+  // Seller Dashboard Orders - Enhanced with comprehensive order management
   const SellerDashboardOrders = () => (
-    <PlaceholderPage title="Orders">
-      <div className="mb-6 flex justify-between items-center">
-        <div>
-          <select className="border border-gray-300 rounded-md px-3 py-2 mr-2">
-            <option>All Orders</option>
-            <option>Pending</option>
-            <option>Completed</option>
-            <option>Cancelled</option>
-          </select>
-          <button className="border border-gray-300 rounded-md px-3 py-2">Filter</button>
-        </div>
-        <div>
-          <input type="text" placeholder="Search orders..." className="border border-gray-300 rounded-md px-3 py-2" />
-        </div>
-      </div>
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            <tr>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#ORD-1234</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Order Item Placeholder</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Apr 12, 2023</td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">Processing</span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$99.99</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 hover:text-blue-900">View Details</td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#ORD-1235</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Order Item Placeholder</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Apr 10, 2023</td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Shipped</span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$149.99</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 hover:text-blue-900">View Details</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </PlaceholderPage>
+    <SellerOrdersPage 
+      onBack={() => setCurrentPage('sellerDashboard')}
+      onViewOrderDetails={handleSellerOrderDetails}
+    />
   );
 
   // Seller Dashboard Appointments
@@ -4615,6 +4585,13 @@ function App() {
 
         {currentPage === 'sellerDashboard_orders' && (
           <SellerDashboardOrders />
+        )}
+
+        {currentPage === 'sellerOrderDetails' && selectedSellerOrder && (
+          <SellerOrderDetailsPage 
+            order={selectedSellerOrder}
+            onBack={handleBackToSellerOrders}
+          />
         )}
 
         {currentPage === 'sellerDashboard_appointments' && (

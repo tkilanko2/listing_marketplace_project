@@ -1188,6 +1188,146 @@ export const mockOrders: Order[] = [
       { label: 'View Details', handler: () => console.log('View details of order ORD002'), type: 'reorder' }
     ] as unknown as OrderActionType[]
   },
+  // Additional product orders for SELLER001
+  {
+    id: 'ORD015',
+    userId: 'USER002',
+    items: [{ id: 'ITEM015', product: {...mockProducts[0], seller: productSellers[0]}, quantity: 2, price: 299.99 }],
+    type: 'product',
+    status: 'pending',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 1)),
+    totalAmount: 599.98,
+    shippingAddress: {
+      name: 'John Smith',
+      street: '123 Main Street',
+      city: 'New York',
+      state: 'NY',
+      zipCode: '10001',
+      country: 'USA'
+    },
+    actions: [
+      { label: 'Accept', handler: () => console.log('Accept order ORD015'), type: 'accept' },
+      { label: 'Decline', handler: () => console.log('Decline order ORD015'), type: 'decline' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'ORD016',
+    userId: 'USER003',
+    items: [{ id: 'ITEM016', product: {...mockProducts[1], seller: productSellers[0]}, quantity: 1, price: 89.99 }],
+    type: 'product',
+    status: 'processing',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 3)),
+    totalAmount: 89.99,
+    shippingAddress: {
+      name: 'Sarah Johnson',
+      street: '456 Oak Avenue',
+      city: 'San Francisco',
+      state: 'CA',
+      zipCode: '94102',
+      country: 'USA'
+    },
+    actions: [
+      { label: 'Add Tracking', handler: () => console.log('Add tracking for order ORD016'), type: 'add_tracking' },
+      { label: 'Mark Shipped', handler: () => console.log('Mark shipped order ORD016'), type: 'mark_shipped' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'ORD017',
+    userId: 'USER004',
+    items: [{ id: 'ITEM017', product: {...mockProducts[2], seller: productSellers[0]}, quantity: 1, price: 149.99 }],
+    type: 'product',
+    status: 'shipped',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 7)),
+    totalAmount: 149.99,
+    trackingInfo: {
+      carrier: 'FedEx',
+      trackingNumber: 'FDX789012345',
+      estimatedDelivery: new Date(new Date().setDate(new Date().getDate() + 1))
+    },
+    shippingAddress: {
+      name: 'Michael Brown',
+      street: '789 Pine Street',
+      city: 'Chicago',
+      state: 'IL',
+      zipCode: '60601',
+      country: 'USA'
+    },
+    actions: [
+      { label: 'Mark Delivered', handler: () => console.log('Mark delivered order ORD017'), type: 'mark_delivered' },
+      { label: 'View Tracking', handler: () => console.log('View tracking for order ORD017'), type: 'view_tracking' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'ORD018',
+    userId: 'USER005',
+    items: [{ id: 'ITEM018', product: {...mockProducts[3], seller: productSellers[0]}, quantity: 3, price: 25.99 }],
+    type: 'product',
+    status: 'delivered',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 14)),
+    totalAmount: 77.97,
+    trackingInfo: {
+      carrier: 'UPS',
+      trackingNumber: 'UPS123456789',
+      estimatedDelivery: new Date(new Date().setDate(new Date().getDate() - 2))
+    },
+    shippingAddress: {
+      name: 'Emma Davis',
+      street: '321 Elm Drive',
+      city: 'Austin',
+      state: 'TX',
+      zipCode: '78701',
+      country: 'USA'
+    },
+    actions: [
+      { label: 'Contact Customer', handler: () => console.log('Contact customer for order ORD018'), type: 'contact_customer' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'ORD019',
+    userId: 'USER006',
+    items: [{ id: 'ITEM019', product: {...mockProducts[4], seller: productSellers[0]}, quantity: 1, price: 199.99 }],
+    type: 'product',
+    status: 'returned',
+    paymentStatus: 'refunded' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 21)),
+    totalAmount: 199.99,
+    shippingAddress: {
+      name: 'Robert Wilson',
+      street: '654 Maple Lane',
+      city: 'Denver',
+      state: 'CO',
+      zipCode: '80202',
+      country: 'USA'
+    },
+    actions: [
+      { label: 'Process Return', handler: () => console.log('Process return for order ORD019'), type: 'process_return' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'ORD020',
+    userId: 'USER007',
+    items: [{ id: 'ITEM020', product: {...mockProducts[5], seller: productSellers[0]}, quantity: 2, price: 59.99 }],
+    type: 'product',
+    status: 'cancelled',
+    paymentStatus: 'refunded' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 2)),
+    totalAmount: 119.98,
+    shippingAddress: {
+      name: 'Lisa Anderson',
+      street: '987 Cedar Court',
+      city: 'Seattle',
+      state: 'WA',
+      zipCode: '98101',
+      country: 'USA'
+    },
+    actions: [
+      { label: 'View Cancellation', handler: () => console.log('View cancellation for order ORD020'), type: 'view_cancellation' }
+    ] as unknown as OrderActionType[]
+  },
   {
     id: 'BKG003',
     userId: 'USER001',
@@ -1531,4 +1671,14 @@ export function getAllOrdersWithBookings(): any[] {
   const allOrders = [...mockOrders, ...convertedBookings];
   
   return allOrders.sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
+}
+
+// Helper function to get orders for a specific seller
+export function getOrdersForSeller(sellerId: string): any[] {
+  const allOrders = getAllOrdersWithBookings();
+  return allOrders.filter(order => 
+    order.type === 'product' && 
+    order.items && 
+    order.items.some((item: any) => item.product.seller.id === sellerId)
+  );
 }
