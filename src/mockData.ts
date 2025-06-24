@@ -1,13 +1,69 @@
 import { Service, Product, ListingItem, Order, OrderActionType, PaymentStatus, ProductSeller } from './types';
 
-// Helper function to generate provider usernames
+// Helper function to generate provider usernames (real names)
 function generateProviderUsername(): string {
+  const firstNames = ['John', 'Sarah', 'Michael', 'Emma', 'David', 'Lisa', 'James', 'Maria', 'Robert', 'Jessica', 'William', 'Ashley', 'Christopher', 'Amanda', 'Daniel'];
+  const lastNames = ['Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas'];
+  
+  const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+  const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+  
+  return `${firstName} ${lastName}`;
+}
+
+// Helper function to generate provider IDs (CM + random characters)
+function generateProviderId(): string {
   const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
   let result = 'CM';
   for (let i = 0; i < 10; i++) {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
   }
   return result;
+}
+
+// Auto-generate realistic service addresses
+function generateServiceAddress(serviceMode: 'at_seller' | 'at_buyer' | 'remote', city: string, serviceType?: string): string {
+  if (serviceMode === 'remote') {
+    return 'Remote';
+  }
+
+  const businessTypes: Record<string, string[]> = {
+    'Beauty & Wellness': ['Salon', 'Spa', 'Studio', 'Wellness Center', 'Beauty Studio'],
+    'Home Services': ['Service Center', 'Office', 'Headquarters', 'Solutions'],
+    'Education': ['Learning Center', 'Academy', 'Institute', 'Studio'],
+    'Tech Support': ['Tech Center', 'Solutions', 'Repair Shop', 'Office'],
+    'Transportation': ['Terminal', 'Services', 'Hub', 'Center']
+  };
+
+  const streetNames = [
+    'Main Street', 'Oak Avenue', 'Pine Street', 'Maple Drive', 'Cedar Lane',
+    'Park Avenue', 'Broadway', 'First Street', 'Second Avenue', 'Third Street',
+    'Market Street', 'Washington Avenue', 'Lincoln Drive', 'Jefferson Street',
+    'Madison Avenue', 'Franklin Street', 'State Street', 'Center Street'
+  ];
+
+  const businessNames = [
+    'Premium', 'Professional', 'Elite', 'Modern', 'Classic', 'Downtown', 
+    'Uptown', 'Central', 'Metropolitan', 'Urban', 'Luxury', 'Executive'
+  ];
+
+  if (serviceMode === 'at_seller') {
+    const businessType = serviceType ? (businessTypes[serviceType] || ['Center', 'Studio', 'Office']) : ['Center', 'Studio'];
+    const businessName = businessNames[Math.floor(Math.random() * businessNames.length)];
+    const type = businessType[Math.floor(Math.random() * businessType.length)];
+    const streetNumber = Math.floor(Math.random() * 9999) + 100;
+    const streetName = streetNames[Math.floor(Math.random() * streetNames.length)];
+    const suite = Math.random() > 0.6 ? `, Suite ${Math.floor(Math.random() * 500) + 100}` : '';
+    
+    return `Seller Provided: ${businessName} ${type} - ${streetNumber} ${streetName}${suite}`;
+  } else {
+    // at_buyer - residential address
+    const streetNumber = Math.floor(Math.random() * 9999) + 100;
+    const streetName = streetNames[Math.floor(Math.random() * streetNames.length)];
+    const apt = Math.random() > 0.5 ? `, Apartment ${Math.floor(Math.random() * 50) + 1}${String.fromCharCode(65 + Math.floor(Math.random() * 4))}` : '';
+    
+    return `Buyer Provided: ${streetNumber} ${streetName}${apt}`;
+  }
 }
 
 // Helper function to generate reviews
@@ -39,7 +95,7 @@ function generateReviews() {
 
 // Generate provider data
 const providers = Array.from({ length: 15 }, (_, index) => ({
-  id: `p${index + 1}`,
+  id: generateProviderId(),
   username: generateProviderUsername(),
   // Using professional headshots for provider avatars
   avatar: [
@@ -59,7 +115,14 @@ const providers = Array.from({ length: 15 }, (_, index) => ({
   },
   reviews: generateReviews(),
   responseTime: 'Within 2h',
-  responseRate: '98%'
+  responseRate: '98%',
+  importantNotes: Math.random() > 0.5 ? [
+    'Please arrive 5 minutes early. Bring a hair tie for long hair. We use only cruelty-free, vegan products.',
+    'Parking is available behind the building. Please mention any allergies or sensitivities beforehand.',
+    'Service includes complimentary consultation. Please bring reference photos if you have specific requirements.',
+    'We provide all necessary equipment. Please ensure someone is present during the entire service duration.',
+    'Payment is due upon completion. We accept cash, cards, and digital payments. Cancellation policy: 24 hours notice required.'
+  ][Math.floor(Math.random() * 5)] : undefined
 }));
 
 // Service categories with their respective curated image IDs
@@ -1120,6 +1183,39 @@ const mockServices: Service[] = serviceCategories.flatMap((category, categoryInd
     const globalServiceIndex = serviceCategories.slice(0, categoryIndex).reduce((sum, cat) => sum + cat.services.length, 0) + serviceIndex + 1;
     const listingId = `LISTING_SERV_${globalServiceIndex.toString().padStart(3, '0')}`;
     
+    // Define service delivery modes based on service type
+    const getServiceDeliveryModes = (categoryName: string, serviceName: string): ('at_buyer' | 'at_seller' | 'remote')[] => {
+      if (serviceName.includes('Website') || serviceName.includes('Coding') || serviceName.includes('Language')) {
+        return ['remote', 'at_seller']; // Can be done remotely or at provider's location
+      } else if (serviceName.includes('Moving') || serviceName.includes('Cleaning') || serviceName.includes('Painting')) {
+        return ['at_buyer']; // Must be done at customer's location
+      } else if (serviceName.includes('Haircut') || serviceName.includes('Massage') || serviceName.includes('Makeup')) {
+        return ['at_seller', 'at_buyer']; // Salon or home visits
+      } else if (categoryName === 'Education' && !serviceName.includes('Language')) {
+        return ['at_seller', 'remote']; // Workshop can be in-person or online
+      } else if (categoryName === 'Tech Support') {
+        return ['at_buyer', 'remote']; // Computer repair at customer's or remote support
+      } else if (categoryName === 'Transportation') {
+        return ['at_buyer']; // Always pick up customer
+      }
+      return ['at_seller', 'at_buyer']; // Default: flexible location
+    };
+
+    // Define service coverage based on service type and provider location
+    const getServiceCoverage = (categoryName: string, serviceName: string): 'local' | 'citywide' | 'regional' | 'nationwide' | 'global' => {
+      if (serviceName.includes('Website') || serviceName.includes('Coding') || serviceName.includes('Language')) {
+        return 'global'; // Digital services can be delivered globally
+      } else if (serviceName.includes('Moving') || serviceName.includes('Transportation')) {
+        return 'regional'; // Moving/transport services cover wider area
+      } else if (categoryName === 'Education' && serviceName.includes('remote')) {
+        return 'nationwide'; // Online education can reach nationwide
+      }
+      return 'citywide'; // Most physical services are citywide
+    };
+
+    const serviceDeliveryModes = getServiceDeliveryModes(category.category, service.name);
+    const serviceCoverage = getServiceCoverage(category.category, service.name);
+    
     return {
       id: listingId,
       type: 'service' as const,
@@ -1128,7 +1224,10 @@ const mockServices: Service[] = serviceCategories.flatMap((category, categoryInd
       price,
       description: `Professional ${service.name.toLowerCase()} service tailored to your needs`,
       shortDescription: `Expert ${service.name.toLowerCase()} service in ${provider.location.city}`,
-      longDescription: `Experience premium ${service.name.toLowerCase()} service from one of ${provider.location.city}'s top-rated providers. Our service includes comprehensive consultation, professional execution, and satisfaction guarantee. Available for both home visits and at provider's location based on your preference.`,
+      longDescription: `Experience premium ${service.name.toLowerCase()} service from one of ${provider.location.city}'s top-rated providers. Our service includes comprehensive consultation, professional execution, and satisfaction guarantee. Available for ${serviceDeliveryModes.map(mode => 
+        mode === 'at_buyer' ? 'home visits' : 
+        mode === 'at_seller' ? 'provider location' : 'remote delivery'
+      ).join(' and ')}.`,
       images: service.images.map(url => `${url}?auto=format&fit=crop&w=800&h=600&q=80`),
       views: Math.floor(Math.random() * 1000) + 100,
       saves: Math.floor(Math.random() * 500) + 50,
@@ -1139,11 +1238,16 @@ const mockServices: Service[] = serviceCategories.flatMap((category, categoryInd
       trending: Math.random() > 0.7,
       recommended: Math.random() > 0.7,
       serviceType: category.category,
-      serviceArea: `Within ${provider.location.city}`,
+      serviceArea: serviceCoverage === 'global' ? 'Global' : 
+                  serviceCoverage === 'nationwide' ? 'Nationwide' :
+                  serviceCoverage === 'regional' ? `${provider.location.city} Region` :
+                  `${provider.location.city} Area`,
       availability: 'Monday to Friday, 9 AM - 6 PM',
       pricingStructure: 'per service',
       languagesSpoken: ['English'],
-      serviceMode: 'both' as const,
+      serviceMode: serviceDeliveryModes.includes('remote') ? 'both' : 'onsite', // Backward compatibility
+      serviceDeliveryModes, // New field
+      serviceCoverage, // New field
       paymentOptions: {
         payAtService: true,
         onlinePayment: 'onlinePayment' in service ? service.onlinePayment : false
@@ -1169,7 +1273,16 @@ export const mockOrders: Order[] = [
     paymentStatus: 'paid' as PaymentStatus,
     orderDate: new Date('2024-01-10'),
     totalAmount: 120.00,
-    location: 'Tech Hub Downtown, 123 Main Street, Suite 400',
+    location: 'Tech Hub Downtown, 123 Main Street, Suite 400', // Backward compatibility
+    serviceLocation: {
+      address: 'Tech Hub Downtown, 123 Main Street, Suite 400',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10001',
+      coordinates: { lat: 40.7128, lng: -74.0060 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Beauty & Wellness'),
     selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
     actions: [
       { label: 'Cancel', handler: () => console.log('Cancel booking BKG001'), type: 'cancel' },
@@ -1356,7 +1469,16 @@ export const mockOrders: Order[] = [
     paymentStatus: 'paid' as PaymentStatus,
     orderDate: new Date(new Date().setDate(new Date().getDate() - 2)),
     totalAmount: 80.00,
-    location: 'Client\'s Home - 456 Elm Street, Apartment 2B',
+    location: 'Client\'s Home - 456 Elm Street, Apartment 2B', // Backward compatibility
+    serviceLocation: {
+      address: '456 Elm Street, Apartment 2B',
+      city: 'San Francisco',
+      state: 'CA',
+      country: 'United States',
+      zipCode: '94102',
+      coordinates: { lat: 37.7749, lng: -122.4194 }
+    },
+    serviceAddress: generateServiceAddress('at_buyer', 'San Francisco'),
     selectedServiceMode: 'at_buyer' as 'at_seller' | 'at_buyer' | 'remote',
     actions: [
       { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG003'), type: 'reschedule' },
@@ -1391,6 +1513,16 @@ export const mockOrders: Order[] = [
     orderDate: new Date(new Date().setDate(new Date().getDate() - 3)),
     totalAmount: 150.00,
     location: 'Business Center - 789 Corporate Plaza, Conference Room A',
+    serviceLocation: {
+      address: 'Business Center - 789 Corporate Plaza, Conference Room A',
+      city: 'Chicago',
+      state: 'IL',
+      country: 'United States',
+      zipCode: '60601',
+      coordinates: { lat: 41.8781, lng: -87.6298 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'Chicago', 'Home Services'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
     actions: [
       { label: 'Cancel', handler: () => console.log('Cancel booking BKG005'), type: 'cancel' },
       { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG005'), type: 'reschedule' },
@@ -1491,6 +1623,7 @@ export const mockOrders: Order[] = [
     orderDate: new Date(new Date().setDate(new Date().getDate() - 1)),
     totalAmount: 90.00,
     location: 'Online via Zoom - Meeting ID will be shared',
+    serviceAddress: generateServiceAddress('remote', ''),
     selectedServiceMode: 'remote' as 'at_seller' | 'at_buyer' | 'remote',
     actions: [
       { label: 'View Progress', handler: () => console.log('View progress for booking BKG011'), type: 'view' },
@@ -1509,6 +1642,16 @@ export const mockOrders: Order[] = [
     paymentStatus: 'paid' as PaymentStatus,
     orderDate: new Date(new Date().setDate(new Date().getDate() - 7)),
     totalAmount: 180.00,
+    serviceLocation: {
+      address: 'Luxury Spa Center - 321 Wellness Boulevard',
+      city: 'Miami',
+      state: 'FL',
+      country: 'United States',
+      zipCode: '33101',
+      coordinates: { lat: 25.7617, lng: -80.1918 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'Miami', 'Beauty & Wellness'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
     actions: [
       { label: 'Review Service', handler: () => console.log('Review service for booking BKG012'), type: 'review' },
       { label: 'Book Again', handler: () => console.log('Book again booking BKG012'), type: 'reorder' },
@@ -1527,6 +1670,16 @@ export const mockOrders: Order[] = [
     paymentStatus: 'pending' as PaymentStatus,
     orderDate: new Date(),
     totalAmount: 120.00,
+    serviceLocation: {
+      address: '987 Pine Street, Unit 12B',
+      city: 'Austin',
+      state: 'TX',
+      country: 'United States',
+      zipCode: '78701',
+      coordinates: { lat: 30.2672, lng: -97.7431 }
+    },
+    serviceAddress: generateServiceAddress('at_buyer', 'Austin'),
+    selectedServiceMode: 'at_buyer' as 'at_seller' | 'at_buyer' | 'remote',
     actions: [
       { label: 'Cancel Request', handler: () => console.log('Cancel request for booking BKG013'), type: 'cancel' },
       { label: 'View Details', handler: () => console.log('View details of booking BKG013'), type: 'reorder' }
@@ -1544,6 +1697,16 @@ export const mockOrders: Order[] = [
     paymentStatus: 'paid' as PaymentStatus,
     orderDate: new Date(new Date().setDate(new Date().getDate() - 5)),
     totalAmount: 80.00,
+    serviceLocation: {
+      address: '654 Maple Avenue, Apartment 3A',
+      city: 'Denver',
+      state: 'CO',
+      country: 'United States',
+      zipCode: '80202',
+      coordinates: { lat: 39.7392, lng: -104.9903 }
+    },
+    serviceAddress: generateServiceAddress('at_buyer', 'Denver'),
+    selectedServiceMode: 'at_buyer' as 'at_seller' | 'at_buyer' | 'remote',
     actions: [
       { label: 'Reschedule', handler: () => console.log('Reschedule after no-show booking BKG014'), type: 'reschedule' },
       { label: 'Request Refund', handler: () => console.log('Request refund for booking BKG014'), type: 'refund' },
@@ -1562,6 +1725,8 @@ export const mockOrders: Order[] = [
     paymentStatus: 'paid' as PaymentStatus,
     orderDate: new Date(new Date().setDate(new Date().getDate() - 4)),
     totalAmount: 150.00,
+    serviceAddress: generateServiceAddress('remote', ''),
+    selectedServiceMode: 'remote' as 'at_seller' | 'at_buyer' | 'remote',
     actions: [
       { label: 'View New Schedule', handler: () => console.log('View new schedule for booking BKG015'), type: 'view' },
       { label: 'Message Provider', handler: () => console.log('Message provider for booking BKG015'), type: 'message' },
@@ -1581,6 +1746,15 @@ export const mockOrders: Order[] = [
     orderDate: new Date(new Date().setDate(new Date().getDate() - 2)),
     totalAmount: 85.00,
     location: 'Downtown Salon - 456 Style Street',
+    serviceLocation: {
+      address: 'Downtown Salon - 456 Style Street',
+      city: 'Seattle',
+      state: 'WA',
+      country: 'United States',
+      zipCode: '98101',
+      coordinates: { lat: 47.6062, lng: -122.3321 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'Seattle', 'Beauty & Wellness'),
     selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
     actions: [
       { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG016'), type: 'reschedule' },

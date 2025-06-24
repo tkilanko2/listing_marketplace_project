@@ -13,6 +13,7 @@ export interface ServiceProvider {
   reviews: Review[];
   responseTime?: string;
   responseRate?: string;
+  importantNotes?: string; // Provider-defined important notes for customers
 }
 
 export interface ProductSeller {
@@ -64,7 +65,9 @@ export interface Service extends BaseItem {
   materialsProvided?: string[];
   specialRequirements?: string[];
   languagesSpoken: string[];
-  serviceMode: 'onsite' | 'remote' | 'both';
+  serviceMode: 'onsite' | 'remote' | 'both'; // Deprecated: kept for compatibility
+  serviceDeliveryModes: ('at_buyer' | 'at_seller' | 'remote')[]; // New: can support multiple delivery modes
+  serviceCoverage: 'local' | 'citywide' | 'regional' | 'nationwide' | 'global'; // For visibility logic
   paymentOptions: {
     onlinePayment: boolean;
     payAtService: boolean;
@@ -311,6 +314,18 @@ export interface ActivityLogEntry {
   actor?: 'user' | 'provider' | 'system';
 }
 
+export interface ServiceLocation {
+  address: string;
+  city: string;
+  state?: string;
+  country: string;
+  zipCode?: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+}
+
 export interface Order {
   id: string;
   listingId: string; // Reference to the parent listing that was ordered/booked
@@ -325,7 +340,9 @@ export interface Order {
   items?: OrderItem[];
   service?: Service;
   appointmentDate?: Date;
-  location?: string;
+  location?: string; // Deprecated: Keep for backward compatibility
+  serviceLocation?: ServiceLocation; // New structured location for services
+  serviceAddress?: string; // New: Service delivery address (seller/buyer provided or "Remote")
   selectedServiceMode?: 'at_seller' | 'at_buyer' | 'remote';
   shippingAddress?: ShippingAddress;
   trackingInfo?: TrackingInfo;

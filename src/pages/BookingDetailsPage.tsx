@@ -278,8 +278,70 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
     });
   };
 
+  // Get timezone based on booking location
+  const getBookingTimezone = () => {
+    // Priority: serviceLocation > service.location > booking.location > serviceLocationDetails
+    const city = booking.serviceLocation?.city || 
+                 booking.service?.location?.city ||
+                 (booking.location ? booking.location.split(',')[0]?.trim() : '') ||
+                 serviceLocationDetails?.address || '';
+    
+    const state = booking.serviceLocation?.state || '';
+    const country = booking.serviceLocation?.country || booking.service?.location?.country || '';
+
+    if (!city) {
+      return { timezone: 'Local', abbreviation: 'Local', gmtOffset: '' };
+    }
+    
+    // Enhanced timezone detection using structured location data
+    if (country === 'United States' || city.includes('New York') || state === 'NY' || city.includes('NYC')) {
+      return { timezone: 'America/New_York', abbreviation: 'EST', gmtOffset: 'GMT-5' };
+    } else if (country === 'United States' && (city.includes('San Francisco') || city.includes('Los Angeles') || state === 'CA')) {
+      return { timezone: 'America/Los_Angeles', abbreviation: 'PST', gmtOffset: 'GMT-8' };
+    } else if (country === 'United States' && (city.includes('Chicago') || state === 'IL')) {
+      return { timezone: 'America/Chicago', abbreviation: 'CST', gmtOffset: 'GMT-6' };
+    } else if (country === 'United States' && (city.includes('Denver') || state === 'CO')) {
+      return { timezone: 'America/Denver', abbreviation: 'MST', gmtOffset: 'GMT-7' };
+    } else if (country === 'United States' && (city.includes('Seattle') || state === 'WA')) {
+      return { timezone: 'America/Los_Angeles', abbreviation: 'PST', gmtOffset: 'GMT-8' };
+    } else if (country === 'United States' && (city.includes('Austin') || state === 'TX')) {
+      return { timezone: 'America/Chicago', abbreviation: 'CST', gmtOffset: 'GMT-6' };
+    } else if (country === 'United Kingdom' || city.includes('London')) {
+      return { timezone: 'Europe/London', abbreviation: 'GMT', gmtOffset: 'GMT+0' };
+    } else if (country === 'France' || city.includes('Paris')) {
+      return { timezone: 'Europe/Paris', abbreviation: 'CET', gmtOffset: 'GMT+1' };
+    } else if (country === 'Japan' || city.includes('Tokyo')) {
+      return { timezone: 'Asia/Tokyo', abbreviation: 'JST', gmtOffset: 'GMT+9' };
+    } else if (selectedServiceMode === 'remote') {
+      // For remote services, use provider's timezone if available
+      const providerCity = booking.service?.provider?.location?.city || '';
+      if (providerCity.includes('New York')) {
+        return { timezone: 'America/New_York', abbreviation: 'EST', gmtOffset: 'GMT-5' };
+      } else if (providerCity.includes('San Francisco') || providerCity.includes('Los Angeles')) {
+        return { timezone: 'America/Los_Angeles', abbreviation: 'PST', gmtOffset: 'GMT-8' };
+      }
+      return { timezone: 'Local', abbreviation: 'Local', gmtOffset: '' };
+    }
+    
+    // Default based on country or fall back to EST for US locations
+    if (country === 'United States') {
+      return { timezone: 'America/New_York', abbreviation: 'EST', gmtOffset: 'GMT-5' };
+    }
+    return { timezone: 'Local', abbreviation: 'Local', gmtOffset: '' };
+  };
+
   const formatDateTime = (date: Date) => {
     return `${formatDate(date)} at ${formatTime(date)}`;
+  };
+
+  // Helper function to format provider name to "FirstName LastInitial"
+  const formatProviderName = (fullName: string): string => {
+    if (!fullName) return '';
+    const nameParts = fullName.trim().split(' ');
+    if (nameParts.length === 1) return nameParts[0];
+    const firstName = nameParts[0];
+    const lastInitial = nameParts[nameParts.length - 1].charAt(0).toUpperCase() + '.';
+    return `${firstName} ${lastInitial}`;
   };
 
   // Mock activity timeline
@@ -339,7 +401,7 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-[#FFFFFF] rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
           {/* Header */}
-          <div className="bg-[#3D1560] text-white p-4 rounded-t-xl flex justify-between items-center">
+          <div className="bg-[#3D1560] text-white p-3.5 rounded-t-xl flex justify-between items-center">
             <h3 className="text-lg font-semibold">Appointment Details</h3>
             <button 
               onClick={() => setAppointmentDetailsOpen(false)}
@@ -349,12 +411,12 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
             </button>
           </div>
 
-          <div className="p-6 space-y-6">
+          <div className="p-5 space-y-4">
             {/* Service Information */}
-            <div>
-              <div className="flex gap-4 items-center">
+            <div className="pb-4 border-b border-[#E8E9ED]">
+              <div className="flex gap-3 items-center">
                 {booking.service.images && booking.service.images.length > 0 && (
-                  <div className="w-16 h-16 rounded-lg overflow-hidden border border-[#CDCED8] flex-shrink-0">
+                  <div className="w-14 h-14 rounded-lg overflow-hidden border border-[#CDCED8] flex-shrink-0">
                     <img 
                       src={booking.service.images[0]} 
                       alt={booking.service.name}
@@ -362,9 +424,9 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                     />
                   </div>
                 )}
-                <div className="flex-1">
-                  <h4 className="text-lg font-semibold text-[#1B1C20] mb-1">{booking.service.name}</h4>
-                  <div className="flex items-center gap-2">
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-lg font-semibold text-[#1B1C20] mb-1 truncate">{booking.service.name}</h4>
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusConfig.bgColor} ${statusConfig.color}`}>
                       {statusConfig.title}
                     </span>
@@ -378,68 +440,125 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
               </div>
             </div>
 
-            {/* Date & Time */}
-            <div>
-              <h5 className="text-sm font-semibold text-[#1B1C20] mb-3">Date & Time</h5>
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-5 h-5 text-[#3D1560]" />
-                  <span className="text-[#383A47]">{formattedDate}</span>
+            {/* Appointment & Location - Mirror the main section */}
+            <div className="pb-4 border-b border-[#E8E9ED]">
+              <h5 className="text-sm font-semibold text-[#1B1C20] mb-3">Appointment & Location</h5>
+              <div className="bg-[#F8F8FA] p-3 rounded-lg space-y-3">
+                                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-[#3D1560]" />
+                    <div>
+                      <p className="text-xs text-[#70727F] font-medium">Date</p>
+                      <p className="text-[#383A47] font-medium">{formattedDate}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-[#3D1560]" />
+                    <div>
+                      <p className="text-xs text-[#70727F] font-medium">Time</p>
+                      <p className="text-[#383A47] font-medium">{formatTime(booking.appointmentDate)} {getBookingTimezone().abbreviation}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock3 className="w-4 h-4 text-[#3D1560]" />
+                    <div>
+                      <p className="text-xs text-[#70727F] font-medium">Duration</p>
+                      <p className="text-[#383A47] font-medium">{booking.service.duration} min</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-[#3D1560]" />
+                    <div>
+                      <p className="text-xs text-[#70727F] font-medium">Location</p>
+                      <p className="text-[#383A47] font-medium">
+                        {booking.selectedServiceMode === 'at_seller' ? 'At Provider' : 
+                         booking.selectedServiceMode === 'at_buyer' ? 'At Customer' : 'Remote'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Clock className="w-5 h-5 text-[#3D1560]" />
-                  <span className="text-[#383A47]">{formattedTimeRange}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Clock3 className="w-5 h-5 text-[#3D1560]" />
-                  <span className="text-[#383A47]">Duration: {booking.service.duration} minutes</span>
+                
+                <div className="border-t border-[#E8E9ED] pt-2 mt-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="w-4 h-4 text-[#3D1560]" />
+                    <div className="flex-1">
+                      <p className="text-xs text-[#70727F] font-medium">City, Country</p>
+                      <p className="text-[#383A47] font-medium">
+                        {(() => {
+                          if (booking.serviceLocation?.city && booking.serviceLocation?.country) {
+                            return `${booking.serviceLocation.city}, ${booking.serviceLocation.country}`;
+                          } else if (booking.selectedServiceMode === 'remote') {
+                            return 'Remote';
+                          } else if (booking.service?.provider?.location?.city && booking.service?.provider?.location?.country) {
+                            return `${booking.service.provider.location.city}, ${booking.service.provider.location.country}`;
+                          }
+                          return 'Not specified';
+                        })()}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Only show service address if payment is confirmed */}
+                  {booking.paymentStatus === 'paid' && (
+                    <div className="flex items-center gap-2 text-sm mt-2">
+                      <MapPin className="w-4 h-4 text-[#3D1560]" />
+                      <div className="flex-1">
+                        <p className="text-xs text-[#70727F] font-medium">Service Address</p>
+                        <p className="text-[#383A47] font-medium">
+                          {booking.serviceAddress && booking.serviceAddress !== 'Remote' 
+                            ? booking.serviceAddress.replace(/,\s*[A-Z]{2}\s*\d{5}/, '').replace(/,\s*United States$/, '')
+                            : booking.serviceAddress || 'Not specified'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Location */}
-            {serviceLocationDetails && (
-              <div>
-                <h5 className="text-sm font-semibold text-[#1B1C20] mb-3">Location</h5>
-                <div className="flex items-start gap-3">
-                  <serviceLocationDetails.icon className="w-5 h-5 text-[#3D1560] mt-0.5" />
-                  <div>
-                    <p className="text-[#383A47] font-medium">{serviceLocationDetails.type}</p>
-                    <p className="text-[#70727F] text-sm">{serviceLocationDetails.address}</p>
-                    <p className="text-[#70727F] text-xs mt-1">{serviceLocationDetails.description}</p>
+
+
+            {/* Provider Information */}
+            <div className="pb-4 border-b border-[#E8E9ED]">
+              <h5 className="text-sm font-semibold text-[#1B1C20] mb-3">Service Provider</h5>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full overflow-hidden border border-[#CDCED8] flex-shrink-0">
+                  <img 
+                    src={booking.service.provider.avatar} 
+                    alt={formatProviderName(booking.service.provider.username)}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-[#1B1C20] text-sm truncate">{formatProviderName(booking.service.provider.username)}</p>
+                  <p className="text-xs text-[#70727F] mb-1">ID: {booking.service.provider.id}</p>
+                  <div className="flex items-center gap-1 text-xs text-[#70727F]">
+                    <Star className="w-3.5 h-3.5 text-yellow-500 fill-current" />
+                    <span>{booking.service.provider.rating.toFixed(1)}</span>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Important Notes - Only show if provider has added notes */}
+            {booking.service.provider.importantNotes && (
+              <div className="pb-4 border-b border-[#E8E9ED]">
+                <h5 className="text-sm font-semibold text-[#1B1C20] mb-3">Important Notes</h5>
+                <div className="bg-[#FFF9E6] border border-[#FFE082] p-3 rounded-lg">
+                  <p className="text-[#383A47] text-sm leading-relaxed">
+                    {booking.service.provider.importantNotes}
+                  </p>
                 </div>
               </div>
             )}
 
-            {/* Provider Information */}
-            <div>
-              <h5 className="text-sm font-semibold text-[#1B1C20] mb-3">Service Provider</h5>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full overflow-hidden border border-[#CDCED8]">
-                  <img 
-                    src={booking.service.provider.avatar} 
-                    alt={booking.service.provider.username}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div>
-                  <p className="font-medium text-[#1B1C20]">{booking.service.provider.username}</p>
-                  <div className="flex items-center gap-1 text-sm text-[#70727F]">
-                    <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                    {booking.service.provider.rating.toFixed(1)}
-                  </div>
-                </div>
-              </div>
-            </div>
-
             {/* Payment */}
             <div>
               <h5 className="text-sm font-semibold text-[#1B1C20] mb-3">Payment</h5>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <CreditCard className="w-5 h-5 text-[#3D1560]" />
-                  <span className="text-[#383A47]">
+              <div className="bg-[#F8F8FA] p-3 rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-[#3D1560]" />
+                  <span className="text-[#383A47] text-sm">
                     {booking.paymentStatus === 'paid' ? 'Payment completed' : 'Payment pending'}
                   </span>
                 </div>
@@ -450,15 +569,30 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3 pt-4 border-t border-[#CDCED8]">
+            <div className="flex gap-2 pt-3 border-t border-[#E8E9ED]">
               {statusConfig.canMessage && (
-                <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-[#3D1560] text-[#3D1560] rounded-lg hover:bg-[#F3E8F9] transition-colors">
-                  <MessageCircle className="w-4 h-4" />
-                  Message
+                <button 
+                  onClick={() => {
+                    if (booking.appointmentDate && booking.service) {
+                      const startTime = booking.appointmentDate.toISOString().replace(/[-:]/g, '').replace(/\.\d+/g, '');
+                      const endTime = new Date(booking.appointmentDate.getTime() + (booking.service.duration * 60 * 1000)).toISOString().replace(/[-:]/g, '').replace(/\.\d+/g, '');
+                      const eventTitle = encodeURIComponent(`${booking.service.name} Appointment`);
+                                             const locationText = booking.paymentStatus === 'paid' && booking.serviceAddress && booking.serviceAddress !== 'Remote' 
+                         ? booking.serviceAddress.replace(/,\s*[A-Z]{2}\s*\d{5}/, '').replace(/,\s*United States$/, '')
+                         : (booking.selectedServiceMode === 'remote' ? 'Remote/Online' : 'Address will be provided after payment');
+                       const eventDetails = encodeURIComponent(`Service: ${booking.service.name}\nProvider: ${formatProviderName(booking.service.provider.username)}\nProvider ID: ${booking.service.provider.id}\nBooking ID: ${booking.id}\nLocation: ${locationText}`);
+                      const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=${startTime}/${endTime}&details=${eventDetails}`;
+                      window.open(googleCalendarUrl, '_blank');
+                    }
+                  }}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border border-[#3D1560] text-[#3D1560] rounded-lg hover:bg-[#F3E8F9] transition-colors text-sm"
+                >
+                  <Calendar className="w-4 h-4" />
+                  Add to Calendar
                 </button>
               )}
               {statusConfig.canReschedule && (
-                <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] transition-colors">
+                <button className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] transition-colors text-sm">
                   <Calendar className="w-4 h-4" />
                   Reschedule
                 </button>
@@ -725,8 +859,29 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                             {[ // Array for easy mapping
                               { icon: Calendar, label: "Date", value: booking.appointmentDate ? formatDate(booking.appointmentDate) : 'TBD' },
                               { icon: Clock, label: "Time", value: booking.appointmentDate ? formatTime(booking.appointmentDate) : 'TBD' },
-                              { icon: locationDetails?.icon || MapPin, label: locationDetails?.type || "Location", value: locationDetails?.address || 'Not specified' },
+                              { icon: locationDetails?.icon || MapPin, label: "Service Delivery", value: booking.selectedServiceMode === 'at_seller' ? 'At Provider Location' : booking.selectedServiceMode === 'at_buyer' ? 'At Customer Location' : 'Remote' },
                               { icon: Clock3, label: "Duration", value: `${service.duration} minutes` },
+                              { icon: MapPin, label: "City, Country", value: (() => {
+                                // Get city and country from serviceLocation
+                                if (booking.serviceLocation?.city && booking.serviceLocation?.country) {
+                                  return `${booking.serviceLocation.city}, ${booking.serviceLocation.country}`;
+                                } else if (booking.selectedServiceMode === 'remote') {
+                                  return 'Remote';
+                                } else if (booking.service?.provider?.location?.city && booking.service?.provider?.location?.country) {
+                                  return `${booking.service.provider.location.city}, ${booking.service.provider.location.country}`;
+                                }
+                                return 'Not specified';
+                              })() },
+                              // Only show service address if payment is confirmed
+                              ...(booking.paymentStatus === 'paid' ? [
+                                { icon: MapPin, label: "Service Address", value: (() => {
+                                  if (booking.serviceAddress && booking.serviceAddress !== 'Remote') {
+                                    // Remove state, zip code, and country from the address
+                                    return booking.serviceAddress.replace(/,\s*[A-Z]{2}\s*\d{5}/, '').replace(/,\s*United States$/, '');
+                                  }
+                                  return booking.serviceAddress || 'Not specified';
+                                })() }
+                              ] : []),
                             ].map(detail => (
                               <div key={detail.label} className="flex items-start gap-3">
                                 <detail.icon className="w-5 h-5 text-[#3D1560] mt-0.5 flex-shrink-0" />
@@ -756,7 +911,8 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                               />
                             </div>
                             <div className="flex-1">
-                              <h4 className="text-lg font-semibold text-[#3D1560] mb-0.5">{provider.username}</h4>
+                              <h4 className="text-lg font-semibold text-[#3D1560] mb-0.5">{formatProviderName(provider.username)}</h4>
+                              <p className="text-xs text-[#70727F] mb-1">ID: {provider.id}</p>
                               <div className="flex items-center gap-3 text-sm text-[#70727F]">
                                 <div className="flex items-center gap-1">
                                   <Star className="w-4 h-4 text-[#FFC107] fill-current" />
@@ -817,7 +973,7 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                       <div className="mt-6 flex flex-col sm:flex-row gap-3">
                         <button className="w-full sm:w-auto flex-1 bg-[#3D1560] text-[#FFFFFF] hover:bg-[#6D26AB] transition-colors duration-200 px-4 py-2.5 rounded-md font-medium text-sm flex items-center justify-center gap-2">
                           <Download className="w-4 h-4" />
-                          Download Invoice
+                          Download Receipt
                         </button>
                         <button className="w-full sm:w-auto flex-1 border border-[#CDCED8] text-[#383A47] hover:bg-[#E8E9ED] hover:border-[#B0B2C0] transition-colors duration-200 px-4 py-2.5 rounded-md font-medium text-sm flex items-center justify-center gap-2">
                           <Shield className="w-4 h-4" />
@@ -883,14 +1039,38 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                       <span className="text-[#383A47]">{booking.service?.duration || 60} minutes</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-[#70727F]">Provider</span>
-                      <span className="text-[#383A47]">{booking.service?.provider?.username || 'Provider'}</span>
+                      <span className="text-[#70727F]">City</span>
+                      <span className="text-[#383A47] font-medium">
+                        {(() => {
+                          // Use structured serviceLocation first, then fallback to old methods
+                          if (booking.serviceLocation?.city) {
+                            return booking.serviceLocation.city;
+                          } else if (booking.service?.location?.city) {
+                            return booking.service.location.city;
+                          } else if (booking.location) {
+                            const locationParts = booking.location.split(',');
+                            return locationParts[locationParts.length - 2]?.trim() || locationParts[0]?.trim() || 'Not specified';
+                          } else if (booking.service?.provider?.location?.city) {
+                            return booking.service.provider.location.city;
+                          }
+                          return 'Not specified';
+                        })()}
+                      </span>
                     </div>
+
                     {booking.appointmentDate && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-[#70727F]">Appointment</span>
-                        <span className="text-[#383A47] font-medium">{formatDateTime(booking.appointmentDate)}</span>
-                      </div>
+                      <>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[#70727F]">Date</span>
+                          <span className="text-[#383A47] font-medium">{formatDate(booking.appointmentDate)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[#70727F]">Time</span>
+                          <span className="text-[#383A47] font-medium">
+                            {formatTime(booking.appointmentDate)} {getBookingTimezone().abbreviation} ({getBookingTimezone().gmtOffset})
+                          </span>
+                        </div>
+                      </>
                     )}
                   </div>
 
@@ -908,22 +1088,13 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[#70727F]">Service Mode</span>
+                    <span className="text-[#70727F]">Service Delivery</span>
                     <span className="font-medium text-[#383A47]">
                       {selectedServiceMode === 'at_seller' ? 'At Provider' : 
                        selectedServiceMode === 'at_buyer' ? 'At Your Location' : 'Remote'}
                     </span>
                   </div>
-                  {serviceLocationDetails && (
-                    <div className="flex justify-between">
-                      <span className="text-[#70727F]">Location</span>
-                      <span className="font-medium text-[#383A47] text-right text-xs">
-                        {serviceLocationDetails.address?.length > 30 
-                          ? `${serviceLocationDetails.address.substring(0, 30)}...` 
-                          : serviceLocationDetails.address}
-                      </span>
-                    </div>
-                  )}
+
                 </div>
               </div>
             </div>
@@ -933,9 +1104,24 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
               <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Quick Actions</h3>
               <div className="space-y-3">
                 {statusConfig.canMessage && (
-                  <button className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-[#3D1560] text-[#3D1560] rounded-lg hover:bg-[#EDD9FF] transition-colors duration-200">
-                    <MessageCircle className="w-4 h-4" />
-                    Message Provider
+                  <button 
+                    onClick={() => {
+                      if (booking.appointmentDate && booking.service) {
+                        const startTime = booking.appointmentDate.toISOString().replace(/[-:]/g, '').replace(/\.\d+/g, '');
+                        const endTime = new Date(booking.appointmentDate.getTime() + (booking.service.duration * 60 * 1000)).toISOString().replace(/[-:]/g, '').replace(/\.\d+/g, '');
+                        const eventTitle = encodeURIComponent(`${booking.service.name} Appointment`);
+                        const locationText = booking.paymentStatus === 'paid' && booking.serviceAddress && booking.serviceAddress !== 'Remote' 
+                          ? booking.serviceAddress.replace(/,\s*[A-Z]{2}\s*\d{5}/, '').replace(/,\s*United States$/, '')
+                          : (booking.selectedServiceMode === 'remote' ? 'Remote/Online' : 'Address will be provided after payment');
+                        const eventDetails = encodeURIComponent(`Service: ${booking.service.name}\nProvider: ${formatProviderName(booking.service.provider.username)}\nProvider ID: ${booking.service.provider.id}\nBooking ID: ${booking.id}\nLocation: ${locationText}`);
+                        const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=${startTime}/${endTime}&details=${eventDetails}`;
+                        window.open(googleCalendarUrl, '_blank');
+                      }
+                    }}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-[#3D1560] text-[#3D1560] rounded-lg hover:bg-[#EDD9FF] transition-colors duration-200"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    Add to Google Calendar
                   </button>
                 )}
                 {statusConfig.canReschedule && (
@@ -945,14 +1131,14 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                   </button>
                 )}
                 {statusConfig.canCancel && (
-                  <button className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-[#DF678C] text-[#DF678C] rounded-lg hover:bg-[#FFE5ED] transition-colors duration-200">
+                  <button className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-[#DF678C] text-[#DF678C] rounded-lg hover:bg-[#EDD9FF] transition-colors duration-200">
                     <X className="w-4 h-4" />
                     Cancel Booking
                   </button>
                 )}
                 <button 
                   onClick={() => setAppointmentDetailsOpen(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-[#CDCED8] text-[#383A47] hover:bg-[#E8E9ED] transition-colors duration-200"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-[#CDCED8] text-[#383A47] rounded-lg hover:bg-[#E8E9ED] transition-colors duration-200"
                 >
                   <Eye className="w-4 h-4" />
                   View Full Details
@@ -960,7 +1146,7 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                                  {/* My Appointments CTA - Available for all service statuses */}
                  <button 
                    onClick={() => onNavigateToMyBookings?.()}
-                   className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#6D26AB] text-white rounded-lg hover:bg-[#9B53D9] transition-colors duration-200"
+                   className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-[#3D1560] text-[#3D1560] rounded-lg hover:bg-[#EDD9FF] transition-colors duration-200"
                  >
                    <Calendar className="w-4 h-4" />
                    My Appointments
@@ -980,7 +1166,7 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
           open={serviceTermsOpen} 
           onClose={() => setServiceTermsOpen(false)} 
           serviceName={booking.service.name}
-          providerName={booking.service.provider.username}
+          providerName={formatProviderName(booking.service.provider.username)}
           serviceType="service" // Explicitly set for bookings
         />
       )}

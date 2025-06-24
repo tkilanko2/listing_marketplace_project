@@ -16,7 +16,9 @@ import {
   Clock3,
   Building,
   Home,
-  Monitor
+  Monitor,
+  Mail,
+  ExternalLink
 } from 'lucide-react';
 import { getAllOrdersWithBookings } from '../mockData';
 import { Order } from '../types';
@@ -32,6 +34,7 @@ export function MyBookingsPage({ onBack, onViewBookingDetails, initialFilter = '
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [hoveredDay, setHoveredDay] = useState<number | null>(null);
+  const [showGmailModal, setShowGmailModal] = useState(false);
 
   // Get all service bookings for the current user
   const allBookings = useMemo(() => {
@@ -236,6 +239,34 @@ export function MyBookingsPage({ onBack, onViewBookingDetails, initialFilter = '
                 </div>
                 <div className="text-sm text-[#70727F]">Completed</div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Gmail Integration CTA */}
+        <div className="mb-6">
+          <div className="bg-[#FFFFFF] rounded-lg shadow-sm border border-[#E8E9ED] p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-[#EDD9FF] rounded-lg flex items-center justify-center">
+                  <Mail className="w-6 h-6 text-[#3D1560]" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-[#1B1C20] mb-1">
+                    Connect Your Gmail
+                  </h3>
+                  <p className="text-sm text-[#70727F]">
+                    Get booking confirmations and updates directly in your Gmail inbox
+                  </p>
+                </div>
+              </div>
+              <button 
+                className="bg-[#3D1560] text-[#FFFFFF] px-6 py-3 rounded-lg font-medium hover:bg-[#6D26AB] transition-colors duration-200 flex items-center gap-2 text-sm"
+                onClick={() => setShowGmailModal(true)}
+              >
+                <span>Connect Gmail</span>
+                <ExternalLink className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
@@ -537,6 +568,68 @@ export function MyBookingsPage({ onBack, onViewBookingDetails, initialFilter = '
           </div>
         </div>
       </div>
+
+      {/* Gmail Integration Modal */}
+      {showGmailModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#FFFFFF] rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-[#1B1C20]">Connect Gmail</h2>
+              <button 
+                onClick={() => setShowGmailModal(false)}
+                className="text-[#70727F] hover:text-[#383A47] transition-colors duration-200"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-4 bg-[#F8F8FA] rounded-lg">
+                <Mail className="w-8 h-8 text-[#3D1560]" />
+                <div>
+                  <h3 className="font-medium text-[#1B1C20]">Gmail Integration</h3>
+                  <p className="text-sm text-[#70727F]">Connect your Gmail to receive booking notifications</p>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-[#4CAF50]" />
+                  <span className="text-sm text-[#383A47]">Booking confirmations</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-[#4CAF50]" />
+                  <span className="text-sm text-[#383A47]">Appointment reminders</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-[#4CAF50]" />
+                  <span className="text-sm text-[#383A47]">Status updates</span>
+                </div>
+              </div>
+              
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => {
+                    // TODO: Implement actual Gmail OAuth
+                    alert('Gmail OAuth integration would start here. This will redirect to Google\'s authorization page.');
+                    setShowGmailModal(false);
+                  }}
+                  className="flex-1 bg-[#3D1560] text-[#FFFFFF] py-3 px-4 rounded-lg font-medium hover:bg-[#6D26AB] transition-colors duration-200 flex items-center justify-center gap-2"
+                >
+                  <span>Authorize Gmail</span>
+                  <ExternalLink className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setShowGmailModal(false)}
+                  className="px-4 py-3 text-[#70727F] hover:text-[#383A47] transition-colors duration-200"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
