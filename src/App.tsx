@@ -23,6 +23,7 @@ import { CartPage } from './pages/CartPage';
 import { ShippingInfoPage } from './pages/ShippingInfoPage';
 import { OrderConfirmation } from './pages/OrderConfirmation';
 import { BookingSubmissionConfirmationPage } from './pages/BookingSubmissionConfirmationPage';
+import { MyBookingsPage } from './pages/MyBookingsPage';
 import { 
   BarChart, Calendar, DollarSign, ShoppingCart, Package, TrendingUp, 
   ArrowUp, Wallet, ChevronDown, ChevronLeft, ChevronRight, Search, 
@@ -4412,6 +4413,7 @@ function App() {
                   onBack={handleBackToOrders}
                   userRegion="US" // This could be dynamic based on user location
                   selectedServiceMode={order.selectedServiceMode || 'at_seller'}
+                  onNavigateToMyBookings={() => setCurrentPage('myBookings')}
                 />
               );
             } else {
@@ -4881,6 +4883,18 @@ function App() {
             services={mockServices}
             onListingSelect={handleListingSelect}
             onBack={() => handleNavigate('profile')}
+          />
+        )}
+        
+        {currentPage === 'myBookings' && (
+          <MyBookingsPage
+            onBack={() => setCurrentPage('myOrders')}
+            onViewBookingDetails={(bookingId: string) => {
+              // Navigate to the specific booking details
+              setSelectedOrder(bookingId);
+              setOrderAction('details');
+              setCurrentPage('myOrders');
+            }}
           />
         )}
 

@@ -41,6 +41,7 @@ interface BookingDetailsPageProps {
   onBack: () => void;
   userRegion?: 'US' | 'EU' | 'UK'; // For tax calculation display
   selectedServiceMode?: 'at_seller' | 'at_buyer' | 'remote'; // Service delivery mode
+  onNavigateToMyBookings?: () => void; // Navigate to My Bookings page
 }
 
 interface PaymentBreakdown {
@@ -60,7 +61,7 @@ function mapServiceStatus(status: string, userRole: 'buyer' | 'seller'): string 
   return status;
 }
 
-export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selectedServiceMode = 'at_seller' }: BookingDetailsPageProps) {
+export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selectedServiceMode = 'at_seller', onNavigateToMyBookings }: BookingDetailsPageProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'payment' | 'activity'>('details');
   const [appointmentDetailsOpen, setAppointmentDetailsOpen] = useState(false);
   const [serviceTermsOpen, setServiceTermsOpen] = useState(false);
@@ -515,9 +516,84 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-2xl md:text-3xl font-semibold text-[#1B1C20]">
-            Booking Details
-          </h1>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-semibold text-[#1B1C20]">
+              Booking #{booking.id}
+            </h1>
+            <p className="text-[#70727F] text-sm mt-1">
+              Booked on {formatDate(booking.orderDate)} • {booking.service?.name || 'Service'}
+            </p>
+          </div>
+        </div>
+
+        {/* Enhanced Status Header Card */}
+        <div className="mb-6">
+          <div className={`flex flex-col gap-4 px-6 py-5 rounded-xl border ${statusConfig.borderColor} ${statusConfig.bgColor}`}>
+            {/* Main Status Row */}
+            <div className="flex items-center gap-4">
+              <StatusIcon className={`w-8 h-8 ${statusConfig.color}`} />
+              <div className="flex-1">
+                <h2 className={`text-xl font-semibold ${statusConfig.color}`}>{statusConfig.title}</h2>
+                <p className={`text-sm ${statusConfig.color} opacity-80`}>{statusConfig.description}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-[#70727F]">Amount</p>
+                <p className="text-xl font-bold text-[#3D1560]">${booking.totalAmount.toFixed(2)}</p>
+              </div>
+            </div>
+            
+            {/* Contextual Assistance for Booking Status */}
+            {(() => {
+              let urgencyMessage = '';
+              let timeEstimate = '';
+              
+              switch (mappedStatus) {
+                case 'requested':
+                  urgencyMessage = '⏳ Waiting for provider confirmation - most providers respond within 2 hours';
+                  timeEstimate = 'Expected response: Within 2-4 hours';
+                  break;
+                case 'confirmed':
+                  if (booking.appointmentDate) {
+                    const hoursUntilAppointment = (new Date(booking.appointmentDate).getTime() - new Date().getTime()) / (1000 * 60 * 60);
+                    if (hoursUntilAppointment <= 24) {
+                      urgencyMessage = '🔔 Your appointment is coming up soon - make sure to be ready';
+                      timeEstimate = `Appointment in ${Math.round(hoursUntilAppointment)} hours`;
+                    } else {
+                      urgencyMessage = '📅 Your appointment is confirmed - you can reschedule up to 24 hours before';
+                      timeEstimate = `Appointment: ${formatDateTime(booking.appointmentDate)}`;
+                    }
+                  }
+                  break;
+                case 'in_progress':
+                  urgencyMessage = '🔄 Your service is currently in progress - the provider is working on your request';
+                  timeEstimate = 'Service completion depends on scope and duration';
+                  break;
+                case 'completed':
+                  urgencyMessage = '✅ Service completed successfully! Don\'t forget to rate your experience';
+                  timeEstimate = 'Payment processed - receipt available';
+                  break;
+                case 'cancelled':
+                  urgencyMessage = 'ℹ️ This booking has been cancelled - you can book a similar service again';
+                  timeEstimate = 'Refund processed within 3-5 business days';
+                  break;
+              }
+              
+              if (urgencyMessage) {
+                return (
+                  <div className="flex items-start gap-3 p-3 bg-[#FFFFFF] bg-opacity-50 rounded-lg border border-[#FFFFFF] border-opacity-30">
+                    <Info className="w-5 h-5 text-[#3D1560] mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-[#3D1560]">{urgencyMessage}</p>
+                      {timeEstimate && (
+                        <p className="text-xs text-[#3D1560] opacity-80 mt-1">{timeEstimate}</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+          </div>
         </div>
 
         {/* Main Content Grid */}
@@ -765,57 +841,134 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
             </div>
           </div>
 
-          {/* Right Column (Actions & Quick Info) - Styled as a distinct sidebar-like panel */}
-          <div className="lg:col-span-1 space-y-6">
-            <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Manage Booking</h3>
+          {/* Right Column (Summary Sidebar) */}
+          <div className="space-y-6">
+            {/* Booking Summary Card */}
+            <div className="bg-[#FFFFFF] rounded-lg shadow-sm border border-[#E8E9ED] p-6">
+              <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Booking Summary</h3>
               <div className="space-y-3">
-                {statusConfig.canViewDetails && booking.service && (
-                  <button 
-                    onClick={() => setAppointmentDetailsOpen(true)} 
-                    className="w-full flex items-center justify-center gap-2 bg-[#3D1560] text-[#FFFFFF] hover:bg-[#6D26AB] transition-colors duration-200 px-4 py-2.5 rounded-md font-medium text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3D1560] focus-visible:ring-opacity-50"
-                  >
-                    <Eye className="w-4 h-4" /> View Appointment Details
-                  </button>
-                )}
-                {statusConfig.canMessage && (
-                  <button className="w-full flex items-center justify-center gap-2 border border-[#CDCED8] text-[#383A47] hover:bg-[#E8E9ED] hover:border-[#B0B2C0] transition-colors duration-200 px-4 py-2.5 rounded-md font-medium text-sm">
-                    <MessageCircle className="w-4 h-4" /> Contact Provider
-                  </button>
-                )}
-                {statusConfig.canReschedule && (
-                  <button className="w-full flex items-center justify-center gap-2 border border-[#CDCED8] text-[#383A47] hover:bg-[#E8E9ED] hover:border-[#B0B2C0] transition-colors duration-200 px-4 py-2.5 rounded-md font-medium text-sm">
-                    <RefreshCw className="w-4 h-4" /> Reschedule
-                  </button>
-                )}
-                {statusConfig.canCancel && (
-                  <button className="w-full flex items-center justify-center gap-2 border border-[#DF678C] text-[#DF678C] hover:bg-[#FFE5ED] transition-colors duration-200 px-4 py-2.5 rounded-md font-medium text-sm">
-                    <XCircle className="w-4 h-4" /> Cancel Booking
-                  </button>
-                )}
+                {/* Core Identifiers */}
+                <div className="flex justify-between">
+                  <span className="text-[#70727F]">Booking ID</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-[#383A47]">#{booking.id}</span>
+                    <button 
+                      onClick={() => navigator.clipboard.writeText(booking.id)}
+                      className="text-[#3D1560] hover:text-[#6D26AB] p-1"
+                    >
+                      <Copy className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#70727F]">Booking Date</span>
+                  <span className="font-medium text-[#383A47]">{formatDate(booking.orderDate)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#70727F]">Status</span>
+                  <span className={`font-medium ${statusConfig.color}`}>{statusConfig.title}</span>
+                </div>
+                
+                {/* Service Details */}
+                <div className="bg-[#F8F8FA] p-3 rounded-lg mt-4">
+                  <h4 className="text-sm font-semibold text-[#383A47] mb-3">Service Details</h4>
+                  
+                  <div className="space-y-2 mb-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-[#70727F]">Service</span>
+                      <span className="text-[#383A47] font-medium">{booking.service?.name || 'Service'}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-[#70727F]">Duration</span>
+                      <span className="text-[#383A47]">{booking.service?.duration || 60} minutes</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-[#70727F]">Provider</span>
+                      <span className="text-[#383A47]">{booking.service?.provider?.username || 'Provider'}</span>
+                    </div>
+                    {booking.appointmentDate && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-[#70727F]">Appointment</span>
+                        <span className="text-[#383A47] font-medium">{formatDateTime(booking.appointmentDate)}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex justify-between text-sm font-medium border-t border-[#CDCED8] pt-2">
+                    <span className="text-[#383A47]">Total Amount</span>
+                    <span className="text-[#3D1560] font-bold">${booking.totalAmount.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-[#CDCED8]">
+                  <div className="flex justify-between">
+                    <span className="text-[#70727F]">Payment Status</span>
+                    <span className={`font-medium ${booking.paymentStatus === 'paid' ? 'text-[#4CAF50]' : 'text-[#70727F]'}`}>
+                      {booking.paymentStatus === 'paid' ? 'Paid' : 'Pending'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#70727F]">Service Mode</span>
+                    <span className="font-medium text-[#383A47]">
+                      {selectedServiceMode === 'at_seller' ? 'At Provider' : 
+                       selectedServiceMode === 'at_buyer' ? 'At Your Location' : 'Remote'}
+                    </span>
+                  </div>
+                  {serviceLocationDetails && (
+                    <div className="flex justify-between">
+                      <span className="text-[#70727F]">Location</span>
+                      <span className="font-medium text-[#383A47] text-right text-xs">
+                        {serviceLocationDetails.address?.length > 30 
+                          ? `${serviceLocationDetails.address.substring(0, 30)}...` 
+                          : serviceLocationDetails.address}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Support & Help Card */}
-            <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
-              <h3 className="text-lg font-semibold text-[#1B1C20] mb-3">Support & Resources</h3>
-              <div className="space-y-2.5">
-                <button className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE] gap-2.5">
-                  <MessageCircle className="w-4 h-4" /> Contact Support
-                </button>
-                <button className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE] gap-2.5">
-                  <FileText className="w-4 h-4" /> FAQ & Help Center
-                </button>
+            {/* Quick Actions Card */}
+            <div className="bg-[#FFFFFF] rounded-lg shadow-sm border border-[#E8E9ED] p-6">
+              <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Quick Actions</h3>
+              <div className="space-y-3">
+                {statusConfig.canMessage && (
+                  <button className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-[#3D1560] text-[#3D1560] rounded-lg hover:bg-[#EDD9FF] transition-colors duration-200">
+                    <MessageCircle className="w-4 h-4" />
+                    Message Provider
+                  </button>
+                )}
+                {statusConfig.canReschedule && (
+                  <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] transition-colors duration-200">
+                    <Calendar className="w-4 h-4" />
+                    Reschedule
+                  </button>
+                )}
+                {statusConfig.canCancel && (
+                  <button className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-[#DF678C] text-[#DF678C] rounded-lg hover:bg-[#FFE5ED] transition-colors duration-200">
+                    <X className="w-4 h-4" />
+                    Cancel Booking
+                  </button>
+                )}
                 <button 
-                  onClick={() => setServiceTermsOpen(true)} 
-                  className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE] gap-2.5"
+                  onClick={() => setAppointmentDetailsOpen(true)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-[#CDCED8] text-[#383A47] hover:bg-[#E8E9ED] transition-colors duration-200"
                 >
-                  <Shield className="w-4 h-4" />
-                  Provider's Terms & Conditions
-                  <ExternalLink className="w-4 h-4" />
+                  <Eye className="w-4 h-4" />
+                  View Full Details
                 </button>
+                                 {/* My Appointments CTA - Available for all service statuses */}
+                 <button 
+                   onClick={() => onNavigateToMyBookings?.()}
+                   className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#6D26AB] text-white rounded-lg hover:bg-[#9B53D9] transition-colors duration-200"
+                 >
+                   <Calendar className="w-4 h-4" />
+                   My Appointments
+                 </button>
               </div>
             </div>
+
+            
           </div>
         </div>
       </div>
