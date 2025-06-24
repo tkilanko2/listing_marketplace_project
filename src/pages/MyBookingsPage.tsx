@@ -24,10 +24,11 @@ import { Order } from '../types';
 interface MyBookingsPageProps {
   onBack: () => void;
   onViewBookingDetails?: (bookingId: string) => void;
+  initialFilter?: 'all' | 'pending' | 'confirmed';
 }
 
-export function MyBookingsPage({ onBack, onViewBookingDetails }: MyBookingsPageProps) {
-  const [selectedFilter, setSelectedFilter] = useState<'all' | 'pending' | 'confirmed'>('all');
+export function MyBookingsPage({ onBack, onViewBookingDetails, initialFilter = 'all' }: MyBookingsPageProps) {
+  const [selectedFilter, setSelectedFilter] = useState<'all' | 'pending' | 'confirmed'>(initialFilter);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [hoveredDay, setHoveredDay] = useState<number | null>(null);

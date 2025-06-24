@@ -69,6 +69,7 @@ function App() {
   const [showMyShopModal, setShowMyShopModal] = useState(false);
   const [selectedMyShopListing, setSelectedMyShopListing] = useState<any>(null);
   const [checkoutStep, setCheckoutStep] = useState<'auth' | 'shipping' | 'payment' | 'review'>('auth');
+  const [bookingsInitialFilter, setBookingsInitialFilter] = useState<'all' | 'pending' | 'confirmed'>('all');
 
   // Effect to handle highlighted product and show modal (moved to App level)
   useEffect(() => {
@@ -1531,6 +1532,20 @@ function App() {
                     )}
                   </div>
                 </div>
+              </div>
+              
+              {/* View All CTA */}
+              <div className="mt-4 flex justify-end">
+                <button 
+                  onClick={() => {
+                    setBookingsInitialFilter('confirmed');
+                    setCurrentPage('myBookings');
+                  }}
+                  className="text-[#6D26AB] hover:text-[#3D1560] font-medium flex items-center text-sm transition-colors"
+                >
+                  View All
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </button>
               </div>
             </div>
             
@@ -4888,13 +4903,17 @@ function App() {
         
         {currentPage === 'myBookings' && (
           <MyBookingsPage
-            onBack={() => setCurrentPage('myOrders')}
+            onBack={() => {
+              setBookingsInitialFilter('all'); // Reset filter when going back
+              setCurrentPage('profile');
+            }}
             onViewBookingDetails={(bookingId: string) => {
               // Navigate to the specific booking details
               setSelectedOrder(bookingId);
               setOrderAction('details');
               setCurrentPage('myOrders');
             }}
+            initialFilter={bookingsInitialFilter}
           />
         )}
 
