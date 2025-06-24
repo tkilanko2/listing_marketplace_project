@@ -30,6 +30,7 @@ export function MyBookingsPage({ onBack, onViewBookingDetails }: MyBookingsPageP
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'pending' | 'confirmed'>('all');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [hoveredDay, setHoveredDay] = useState<number | null>(null);
 
   // Get all service bookings for the current user
   const allBookings = useMemo(() => {
@@ -289,46 +290,125 @@ export function MyBookingsPage({ onBack, onViewBookingDetails }: MyBookingsPageP
                         );
                       }
                     
-                    // Add days of the month
-                    for (let day = 1; day <= daysInMonth; day++) {
-                      const dateStatus = getDateStatus(currentDate, day);
-                      const isCurrentDay = isToday(currentDate, day);
-                      const isSelected = selectedDate && isSameDay(selectedDate, new Date(currentDate.getFullYear(), currentDate.getMonth(), day));
-                      const bookingsOnDay = getBookingsForDate(currentDate, day);
-                      
-                      // Create tooltip text for bookings on this day
-                      const tooltipText = bookingsOnDay.length > 0 
-                        ? bookingsOnDay.map(b => `${b.service?.name || 'Service'} at ${b.appointmentDate ? formatTime(b.appointmentDate) : 'TBD'}`).join('\n')
-                        : '';
-                      
-                                              let dayClasses = 'p-2 text-center text-base rounded cursor-default hover:bg-[#D8C4E9] min-h-[32px] flex items-center justify-center ';
-                      
-                      if (isCurrentDay) {
-                        dayClasses += 'border-2 border-[#3D1560] ring-1 ring-offset-1 ring-[#6D26AB] ';
+                                          // Add days of the month
+                      for (let day = 1; day <= daysInMonth; day++) {
+                        const dateStatus = getDateStatus(currentDate, day);
+                        const isCurrentDay = isToday(currentDate, day);
+                        const isSelected = selectedDate && isSameDay(selectedDate, new Date(currentDate.getFullYear(), currentDate.getMonth(), day));
+                        const bookingsOnDay = getBookingsForDate(currentDate, day);
+                        const bookingCount = bookingsOnDay.length;
+                        
+                        // Create enhanced tooltip text for bookings on this day
+                        const tooltipText = bookingCount > 0 
+                          ? `${bookingCount} booking${bookingCount > 1 ? 's' : ''} on this day:\n${bookingsOnDay.map(b => `• ${b.service?.name || 'Service'} at ${b.appointmentDate ? formatTime(b.appointmentDate) : 'TBD'} (${b.status})`).join('\n')}`
+                          : '';
+                        
+                        let dayClasses = 'relative p-2 text-center text-base rounded cursor-default hover:bg-[#D8C4E9] min-h-[32px] flex items-center justify-center ';
+                        
+                        if (isCurrentDay) {
+                          dayClasses += 'border-2 border-[#3D1560] ring-1 ring-offset-1 ring-[#6D26AB] ';
+                        }
+                        
+                        if (isSelected) {
+                          dayClasses += 'bg-[#3D1560] text-white font-semibold ';
+                        } else if (dateStatus === 'confirmed') {
+                          dayClasses += 'bg-[#EDD9FF] text-[#3D1560] font-semibold ';
+                        } else if (dateStatus === 'pending') {
+                          dayClasses += 'bg-[#E8E9ED] text-[#70727F] font-medium ';
+                        } else {
+                          dayClasses += 'text-gray-700 ';
+                        }
+                        
+                        days.push(
+                          <div 
+                            key={day} 
+                            className={dayClasses}
+                            onClick={() => handleDateClick(day)}
+                            onMouseEnter={() => setHoveredDay(day)}
+                            onMouseLeave={() => setHoveredDay(null)}
+                            style={{ 
+                              cursor: bookingCount > 0 ? 'pointer' : 'default',
+                              position: 'relative'
+                            }}
+                          >
+                            <div className="relative w-full h-full flex items-center justify-center">
+                              {day}
+                              
+                              {/* OPTION 1: Small Dot Indicators */}
+                              {bookingCount > 0 && (
+                                <div className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 flex gap-0.5">
+                                  {Array.from({ length: Math.min(bookingCount, 3) }, (_, i) => (
+                                    <div 
+                                      key={i} 
+                                      className={`w-1 h-1 rounded-full ${
+                                        dateStatus === 'confirmed' ? 'bg-[#3D1560]' : 
+                                        dateStatus === 'pending' ? 'bg-[#70727F]' : 'bg-gray-400'
+                                      }`}
+                                    />
+                                  ))}
+                                  {bookingCount > 3 && (
+                                    <div className="text-[8px] font-bold ml-0.5">+</div>
+                                  )}
+                                </div>
+                              )}
+                              
+                              {/* Custom Hover Tooltip */}
+                              {hoveredDay === day && bookingCount > 0 && (
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50 bg-white border-2 border-[#3D1560] text-[#383A47] text-xs rounded-lg p-3 shadow-xl max-w-xs whitespace-nowrap">
+                                  <div className="font-semibold mb-1 text-[#3D1560]">
+                                    {bookingCount} booking{bookingCount > 1 ? 's' : ''} on this day:
+                                  </div>
+                                  <div className="space-y-1">
+                                    {bookingsOnDay.map((booking, index) => (
+                                      <div key={index} className="text-[11px] text-[#383A47]">
+                                        • {booking.service?.name || 'Service'} at{' '}
+                                        {booking.appointmentDate ? formatTime(booking.appointmentDate) : 'TBD'}{' '}
+                                        <span className={`font-medium ${
+                                          booking.status === 'confirmed' ? 'text-[#3D1560]' : 'text-[#70727F]'
+                                        }`}>
+                                          ({booking.status})
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                  {/* Tooltip Arrow */}
+                                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-white"></div>
+                                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-0.5 w-0 h-0 border-l-3 border-r-3 border-t-3 border-transparent border-t-[#3D1560]"></div>
+                                </div>
+                              )}
+                              
+                              {/* OPTION 2: Corner Badge */}
+                              {/* {bookingCount > 0 && (
+                                <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full text-[8px] font-bold flex items-center justify-center text-white ${
+                                  dateStatus === 'confirmed' ? 'bg-[#3D1560]' : 
+                                  dateStatus === 'pending' ? 'bg-[#70727F]' : 'bg-gray-400'
+                                }`}>
+                                  {bookingCount > 9 ? '9+' : bookingCount}
+                                </div>
+                              )} */}
+                              
+                              {/* OPTION 3: Side Bar Indicator (Comment out others to see this) */}
+                              {/* {bookingCount > 0 && (
+                                <div className={`absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-4 rounded-r ${
+                                  dateStatus === 'confirmed' ? 'bg-[#3D1560]' : 
+                                  dateStatus === 'pending' ? 'bg-[#70727F]' : 'bg-gray-400'
+                                }`} />
+                              )} */}
+                              
+                              {/* OPTION 4: Underline with Count (Comment out others to see this) */}
+                              {/* {bookingCount > 0 && (
+                                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
+                                  <div className={`w-6 h-0.5 ${
+                                    dateStatus === 'confirmed' ? 'bg-[#3D1560]' : 
+                                    dateStatus === 'pending' ? 'bg-[#70727F]' : 'bg-gray-400'
+                                  }`} />
+                                  <div className="text-[8px] font-bold mt-0.5">{bookingCount}</div>
+                                </div>
+                              )} */}
+                            </div>
+                          </div>
+                        );
                       }
-                      
-                      if (isSelected) {
-                        dayClasses += 'bg-[#3D1560] text-white font-semibold ';
-                      } else if (dateStatus === 'confirmed') {
-                        dayClasses += 'bg-[#EDD9FF] text-[#3D1560] font-semibold ';
-                      } else if (dateStatus === 'pending') {
-                        dayClasses += 'bg-[#E8E9ED] text-[#70727F] font-medium ';
-                      } else {
-                        dayClasses += 'text-gray-700 ';
-                      }
-                      
-                      days.push(
-                        <div 
-                          key={day} 
-                          title={tooltipText}
-                          className={dayClasses}
-                          onClick={() => handleDateClick(day)}
-                          style={{ cursor: bookingsOnDay.length > 0 ? 'pointer' : 'default' }}
-                        >
-                          {day}
-                        </div>
-                      );
-                    }
                     
                                             // Add empty cells to complete the grid
                         const totalRenderedCells = adjustedFirstDay + daysInMonth;
