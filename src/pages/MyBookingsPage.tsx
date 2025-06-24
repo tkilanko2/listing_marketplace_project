@@ -29,6 +29,7 @@ interface MyBookingsPageProps {
 export function MyBookingsPage({ onBack, onViewBookingDetails }: MyBookingsPageProps) {
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'pending' | 'confirmed'>('all');
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   // Get all service bookings for the current user
   const allBookings = useMemo(() => {
@@ -118,6 +119,72 @@ export function MyBookingsPage({ onBack, onViewBookingDetails }: MyBookingsPageP
     year: 'numeric' 
   });
 
+  // Calendar helper functions
+  const getDaysInMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const isToday = (date: Date, day: number) => {
+    const today = new Date();
+    return date.getFullYear() === today.getFullYear() &&
+           date.getMonth() === today.getMonth() &&
+           day === today.getDate();
+  };
+
+  const isSameDay = (date1: Date, date2: Date) => {
+    return date1.getFullYear() === date2.getFullYear() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getDate() === date2.getDate();
+  };
+
+  const getBookingsForDate = (date: Date, day: number) => {
+    const targetDate = new Date(date.getFullYear(), date.getMonth(), day);
+    return allBookings.filter(booking => {
+      if (!booking.appointmentDate) return false;
+      return isSameDay(booking.appointmentDate, targetDate);
+    });
+  };
+
+  const getDateStatus = (date: Date, day: number) => {
+    const bookings = getBookingsForDate(date, day);
+    if (bookings.length === 0) return null;
+    
+    const hasConfirmed = bookings.some(b => ['confirmed', 'scheduled'].includes(b.status));
+    const hasPending = bookings.some(b => ['requested', 'pending'].includes(b.status));
+    
+    if (hasConfirmed) return 'confirmed';
+    if (hasPending) return 'pending';
+    return null;
+  };
+
+  const handleDateClick = (day: number) => {
+    const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+    setSelectedDate(clickedDate);
+    
+    // Filter bookings for this date
+    const dateBookings = getBookingsForDate(currentDate, day);
+    if (dateBookings.length > 0) {
+      // You could add logic here to highlight these bookings in the list
+      console.log('Bookings for this date:', dateBookings);
+    }
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      if (direction === 'prev') {
+        newDate.setMonth(prev.getMonth() - 1);
+      } else {
+        newDate.setMonth(prev.getMonth() + 1);
+      }
+      return newDate;
+    });
+  };
+
   return (
     <div className="bg-[#F8F8FA] min-h-screen py-8 px-4 md:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -176,39 +243,102 @@ export function MyBookingsPage({ onBack, onViewBookingDetails }: MyBookingsPageP
           {/* Left Column - Calendar View */}
           <div className="lg:col-span-2">
             <div className="bg-[#FFFFFF] rounded-lg shadow-sm border border-[#E8E9ED] p-6">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-[#1B1C20]">Calendar View</h2>
-                <div className="flex items-center gap-2">
-                  <button className="p-2 hover:bg-[#E8E9ED] rounded-lg transition-colors">
-                    <ChevronLeft className="w-4 h-4 text-[#383A47]" />
+                <div className="flex items-center justify-between text-xs">
+                  <button 
+                    onClick={() => navigateMonth('prev')} 
+                    className="p-1 rounded hover:bg-[#E8E9ED] text-[#383A47]"
+                  >
+                    <ChevronLeft size={16} />
                   </button>
-                  <span className="text-sm font-medium text-[#383A47] min-w-[120px] text-center">
+                  <span className="font-medium text-[#3D1560] mx-3">
                     {currentMonthYear}
                   </span>
-                  <button className="p-2 hover:bg-[#E8E9ED] rounded-lg transition-colors">
-                    <ChevronRight className="w-4 h-4 text-[#383A47]" />
+                  <button 
+                    onClick={() => navigateMonth('next')} 
+                    className="p-1 rounded hover:bg-[#E8E9ED] text-[#383A47]"
+                  >
+                    <ChevronRight size={16} />
                   </button>
                 </div>
               </div>
 
-              {/* Calendar Placeholder */}
-              <div className="border-2 border-dashed border-[#CDCED8] rounded-lg p-8 text-center">
-                <Calendar className="w-16 h-16 text-[#CDCED8] mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-[#70727F] mb-2">Calendar View</h3>
-                <p className="text-sm text-[#70727F] mb-4">
-                  Interactive calendar showing your appointments would be displayed here
-                </p>
-                <div className="grid grid-cols-7 gap-2 max-w-md mx-auto">
-                  {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
-                    <div key={index} className="text-xs font-medium text-[#70727F] p-2 text-center">
-                      {day}
-                    </div>
+              {/* Enhanced Calendar - Profile Page Style */}
+              <div className="border border-gray-200 rounded-md p-3 bg-gray-50">
+                {/* Calendar Header - Day Names */}
+                <div className="grid grid-cols-7 gap-1 text-center text-sm font-medium text-[#70727F] mb-2">
+                  {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((day, index) => (
+                    <div key={index} className="py-1">{day}</div>
                   ))}
-                  {Array.from({ length: 35 }, (_, i) => (
-                    <div key={i} className="aspect-square border border-[#E8E9ED] rounded flex items-center justify-center text-xs text-[#70727F] hover:bg-[#F8F8FA] transition-colors">
-                      {i + 1 <= 30 ? i + 1 : ''}
-                    </div>
-                  ))}
+                </div>
+                
+                {/* Calendar Days Grid */}
+                <div className="grid grid-cols-7 gap-1">
+                  {(() => {
+                    const daysInMonth = getDaysInMonth(currentDate);
+                    const firstDay = getFirstDayOfMonth(currentDate);
+                    const days = [];
+                    
+                                          // Add empty cells for days before the first day of the month
+                      // Adjust for Monday start (subtract 1, but handle Sunday case)
+                      const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1;
+                      for (let i = 0; i < adjustedFirstDay; i++) {
+                        days.push(
+                          <div key={`empty-${i}`} className="p-2 text-center"></div>
+                        );
+                      }
+                    
+                    // Add days of the month
+                    for (let day = 1; day <= daysInMonth; day++) {
+                      const dateStatus = getDateStatus(currentDate, day);
+                      const isCurrentDay = isToday(currentDate, day);
+                      const isSelected = selectedDate && isSameDay(selectedDate, new Date(currentDate.getFullYear(), currentDate.getMonth(), day));
+                      const bookingsOnDay = getBookingsForDate(currentDate, day);
+                      
+                      // Create tooltip text for bookings on this day
+                      const tooltipText = bookingsOnDay.length > 0 
+                        ? bookingsOnDay.map(b => `${b.service?.name || 'Service'} at ${b.appointmentDate ? formatTime(b.appointmentDate) : 'TBD'}`).join('\n')
+                        : '';
+                      
+                                              let dayClasses = 'p-2 text-center text-base rounded cursor-default hover:bg-[#D8C4E9] min-h-[32px] flex items-center justify-center ';
+                      
+                      if (isCurrentDay) {
+                        dayClasses += 'border-2 border-[#3D1560] ring-1 ring-offset-1 ring-[#6D26AB] ';
+                      }
+                      
+                      if (isSelected) {
+                        dayClasses += 'bg-[#3D1560] text-white font-semibold ';
+                      } else if (dateStatus === 'confirmed') {
+                        dayClasses += 'bg-[#EDD9FF] text-[#3D1560] font-semibold ';
+                      } else if (dateStatus === 'pending') {
+                        dayClasses += 'bg-[#E8E9ED] text-[#70727F] font-medium ';
+                      } else {
+                        dayClasses += 'text-gray-700 ';
+                      }
+                      
+                      days.push(
+                        <div 
+                          key={day} 
+                          title={tooltipText}
+                          className={dayClasses}
+                          onClick={() => handleDateClick(day)}
+                          style={{ cursor: bookingsOnDay.length > 0 ? 'pointer' : 'default' }}
+                        >
+                          {day}
+                        </div>
+                      );
+                    }
+                    
+                                            // Add empty cells to complete the grid
+                        const totalRenderedCells = adjustedFirstDay + daysInMonth;
+                        const remainingCellsToFill = (Math.ceil(totalRenderedCells / 7) * 7) - totalRenderedCells;
+                        for (let i = 0; i < remainingCellsToFill; i++) {
+                          days.push(<div key={`empty-next-${i}`} className="p-2 text-center"></div>);
+                        }
+                    
+                    return days;
+                  })()}
                 </div>
               </div>
             </div>
