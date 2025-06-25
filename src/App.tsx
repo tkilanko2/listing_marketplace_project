@@ -12,9 +12,10 @@ import { MyOrdersPage } from './pages/MyOrdersPage';
 import { ProductOrderDetailsPage } from './pages/ProductOrderDetailsPage';
 import RecentlyViewedPage from './pages/RecentlyViewedPage';
 import SavedItemsPage from './pages/SavedItemsPage';
-import { mockServices, mockProducts, mockListings, mockOrders, createBooking, mockBookings, getBookingsForProvider, getAllOrdersWithBookings, getOrdersForSeller } from './mockData';
+import { mockServices, mockProducts, mockListings, mockOrders, createBooking, mockBookings, getBookingsForProvider, getAllOrdersWithBookings, getOrdersForSeller, getServiceBookingsForSeller, CURRENT_SELLER_ID, providers } from './mockData';
 import { SellerOrdersPage } from './pages/SellerOrdersPage';
 import { SellerOrderDetailsPage } from './pages/SellerOrderDetailsPage';
+import { SellerBookingDetailsPage } from './pages/SellerBookingDetailsPage';
 import { Sidebar } from './components/Sidebar';
 import { Navbar } from './components/Navbar';
 import { Service, Product, ListingItem, ServiceProvider, Order, OrderActionType, Appointment, OrderItem } from './types';
@@ -62,6 +63,7 @@ function App() {
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [orderAction, setOrderAction] = useState<string | null>(null);
   const [selectedSellerOrder, setSelectedSellerOrder] = useState<Order | null>(null);
+  const [selectedSellerBooking, setSelectedSellerBooking] = useState<Order | null>(null);
   const [highlightedProductId, setHighlightedProductId] = useState<string | null>(null);
   const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]);
   
@@ -1343,7 +1345,7 @@ function App() {
         <div 
           key={order.id}
           className="bg-[#F8F8FA] rounded-lg p-2.5 border border-[#CDCED8] hover:border-[#3D1560] hover:bg-white hover:shadow-md transition-all duration-200 cursor-pointer group"
-          onClick={() => handleOrderSelect(order.id)}
+          onClick={() => handleSellerBookingDetails(order.id)}
           title={`Click to view ${order.type === 'service' ? 'booking' : 'order'} details`}
         >
           <div className="flex items-center gap-2.5">
@@ -2939,6 +2941,68 @@ function App() {
     setCurrentPage('sellerDashboard_orders');
   };
 
+  // Handle seller booking details view
+  const handleSellerBookingDetails = (bookingId: string) => {
+    console.log('🔍 handleSellerBookingDetails called with bookingId:', bookingId);
+    
+    // Find the booking from all service orders
+    const allBookings = getAllOrdersWithBookings();
+    console.log('📋 All available bookings:', allBookings.map(b => ({ id: b.id, type: b.type })));
+    
+    const booking = allBookings.find(o => o.id === bookingId && o.type === 'service');
+    console.log('🎯 Found booking:', booking);
+    
+    if (booking) {
+      // Add customer information for the booking details page
+      const bookingWithCustomer = {
+        ...booking,
+        customer: {
+          id: booking.userId,
+          name: `Customer ${booking.id.slice(-3)}`, // Generate customer name from booking ID
+          email: `customer.${booking.id.toLowerCase()}@example.com`,
+          phone: '(555) 123-4567',
+          avatar: ''
+        }
+      };
+      
+      console.log('✅ Setting selected booking and navigating:', bookingWithCustomer);
+      setSelectedSellerBooking(bookingWithCustomer as any);
+      setCurrentPage('sellerBookingDetails');
+    } else {
+      console.warn('❌ Booking not found:', bookingId, 'Available bookings:', allBookings.map(b => b.id));
+    }
+  };
+
+  const handleBackToSellerBookings = () => {
+    setSelectedSellerBooking(null);
+    setCurrentPage('sellerDashboard_appointments');
+  };
+
+  const handleViewAppointmentDetails = () => {
+    // This will open the appointment details modal from the booking details page
+    if (selectedSellerBooking) {
+      // Convert booking back to appointment for modal
+      const appointment = {
+        id: selectedSellerBooking.id,
+        service: selectedSellerBooking.service!,
+        provider: selectedSellerBooking.service!.provider,
+        customer: selectedSellerBooking.customer!,
+        start: selectedSellerBooking.appointmentDate?.toISOString() || new Date().toISOString(),
+        end: new Date((selectedSellerBooking.appointmentDate?.getTime() || Date.now()) + (selectedSellerBooking.service!.duration * 60 * 1000)).toISOString(),
+        status: selectedSellerBooking.status,
+        paymentStatus: selectedSellerBooking.paymentStatus,
+        price: selectedSellerBooking.totalAmount,
+        notes: '',
+        location: selectedSellerBooking.location || '',
+        createdAt: selectedSellerBooking.orderDate.toISOString(),
+        updatedAt: selectedSellerBooking.orderDate.toISOString()
+      };
+      // You would set this appointment and open the modal
+      // For now, we'll just log it
+      console.log('Would open appointment details modal for:', appointment);
+    }
+  };
+
   // Seller Dashboard Orders - Enhanced with comprehensive order management
   const SellerDashboardOrders = () => (
     <SellerOrdersPage 
@@ -2964,33 +3028,39 @@ function App() {
       visible: false
     });
 
-    // Get current seller's bookings (in real app, this would be based on logged-in seller's ID)
-    // For demo purposes, we'll show all bookings, but in practice you'd filter by provider ID
-    const sellerBookings = mockBookings.length > 0 ? mockBookings : [];
+    // Get actual service bookings from mockOrders (seller's perspective)
+    // In real app, this would be filtered by the current seller's ID
+    const serviceBookings = getServiceBookingsForSeller(CURRENT_SELLER_ID);
     
-    // Convert bookings to appointment format for compatibility with existing components
-    const realAppointments = sellerBookings.map((booking: any) => ({
+    // Convert service bookings to appointment format for compatibility with existing components
+    const appointmentsFromBookings = serviceBookings.map((booking: Order) => ({
       id: booking.id,
-      service: booking.service,
-      provider: booking.provider,
-      customer: booking.customer,
-      start: booking.start,
-      end: booking.end,
-      status: booking.status,
-      paymentStatus: booking.paymentStatus,
-      price: booking.price,
-      notes: booking.notes || '',
-      location: booking.location || '',
-      createdAt: booking.createdAt,
-      updatedAt: booking.updatedAt
+      service: booking.service!,
+      provider: booking.service!.provider,
+      customer: {
+        id: booking.userId,
+        name: `Customer ${booking.id.slice(-3)}`, // Generate customer name from booking ID
+        email: `customer.${booking.id.toLowerCase()}@example.com`,
+        phone: '(555) 123-4567',
+        avatar: ''
+      },
+      start: booking.appointmentDate?.toISOString() || new Date().toISOString(),
+      end: new Date((booking.appointmentDate?.getTime() || Date.now()) + (booking.service!.duration * 60 * 1000)).toISOString(),
+      status: booking.status === 'cancelled' ? 'canceled' : booking.status,
+      paymentStatus: booking.paymentStatus === 'paid' ? 'paid' : booking.paymentStatus === 'pending' ? 'unpaid' : booking.paymentStatus,
+      price: booking.totalAmount,
+      notes: '',
+      location: booking.location || booking.serviceAddress || '',
+      createdAt: booking.orderDate.toISOString(),
+      updatedAt: booking.orderDate.toISOString()
     }));
     
     // Fallback mock appointments for demo purposes (shown when no real bookings exist)
     const mockAppointments = [
       {
         id: 'app-001',
-        service: mockServices[0],
-        provider: mockServices[0].provider,
+        service: { ...mockServices[0], provider: providers[0] }, // Use current seller
+        provider: providers[0], // Use current seller
         customer: {
           id: 'cust-001',
           name: 'Emma W.',
@@ -3046,21 +3116,43 @@ function App() {
       // ... add more mock appointments if needed for demo
     ];
     
-    // Use real bookings if available, otherwise show mock data for demo
-    const displayAppointments = realAppointments.length > 0 ? realAppointments : mockAppointments;
+    // Use real service bookings if available, otherwise show mock data for demo
+    const displayAppointments = appointmentsFromBookings.length > 0 ? appointmentsFromBookings : mockAppointments;
 
     // Add state for appointments that can be updated
     const [appointments, setAppointments] = useState<Appointment[]>(displayAppointments as Appointment[]);
     
-    // Update appointments when real bookings change
+    // Update appointments when service bookings change
     useEffect(() => {
-      const updatedAppointments = realAppointments.length > 0 ? realAppointments : mockAppointments;
+      const updatedAppointments = appointmentsFromBookings.length > 0 ? appointmentsFromBookings : mockAppointments;
       setAppointments(updatedAppointments as Appointment[]);
-    }, [realAppointments.length]);
+    }, [serviceBookings.length]);
 
     const handleEditAppointment = (appointment: Appointment) => {
-      setSelectedAppointment(appointment);
-      setDetailsModalOpen(true);
+      // Convert appointment back to booking format for navigation
+      const booking = {
+        id: appointment.id,
+        userId: appointment.customer?.id || 'unknown-user',
+        items: [],
+        type: 'service' as const,
+        service: appointment.service,
+        appointmentDate: new Date(appointment.start),
+        status: appointment.status === 'canceled' ? 'cancelled' : appointment.status,
+        paymentStatus: appointment.paymentStatus,
+        orderDate: new Date(appointment.createdAt || new Date()),
+        totalAmount: appointment.price,
+        location: appointment.location,
+        selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+        customer: appointment.customer, // This will be used by the page component
+        listingId: appointment.service.id,
+        actions: [
+          { label: 'View Details', handler: () => {}, type: 'view' as OrderActionType },
+          { label: 'Message Customer', handler: () => {}, type: 'review' as OrderActionType }
+        ]
+      };
+      
+      setSelectedSellerBooking(booking as any); // Type assertion for now
+      setCurrentPage('sellerBookingDetails');
     };
 
     const handleCancelAppointment = (appointment: Appointment) => {
@@ -3265,7 +3357,7 @@ function App() {
     };
 
     // Type assertion to resolve linter error with appointments
-    const typedAppointments = realAppointments as Appointment[];
+    const typedAppointments = appointmentsFromBookings as Appointment[];
 
     return (
       <PlaceholderPage title="Bookings">
@@ -3294,7 +3386,7 @@ function App() {
         <AppointmentDashboard
           appointments={appointments}
           services={mockServices}
-          onEdit={handleEditAppointment}
+          onViewBookingDetails={handleSellerBookingDetails}
           onCancel={handleCancelAppointment}
           onComplete={handleCompleteAppointment}
           onReschedule={handleRescheduleAppointment}
@@ -4514,6 +4606,16 @@ function App() {
 
         {currentPage === 'sellerDashboard_appointments' && (
           <SellerDashboardAppointments />
+        )}
+
+        {currentPage === 'sellerBookingDetails' && selectedSellerBooking && (
+          <SellerBookingDetailsPage 
+            booking={selectedSellerBooking}
+            onBack={handleBackToSellerBookings}
+            onViewAppointmentDetails={handleViewAppointmentDetails}
+            userRegion="US"
+            selectedServiceMode="at_seller"
+          />
         )}
 
         {currentPage === 'sellerDashboard_finance' && (

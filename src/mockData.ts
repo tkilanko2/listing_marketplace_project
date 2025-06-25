@@ -94,7 +94,7 @@ function generateReviews() {
 }
 
 // Generate provider data
-const providers = Array.from({ length: 15 }, (_, index) => ({
+export const providers = Array.from({ length: 15 }, (_, index) => ({
   id: generateProviderId(),
   username: generateProviderUsername(),
   // Using professional headshots for provider avatars
@@ -1267,9 +1267,9 @@ export const mockOrders: Order[] = [
     userId: 'USER001',
     items: [],
     type: 'service',
-    service: mockServices[0],
+    service: { ...mockServices[0], provider: providers[0] }, // Assign to first provider
     appointmentDate: new Date('2024-01-20'),
-    status: 'confirmed',
+    status: 'completed', // Changed to completed since it's a past date
     paymentStatus: 'paid' as PaymentStatus,
     orderDate: new Date('2024-01-10'),
     totalAmount: 120.00,
@@ -1761,6 +1761,90 @@ export const mockOrders: Order[] = [
       { label: 'Message Provider', handler: () => console.log('Message provider for booking BKG016'), type: 'message' },
       { label: 'View Details', handler: () => console.log('View details of booking BKG016'), type: 'reorder' }
     ] as unknown as OrderActionType[]
+  },
+  // Additional bookings for the first provider (current seller)
+  {
+    id: 'BKG-SELLER-001',
+    listingId: mockServices[0].id,
+    userId: 'USER-SELLER-001',
+    items: [],
+    type: 'service',
+    service: { ...mockServices[0], provider: providers[0] },
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 1)), // Tomorrow
+    status: 'confirmed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 2)),
+    totalAmount: 120.00,
+    serviceLocation: {
+      address: '123 First Avenue',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10001',
+      coordinates: { lat: 40.7831, lng: -73.9712 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Beauty & Wellness'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    actions: [
+      { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG-SELLER-001'), type: 'reschedule' },
+      { label: 'Message Customer', handler: () => console.log('Message customer for booking BKG-SELLER-001'), type: 'message' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-SELLER-001'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG-SELLER-002',
+    listingId: mockServices[0].id,
+    userId: 'USER-SELLER-002',
+    items: [],
+    type: 'service',
+    service: { ...mockServices[0], provider: providers[0] },
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 3)), // 3 days from now
+    status: 'pending',
+    paymentStatus: 'unpaid' as PaymentStatus,
+    orderDate: new Date(),
+    totalAmount: 120.00,
+    serviceLocation: {
+      address: '456 Second Street, Apt 3B',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10002',
+      coordinates: { lat: 40.7489, lng: -73.9680 }
+    },
+    serviceAddress: generateServiceAddress('at_buyer', 'New York'),
+    selectedServiceMode: 'at_buyer' as 'at_seller' | 'at_buyer' | 'remote',
+    actions: [
+      { label: 'Confirm Booking', handler: () => console.log('Confirm booking BKG-SELLER-002'), type: 'confirm' },
+      { label: 'Decline', handler: () => console.log('Decline booking BKG-SELLER-002'), type: 'cancel' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-SELLER-002'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG-SELLER-003',
+    listingId: mockServices[0].id,
+    userId: 'USER-SELLER-003',
+    items: [],
+    type: 'service',
+    service: { ...mockServices[0], provider: providers[0] },
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 1)), // Yesterday
+    status: 'completed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 5)),
+    totalAmount: 120.00,
+    serviceLocation: {
+      address: '789 Third Plaza',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10003',
+      coordinates: { lat: 40.7282, lng: -73.9942 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Beauty & Wellness'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    actions: [
+      { label: 'Request Review', handler: () => console.log('Request review for booking BKG-SELLER-003'), type: 'review' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-SELLER-003'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
   }
 ];
 
@@ -1778,6 +1862,152 @@ export const mockServiceOrders = [
     appointmentDate: new Date(2024, 3, 15, 10, 0), // April 15, 2024, 10:00 AM
     location: 'Service Provider Location',
     actions: ['reschedule', 'cancel']
+  }
+];
+
+// Current seller simulation - for demo purposes, this would be the logged-in seller
+export const CURRENT_SELLER_ID = providers[0].id; // Using the first provider as the current seller
+
+// Additional mock service orders for the current seller
+const currentSellerMockOrders = [
+  {
+    id: 'BKG-CS-001',
+    listingId: mockServices.find(s => s.provider.id === CURRENT_SELLER_ID)?.id || mockServices[0].id,
+    userId: 'USER-CS-001',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.provider.id === CURRENT_SELLER_ID) || mockServices[0],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 2)), // 2 days from now
+    status: 'confirmed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 1)),
+    totalAmount: 150.00,
+    serviceLocation: {
+      address: '123 Main Street, Suite 100',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10001',
+      coordinates: { lat: 40.7831, lng: -73.9712 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Beauty & Wellness'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-001',
+      name: 'Sarah Johnson',
+      email: 'sarah.johnson@email.com',
+      phone: '(555) 123-4567',
+      avatar: 'https://randomuser.me/api/portraits/women/32.jpg'
+    },
+    actions: [
+      { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG-CS-001'), type: 'reschedule' },
+      { label: 'Message Customer', handler: () => console.log('Message customer for booking BKG-CS-001'), type: 'message' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-001'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG-CS-002',
+    listingId: mockServices.find(s => s.provider.id === CURRENT_SELLER_ID)?.id || mockServices[0].id,
+    userId: 'USER-CS-002',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.provider.id === CURRENT_SELLER_ID) || mockServices[0],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 5)), // 5 days from now
+    status: 'pending',
+    paymentStatus: 'unpaid' as PaymentStatus,
+    orderDate: new Date(),
+    totalAmount: 150.00,
+    serviceLocation: {
+      address: '456 Oak Avenue, Apartment 2B',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10002',
+      coordinates: { lat: 40.7489, lng: -73.9680 }
+    },
+    serviceAddress: generateServiceAddress('at_buyer', 'New York'),
+    selectedServiceMode: 'at_buyer' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-002',
+      name: 'Michael Chen',
+      email: 'michael.chen@email.com',
+      phone: '(555) 987-6543',
+      avatar: 'https://randomuser.me/api/portraits/men/45.jpg'
+    },
+    actions: [
+      { label: 'Confirm Booking', handler: () => console.log('Confirm booking BKG-CS-002'), type: 'confirm' },
+      { label: 'Decline', handler: () => console.log('Decline booking BKG-CS-002'), type: 'cancel' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-002'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG-CS-003',
+    listingId: mockServices.find(s => s.provider.id === CURRENT_SELLER_ID)?.id || mockServices[0].id,
+    userId: 'USER-CS-003',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.provider.id === CURRENT_SELLER_ID) || mockServices[0],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 1)), // Tomorrow
+    status: 'confirmed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 3)),
+    totalAmount: 150.00,
+    serviceLocation: {
+      address: '789 Pine Street',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10003',
+      coordinates: { lat: 40.7282, lng: -73.9942 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Beauty & Wellness'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-003',
+      name: 'Emily Rodriguez',
+      email: 'emily.rodriguez@email.com',
+      phone: '(555) 456-7890',
+      avatar: 'https://randomuser.me/api/portraits/women/68.jpg'
+    },
+    actions: [
+      { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG-CS-003'), type: 'reschedule' },
+      { label: 'Message Customer', handler: () => console.log('Message customer for booking BKG-CS-003'), type: 'message' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-003'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG-CS-004',
+    listingId: mockServices.find(s => s.provider.id === CURRENT_SELLER_ID)?.id || mockServices[0].id,
+    userId: 'USER-CS-004',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.provider.id === CURRENT_SELLER_ID) || mockServices[0],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 1)), // Yesterday
+    status: 'completed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 7)),
+    totalAmount: 150.00,
+    serviceLocation: {
+      address: '321 Elm Street, Suite 5',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10004',
+      coordinates: { lat: 40.7074, lng: -74.0113 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Beauty & Wellness'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-004',
+      name: 'David Wilson',
+      email: 'david.wilson@email.com',
+      phone: '(555) 234-5678',
+      avatar: 'https://randomuser.me/api/portraits/men/22.jpg'
+    },
+    actions: [
+      { label: 'Request Review', handler: () => console.log('Request review for booking BKG-CS-004'), type: 'review' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-004'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
   }
 ];
 
@@ -1884,5 +2114,15 @@ export function getOrdersForSeller(sellerId: string): any[] {
     order.type === 'product' && 
     order.items && 
     order.items.some((item: any) => item.product.seller.id === sellerId)
+  );
+}
+
+// Helper function to get service bookings for a specific provider/seller
+export function getServiceBookingsForSeller(providerId: string): any[] {
+  const allOrders = getAllOrdersWithBookings();
+  return allOrders.filter(order => 
+    order.type === 'service' && 
+    order.service && 
+    order.service.provider.id === providerId
   );
 }

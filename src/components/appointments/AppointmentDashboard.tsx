@@ -15,7 +15,7 @@ interface AppointmentDashboardProps {
   sellerName?: string; // Added to display whose calendar is being viewed
   
   // Action props
-  onEdit?: (appointment: Appointment) => void;
+  onViewBookingDetails?: (bookingId: string) => void;
   onCancel?: (appointment: Appointment) => void;
   onComplete?: (appointment: Appointment) => void;
   onReschedule?: (appointment: Appointment) => void;
@@ -28,7 +28,7 @@ export default function AppointmentDashboard({
   appointments = [],
   services = mockServices,
   sellerName = 'My Calendar',
-  onEdit = () => {},
+  onViewBookingDetails = () => {},
   onCancel = () => {},
   onComplete = () => {},
   onReschedule = () => {},
@@ -345,7 +345,7 @@ export default function AppointmentDashboard({
       {view === 'list' ? (
         <AppointmentList 
           appointments={filteredAppointments}
-          onEdit={onEdit}
+          onViewBookingDetails={onViewBookingDetails}
           onCancel={onCancel}
           onComplete={onComplete}
           onReschedule={onReschedule}
@@ -355,7 +355,7 @@ export default function AppointmentDashboard({
       ) : (
         <CalendarView 
           appointments={filteredAppointments}
-          onEdit={onEdit}
+          onViewBookingDetails={onViewBookingDetails}
         />
       )}
     </Box>

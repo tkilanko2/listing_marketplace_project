@@ -30,7 +30,7 @@ import { Appointment } from '../../types';
 
 interface AppointmentListProps {
   appointments: Appointment[];
-  onEdit: (appointment: Appointment) => void;
+  onViewBookingDetails: (bookingId: string) => void;
   onCancel: (appointment: Appointment) => void;
   onComplete: (appointment: Appointment) => void;
   onReschedule: (appointment: Appointment) => void;
@@ -40,7 +40,7 @@ interface AppointmentListProps {
 
 export default function AppointmentList({
   appointments,
-  onEdit,
+  onViewBookingDetails,
   onCancel,
   onComplete,
   onReschedule,
@@ -149,7 +149,7 @@ export default function AppointmentList({
                     },
                     backgroundColor: appointment.status === 'canceled' ? '#F8F8FA' : 'white'
                   }}
-                  onClick={() => onEdit(appointment)}
+                  onClick={() => onViewBookingDetails(appointment.id)}
                   role="gridcell"
                 >
                   <TableCell sx={{ borderBottom: '1px solid #E8E9ED' }}>
@@ -270,8 +270,8 @@ export default function AppointmentList({
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem onClick={() => handleAction(onEdit)}>
-          <Edit size={16} style={{ marginRight: 8 }} /> Edit
+        <MenuItem onClick={() => handleAction(() => onViewBookingDetails(selectedAppointment?.id || ''))}>
+          <Edit size={16} style={{ marginRight: 8 }} /> View Details
         </MenuItem>
         {selectedAppointment?.status !== 'canceled' && selectedAppointment?.status !== 'completed' && (
           <MenuItem onClick={() => handleAction(onCancel)}>

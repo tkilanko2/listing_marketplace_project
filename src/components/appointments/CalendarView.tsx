@@ -9,7 +9,7 @@ import { Appointment } from '../../types';
 
 interface CalendarViewProps {
   appointments: Appointment[];
-  onEdit: (appointment: Appointment) => void;
+  onViewBookingDetails: (bookingId: string) => void;
   onDateRangeChange?: (start: Date, end: Date) => void;
   onDateSelect?: (info: DateSelectArg) => void;
   loading?: boolean;
@@ -17,7 +17,7 @@ interface CalendarViewProps {
 
 export default function CalendarView({
   appointments = [],
-  onEdit,
+  onViewBookingDetails,
   onDateRangeChange,
   onDateSelect,
   loading = false
@@ -106,7 +106,7 @@ export default function CalendarView({
   // Handle event click
   const handleEventClick = (clickInfo: EventClickArg) => {
     const appointmentData = clickInfo.event.extendedProps.appointment as Appointment;
-    onEdit(appointmentData);
+    onViewBookingDetails(appointmentData.id);
   };
 
   // Handle date range change
