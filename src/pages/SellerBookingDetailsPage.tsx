@@ -24,7 +24,9 @@ import {
   Star,
   PlusCircle,
   Edit,
-  BarChart3
+  BarChart3,
+  Shield,
+  ExternalLink
 } from 'lucide-react';
 import { Order, OrderStatus } from '../types';
 import { OrderStatusTimeline } from '../components/OrderStatusTimeline';
@@ -1143,7 +1145,27 @@ export function SellerBookingDetailsPage({
                        selectedServiceMode === 'at_buyer' ? 'At Customer Location' : 'Remote'}
                     </span>
               </div>
+                </div>
+              </div>
             </div>
+
+            {/* Support & Resources Card */}
+            <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#1B1C20] mb-3">Support & Resources</h3>
+              <div className="space-y-2.5">
+                <button className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE] gap-2.5">
+                    <MessageCircle className="w-4 h-4" />
+                  Contact Support
+                  </button>
+                <button className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE] gap-2.5">
+                  <FileText className="w-4 h-4" /> 
+                  Seller Help Center
+                  </button>
+                <button className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE] gap-2.5">
+                  <Shield className="w-4 h-4" />
+                  Seller Protection
+                  <ExternalLink className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>

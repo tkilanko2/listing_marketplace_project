@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Box, Card, Tabs, Tab, Divider, Typography, ButtonGroup, Button } from '@mui/material';
-import { Calendar, List, Plus } from 'lucide-react';
+import { Calendar, List } from 'lucide-react';
 import KPIBar from './KPIBar';
 import AppointmentFilters, { FilterState } from './AppointmentFilters';
 import AppointmentList from './AppointmentList';
@@ -110,17 +110,10 @@ export default function AppointmentDashboard({
     const completed = appointments.filter(a => a.status === 'completed').length;
     const canceled = appointments.filter(a => a.status === 'canceled').length;
     
-    // Calculate revenue from paid, completed appointments
+    // Calculate earned revenue from completed appointments only
     const revenue = appointments
-      .filter(a => a.paymentStatus === 'paid')
+      .filter(a => a.status === 'completed' && a.paymentStatus === 'paid')
       .reduce((sum, a) => sum + a.price, 0);
-    
-    // Calculate utilization rate (filled slots vs. total available slots) for compatibility
-    const totalAppointments = appointments.length;
-    const nonCanceled = appointments.filter(a => a.status !== 'canceled').length;
-    const utilization = totalAppointments > 0 
-      ? Math.round((nonCanceled / totalAppointments) * 100) 
-      : 0;
     
     // Calculate completion rate (completed out of all non-canceled appointments)
     const totalNonCanceled = appointments.filter(a => a.status !== 'canceled').length;
@@ -134,7 +127,6 @@ export default function AppointmentDashboard({
       completed,
       canceled,
       revenue,
-      utilization, // Included for compatibility with KPIBar props
       completionRate
     };
   }, [appointments]);
@@ -215,11 +207,6 @@ export default function AppointmentDashboard({
 
   return (
     <Box>
-      {/* Title to indicate whose calendar */}
-      <Typography variant="h5" color="#1B1C20" sx={{ mb: 2 }}>
-        {sellerName}
-      </Typography>
-      
       {/* KPI Metrics */}
       <KPIBar metrics={metrics} />
       
@@ -285,7 +272,7 @@ export default function AppointmentDashboard({
           </Button>
         </ButtonGroup>
         
-        {/* View Toggle and New Booking Buttons */}
+        {/* View Toggle Buttons */}
         <Box>
           <Button 
             onClick={() => setView('list')}
@@ -312,25 +299,11 @@ export default function AppointmentDashboard({
               '&:hover': {
                 backgroundColor: '#EDD9FF',
                 borderColor: '#3D1560',
-              },
-              mr: 1
+              }
             }}
             startIcon={<Calendar size={18} />}
           >
             Calendar
-          </Button>
-          <Button 
-            variant="contained"
-            onClick={onCreateAppointment}
-            sx={{ 
-              backgroundColor: '#3D1560',
-              '&:hover': {
-                backgroundColor: '#6D26AB',
-              }
-            }}
-            startIcon={<Plus size={18} />}
-          >
-            New Booking
           </Button>
         </Box>
       </Box>
