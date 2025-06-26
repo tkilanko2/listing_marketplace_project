@@ -24,7 +24,7 @@ import {
   Star,
   PlusCircle,
   Edit,
-  ExternalLink
+  BarChart3
 } from 'lucide-react';
 import { Order, OrderStatus } from '../types';
 import { OrderStatusTimeline } from '../components/OrderStatusTimeline';
@@ -181,7 +181,11 @@ export function SellerBookingDetailsPage({
   };
 
   const formatCustomerName = (fullName: string): string => {
-    return fullName || 'Customer';
+    if (!fullName) return 'Customer';
+    const nameParts = fullName.split(' ');
+    const firstName = nameParts[0];
+    const lastNameInitial = nameParts.length > 1 ? nameParts[nameParts.length - 1].charAt(0) : '';
+    return lastNameInitial ? `${firstName} ${lastNameInitial}.` : firstName;
   };
 
   const formatDate = (date: Date) => {
@@ -445,7 +449,7 @@ export function SellerBookingDetailsPage({
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-[#3D1560]" />
                     <div>
-                      <p className="text-xs text-[#70727F] font-medium">Location</p>
+                      <p className="text-xs text-[#70727F] font-medium">Service Delivery</p>
                       <p className="text-[#383A47] font-medium">
                         {selectedServiceMode === 'at_seller' ? 'At Your Location' : 
                          selectedServiceMode === 'at_buyer' ? 'At Customer Location' : 'Remote'}
@@ -500,12 +504,8 @@ export function SellerBookingDetailsPage({
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-[#1B1C20] text-sm truncate">{formatCustomerName(customerInfo.name)}</p>
                   <div className="flex items-center gap-2 text-xs text-[#70727F]">
-                    <Mail className="w-3 h-3" />
-                    <span className="truncate">{customerInfo.email}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-[#70727F]">
-                    <Phone className="w-3 h-3" />
-                    <span>{customerInfo.phone}</span>
+                    <User className="w-3 h-3" />
+                    <span className="truncate">CM{booking.id.slice(-6).toUpperCase()}</span>
                   </div>
                 </div>
               </div>
@@ -522,7 +522,7 @@ export function SellerBookingDetailsPage({
                   </span>
                 </div>
                 <span className="text-lg font-bold text-[#4CAF50]">
-                  ${paymentBreakdown.sellerEarnings.toFixed(2)}
+                  ${paymentBreakdown.customerPaid.toFixed(2)}
                 </span>
               </div>
             </div>
@@ -773,10 +773,10 @@ export function SellerBookingDetailsPage({
                 {activeTab === 'details' && (
                   <div className="space-y-8">
                     {/* Service Information Card */}
-                    {booking.service && (
-                      <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
-                        <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Service Information</h3>
-                        <div className="flex flex-col sm:flex-row gap-4">
+            {booking.service && (
+              <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
+                <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Service Information</h3>
+                <div className="flex flex-col sm:flex-row gap-4">
                           {booking.service.images && booking.service.images.length > 0 && (
                             <div className="relative w-full sm:w-24 h-32 sm:h-24 rounded-md overflow-hidden border border-[#CDCED8] flex-shrink-0">
                               <img 
@@ -786,7 +786,7 @@ export function SellerBookingDetailsPage({
                               />
                             </div>
                           )}
-                          <div className="flex-1">
+                  <div className="flex-1">
                             <h4 className="text-xl font-semibold mb-1.5 text-[#383A47]">
                               {booking.service.name}
                             </h4>
@@ -800,19 +800,19 @@ export function SellerBookingDetailsPage({
                                 <div className="flex items-center gap-1">
                                   <span>{booking.service.category}</span>
                                 </div>
-                              </div>
+                      </div>
                               <div className="text-xl font-bold text-[#1B1C20]">
                                 ${booking.service.price.toFixed(2)}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
                       </div>
-                    )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
                     {/* Appointment & Location Details Card */}
                     {booking.service && (
-                      <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
+            <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
                         <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Appointment & Location</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                           {[
@@ -820,31 +820,33 @@ export function SellerBookingDetailsPage({
                             { icon: Clock, label: "Time", value: booking.appointmentDate ? formatTime(booking.appointmentDate) : 'TBD' },
                             { icon: selectedServiceMode === 'at_seller' ? Building : selectedServiceMode === 'at_buyer' ? Home : Monitor, label: "Service Delivery", value: selectedServiceMode === 'at_seller' ? 'At Your Location' : selectedServiceMode === 'at_buyer' ? 'At Customer Location' : 'Remote' },
                             { icon: Clock3, label: "Duration", value: `${booking.service.duration} minutes` },
-                            { icon: MapPin, label: "City, Country", value: (() => {
-                              if (booking.serviceLocation?.city && booking.serviceLocation?.country) {
-                                return `${booking.serviceLocation.city}, ${booking.serviceLocation.country}`;
-                              } else if (selectedServiceMode === 'remote') {
-                                return 'Remote';
-                              } else if (booking.service?.provider?.location?.city && booking.service?.provider?.location?.country) {
-                                return `${booking.service.provider.location.city}, ${booking.service.provider.location.country}`;
-                              }
-                              return 'Not specified';
-                            })() },
-                            // Service address for seller view
-                            ...(booking.serviceAddress ? [
-                              { icon: MapPin, label: "Service Address", value: booking.serviceAddress.replace(/,\s*[A-Z]{2}\s*\d{5}/, '').replace(/,\s*United States$/, '') }
-                            ] : []),
+                            { 
+                              icon: MapPin, 
+                              label: "Service Location", 
+                              value: selectedServiceMode === 'at_seller' ? 'Seller Provided Address' : selectedServiceMode === 'at_buyer' ? 'Buyer Provided Address' : 'Remote',
+                              isClickable: selectedServiceMode === 'at_seller',
+                              onClick: () => setAppointmentDetailsOpen(true)
+                            },
                           ].map(detail => (
                             <div key={detail.label} className="flex items-start gap-3">
                               <detail.icon className="w-5 h-5 text-[#3D1560] mt-0.5 flex-shrink-0" />
                               <div>
                                 <p className="text-xs text-[#70727F] uppercase tracking-wider font-medium">{detail.label}</p>
-                                <p className="font-medium text-[#383A47] text-sm">{detail.value}</p>
+                                {detail.isClickable ? (
+                                  <button 
+                                    onClick={detail.onClick}
+                                    className="font-medium text-[#383A47] text-sm hover:text-[#3D1560] transition-colors duration-200 text-left"
+                                  >
+                                    {detail.value}
+                                  </button>
+                                ) : (
+                                  <p className="font-medium text-[#383A47] text-sm">{detail.value}</p>
+                                )}
                               </div>
                             </div>
                           ))}
                         </div>
-                      </div>
+                </div>
                     )}
 
                     {/* Customer Information Card */}
@@ -858,12 +860,8 @@ export function SellerBookingDetailsPage({
                           <h4 className="text-lg font-semibold text-[#3D1560] mb-0.5">{formatCustomerName(customerInfo.name)}</h4>
                           <div className="flex items-center gap-3 text-sm text-[#70727F]">
                             <div className="flex items-center gap-1">
-                              <Mail className="w-4 h-4" />
-                              <span>{customerInfo.email}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Phone className="w-4 h-4" />
-                              <span>{customerInfo.phone}</span>
+                              <User className="w-4 h-4" />
+                              <span>CM{booking.id.slice(-6).toUpperCase()}</span>
                             </div>
                           </div>
                         </div>
@@ -1000,13 +998,13 @@ export function SellerBookingDetailsPage({
                     Reschedule
                   </button>
                 )}
-                {statusConfig.canMessage && (
-                  <button
-                    onClick={handleContactCustomer}
-                    className="w-full flex items-center justify-center gap-2 bg-[#DF678C] text-[#FFFFFF] hover:bg-[#D84773] transition-colors duration-200 px-4 py-3 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg"
+                {statusConfig.canViewAppointment && (
+                  <button 
+                    onClick={() => setAppointmentDetailsOpen(true)}
+                    className="w-full flex items-center justify-center gap-2 bg-[#E8E9ED] text-[#383A47] hover:bg-[#CDCED8] hover:text-[#1B1C20] transition-colors duration-200 px-4 py-3 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg"
                   >
-                    <MessageCircle className="w-5 h-5" />
-                    Message Customer
+                    <Eye className="w-5 h-5" />
+                    View Appointment Details
                   </button>
                 )}
                 {statusConfig.canDecline && (
@@ -1020,14 +1018,14 @@ export function SellerBookingDetailsPage({
               {/* Secondary Actions - Progressive Disclosure */}
               <div className="border-t border-[#E8E9ED] pt-4">
                 <h4 className="text-sm font-medium text-[#70727F] mb-3">Additional Actions</h4>
-                <div className="space-y-2">
-                  {statusConfig.canViewAppointment && (
-                    <button 
-                      onClick={() => setAppointmentDetailsOpen(true)}
+                                <div className="space-y-2">
+                  {statusConfig.canMessage && (
+                    <button
+                      onClick={handleContactCustomer}
                       className="w-full flex items-center gap-2 text-[#3D1560] hover:text-[#6D26AB] hover:bg-[#EDD9FF] transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium"
                     >
-                      <Eye className="w-4 h-4" />
-                      View Full Details
+                      <MessageCircle className="w-4 h-4" />
+                      Message Customer
                     </button>
                   )}
                   {statusConfig.canAddNotes && (
@@ -1044,7 +1042,7 @@ export function SellerBookingDetailsPage({
                       onClick={handleViewPerformance}
                       className="w-full flex items-center gap-2 text-[#3D1560] hover:text-[#6D26AB] hover:bg-[#EDD9FF] transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium"
                     >
-                      <ExternalLink className="w-4 h-4" />
+                      <BarChart3 className="w-4 h-4" />
                       View Performance
                     </button>
                   )}
@@ -1083,30 +1081,30 @@ export function SellerBookingDetailsPage({
                 <div className="bg-[#F8F8FA] p-3 rounded-lg mt-4">
                   <h4 className="text-sm font-semibold text-[#383A47] mb-3">Service Breakdown</h4>
                   
-                  <div className="space-y-2 mb-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-[#70727F]">Service</span>
-                      <span className="text-[#383A47] font-medium">{booking.service?.name || 'Service'}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-[#70727F]">Duration</span>
-                      <span className="text-[#383A47]">{booking.service?.duration || 60} minutes</span>
-                    </div>
-
-
-                    {booking.appointmentDate && (
-                      <>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-[#70727F]">Date</span>
-                          <span className="text-[#383A47] font-medium">{formatDate(booking.appointmentDate)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-[#70727F]">Time</span>
-                          <span className="text-[#383A47] font-medium">{formatTime(booking.appointmentDate)}</span>
-                        </div>
-                      </>
-                    )}
+                <div className="space-y-2 mb-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[#70727F]">Service</span>
+                    <span className="text-[#383A47] font-medium">{booking.service?.name || 'Service'}</span>
                   </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[#70727F]">Duration</span>
+                    <span className="text-[#383A47]">{booking.service?.duration || 60} minutes</span>
+                  </div>
+
+
+                  {booking.appointmentDate && (
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-[#70727F]">Date</span>
+                        <span className="text-[#383A47] font-medium">{formatDate(booking.appointmentDate)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-[#70727F]">Time</span>
+                        <span className="text-[#383A47] font-medium">{formatTime(booking.appointmentDate)}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
 
                   {/* Enhanced Payment Breakdown */}
                   <div className="space-y-1 mb-3 text-xs">
@@ -1122,10 +1120,10 @@ export function SellerBookingDetailsPage({
                       <span className="text-[#70727F]">Payment Processing:</span>
                       <span className="text-[#70727F]">-${paymentBreakdown.paymentProcessingFee.toFixed(2)}</span>
                     </div>
-                  </div>
+                </div>
 
-                  <div className="flex justify-between text-sm font-medium border-t border-[#CDCED8] pt-2">
-                    <span className="text-[#383A47]">Your Earnings</span>
+                <div className="flex justify-between text-sm font-medium border-t border-[#CDCED8] pt-2">
+                  <span className="text-[#383A47]">Your Earnings</span>
                     <span className="text-[#4CAF50] font-bold">${paymentBreakdown.sellerEarnings.toFixed(2)}</span>
                   </div>
                 </div>
@@ -1144,8 +1142,8 @@ export function SellerBookingDetailsPage({
                       {selectedServiceMode === 'at_seller' ? 'At Your Location' : 
                        selectedServiceMode === 'at_buyer' ? 'At Customer Location' : 'Remote'}
                     </span>
-                  </div>
-                </div>
+              </div>
+            </div>
               </div>
             </div>
           </div>
@@ -1167,7 +1165,7 @@ export function SellerBookingDetailsPage({
       />
     </div>
   );
-}
+} 
 
 // Helper function to get icon and colors for activity log entries
 const getIconForActivity = (type: SellerActivityEntry['type']) => {

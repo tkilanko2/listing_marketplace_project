@@ -35,7 +35,8 @@ import {
   Plus,
   Copy,
   PlusCircle,
-  Info
+  Info,
+  BarChart3
 } from 'lucide-react';
 import { Order, ActivityLogEntry, OrderStatus } from '../types';
 import { OrderStatusTimeline } from '../components/OrderStatusTimeline';
@@ -1231,7 +1232,7 @@ export function SellerOrderDetailsPage({ order, onBack, onNavigateToListing }: S
                     }}
                     className="w-full flex items-center gap-2 text-[#3D1560] hover:text-[#6D26AB] hover:bg-[#EDD9FF] transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium"
                   >
-                    <Eye className="w-4 h-4" />
+                    <BarChart3 className="w-4 h-4" />
                     View Performance
                   </button>
                 </div>
