@@ -38,8 +38,8 @@ import {
   OrderReturnPage,
   OrderReviewPage
 } from './pages/PlaceholderPages';
-import { AppointmentDashboard } from './components/appointments';
-import { AppointmentDetailsModal, RescheduleAppointmentModal } from './components/appointments';
+import { SellerBookingDashboard } from './components/seller-bookings';
+import { SellerAppointmentDetailsModal, RescheduleBookingModal } from './components/seller-bookings';
 import { Box, Typography } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -3327,9 +3327,28 @@ function App() {
       }, 500);
     };
 
-    const handleDeleteAppointment = (appointment: Appointment) => {
-      console.log('Delete appointment:', appointment);
-      // In a real app, you would show a confirmation dialog
+    const handleAcceptAppointment = (appointment: Appointment) => {
+      console.log('Accept appointment:', appointment);
+      // In a real app, this would update the appointment status to confirmed
+      setActionFeedback({
+        type: 'success',
+        message: `Appointment with ${formatCustomerName(appointment.customer.name)} has been accepted.`
+      });
+      setTimeout(() => setActionFeedback(null), 3000);
+    };
+
+
+
+    const handleViewListing = (appointment: Appointment) => {
+      console.log('View listing for appointment:', appointment);
+      // Navigate to the service details page for the appointment's service
+      setSelectedService(appointment.service);
+      setCurrentPage('service-details');
+      setActionFeedback({
+        type: 'info',
+        message: `Viewing listing for ${appointment.service.name}.`
+      });
+      setTimeout(() => setActionFeedback(null), 3000);
     };
 
     const handleCreateAppointment = () => {
@@ -3382,8 +3401,8 @@ function App() {
           </Box>
         )}
         
-        {/* Import AppointmentDashboard from our components */}
-        <AppointmentDashboard
+        {/* Import SellerBookingDashboard from our components */}
+        <SellerBookingDashboard
           appointments={appointments}
           services={mockServices}
           onViewBookingDetails={handleSellerBookingDetails}
@@ -3391,12 +3410,13 @@ function App() {
           onComplete={handleCompleteAppointment}
           onReschedule={handleRescheduleAppointment}
           onMessageCustomer={handleMessageCustomer}
-          onDelete={handleDeleteAppointment}
+          onAccept={handleAcceptAppointment}
+          onViewListing={handleViewListing}
           onCreateAppointment={handleCreateAppointment}
         />
         
         {/* Appointment Details Modal */}
-        <AppointmentDetailsModal
+        <SellerAppointmentDetailsModal
           open={detailsModalOpen}
           onClose={handleCloseDetailsModal}
           appointment={selectedAppointment}
@@ -3407,8 +3427,8 @@ function App() {
           onConfirm={handleConfirmAppointment}
         />
         
-        {/* Reschedule Appointment Modal */}
-        <RescheduleAppointmentModal
+        {/* Reschedule Booking Modal */}
+        <RescheduleBookingModal
           open={rescheduleModalOpen}
           onClose={handleCloseRescheduleModal}
           appointment={selectedAppointment}

@@ -5,7 +5,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
-interface AppointmentFiltersProps {
+interface SellerBookingFiltersProps {
   onFilterChange: (filters: FilterState) => void;
   services: { id: string; name: string }[];
 }
@@ -18,7 +18,7 @@ export type FilterState = {
   endDate: Date | null;
 }
 
-export default function AppointmentFilters({ onFilterChange, services }: AppointmentFiltersProps) {
+export default function SellerBookingFilters({ onFilterChange, services }: SellerBookingFiltersProps) {
   const [filters, setFilters] = useState<FilterState>({
     search: '',
     status: ['confirmed', 'pending'],
@@ -82,7 +82,7 @@ export default function AppointmentFilters({ onFilterChange, services }: Appoint
         <Grid item xs={12} sm={6} md={3}>
           <TextField
             fullWidth
-            placeholder="Search customer or appointment"
+            placeholder="Search customer or booking"
             value={filters.search}
             onChange={(e) => handleFilterChange('search', e.target.value)}
             InputProps={{

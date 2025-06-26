@@ -17,14 +17,14 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { Calendar, Clock, AlertCircle, X as CloseIcon, ChevronRight } from 'lucide-react';
 import { Appointment } from '../../types';
 
-interface RescheduleAppointmentModalProps {
+interface RescheduleBookingModalProps {
   open: boolean;
   onClose: () => void;
   appointment: Appointment | null;
   onReschedule: (appointment: Appointment, newStart: Date, newEnd: Date) => void;
 }
 
-const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
+const RescheduleBookingModal: React.FC<RescheduleBookingModalProps> = ({
   open,
   onClose,
   appointment,
@@ -323,4 +323,4 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
   );
 };
 
-export default RescheduleAppointmentModal; 
+export default RescheduleBookingModal; 

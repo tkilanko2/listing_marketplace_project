@@ -2,13 +2,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Box, Card, Tabs, Tab, Divider, Typography, ButtonGroup, Button } from '@mui/material';
 import { Calendar, List } from 'lucide-react';
 import KPIBar from './KPIBar';
-import AppointmentFilters, { FilterState } from './AppointmentFilters';
-import AppointmentList from './AppointmentList';
+import SellerBookingFilters, { FilterState } from './SellerBookingFilters';
+import SellerBookingList from './SellerBookingList';
 import CalendarView from './CalendarView';
 import { Appointment, Service } from '../../types';
 import { mockServices } from '../../mockData';
 
-interface AppointmentDashboardProps {
+interface SellerBookingDashboardProps {
   // Data props
   appointments?: Appointment[];
   services?: Service[];
@@ -20,11 +20,12 @@ interface AppointmentDashboardProps {
   onComplete?: (appointment: Appointment) => void;
   onReschedule?: (appointment: Appointment) => void;
   onMessageCustomer?: (appointment: Appointment) => void;
-  onDelete?: (appointment: Appointment) => void;
+  onAccept?: (appointment: Appointment) => void;
+  onViewListing?: (appointment: Appointment) => void;
   onCreateAppointment?: () => void;
 }
 
-export default function AppointmentDashboard({
+export default function SellerBookingDashboard({
   appointments = [],
   services = mockServices,
   sellerName = 'My Calendar',
@@ -33,9 +34,10 @@ export default function AppointmentDashboard({
   onComplete = () => {},
   onReschedule = () => {},
   onMessageCustomer = () => {},
-  onDelete = () => {},
+  onAccept = () => {},
+  onViewListing = () => {},
   onCreateAppointment = () => {}
-}: AppointmentDashboardProps) {
+}: SellerBookingDashboardProps) {
   // State for view toggle (list or calendar)
   const [view, setView] = useState<'list' | 'calendar'>('list');
   
@@ -291,21 +293,22 @@ export default function AppointmentDashboard({
       </Box>
       
       {/* Filters */}
-      <AppointmentFilters 
+      <SellerBookingFilters 
         onFilterChange={handleFilterChange} 
         services={serviceOptions} 
       />
       
       {/* Content based on view */}
       {view === 'list' ? (
-        <AppointmentList 
+        <SellerBookingList 
           appointments={filteredAppointments}
           onViewBookingDetails={onViewBookingDetails}
           onCancel={onCancel}
           onComplete={onComplete}
           onReschedule={onReschedule}
           onMessageCustomer={onMessageCustomer}
-          onDelete={onDelete}
+          onAccept={onAccept}
+          onViewListing={onViewListing}
         />
       ) : (
         <CalendarView 

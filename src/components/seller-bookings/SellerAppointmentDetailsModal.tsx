@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { Appointment } from '../../types';
 
-interface AppointmentDetailsModalProps {
+interface SellerAppointmentDetailsModalProps {
   open: boolean;
   onClose: () => void;
   appointment: Appointment | null;
@@ -35,7 +35,7 @@ interface AppointmentDetailsModalProps {
   onConfirm?: (appointment: Appointment) => void;
 }
 
-const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
+const SellerAppointmentDetailsModal: React.FC<SellerAppointmentDetailsModalProps> = ({
   open,
   onClose,
   appointment,
@@ -403,4 +403,4 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
   );
 };
 
-export default AppointmentDetailsModal; 
+export default SellerAppointmentDetailsModal; 

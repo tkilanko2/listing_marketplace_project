@@ -20,33 +20,36 @@ import {
 import {
   MoreVertical,
   Edit,
-  Trash2,
   MessageSquare,
   Calendar,
   CalendarX,
-  CheckCircle
+  CheckCircle,
+  ExternalLink,
+  XCircle
 } from 'lucide-react';
 import { Appointment } from '../../types';
 
-interface AppointmentListProps {
+interface SellerBookingListProps {
   appointments: Appointment[];
   onViewBookingDetails: (bookingId: string) => void;
   onCancel: (appointment: Appointment) => void;
   onComplete: (appointment: Appointment) => void;
   onReschedule: (appointment: Appointment) => void;
   onMessageCustomer: (appointment: Appointment) => void;
-  onDelete: (appointment: Appointment) => void;
+  onAccept?: (appointment: Appointment) => void;
+  onViewListing?: (appointment: Appointment) => void;
 }
 
-export default function AppointmentList({
+export default function SellerBookingList({
   appointments,
   onViewBookingDetails,
   onCancel,
   onComplete,
   onReschedule,
   onMessageCustomer,
-  onDelete
-}: AppointmentListProps) {
+  onAccept,
+  onViewListing
+}: SellerBookingListProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
@@ -64,6 +67,53 @@ export default function AppointmentList({
     if (selectedAppointment) {
       action(selectedAppointment);
       handleMenuClose();
+    }
+  };
+
+  // Get status-aware actions configuration (simplified menu)
+  const getStatusConfig = (appointment: Appointment) => {
+    const status = appointment.status;
+    switch (status) {
+      case 'pending':
+        return {
+          canAccept: true,
+          canDecline: true,
+          canReschedule: false,
+          canMessage: true,
+          canViewListing: true
+        };
+      case 'confirmed':
+        return {
+          canAccept: false,
+          canDecline: false,
+          canReschedule: true,
+          canMessage: true,
+          canViewListing: true
+        };
+      case 'completed':
+        return {
+          canAccept: false,
+          canDecline: false,
+          canReschedule: false,
+          canMessage: true,
+          canViewListing: true
+        };
+      case 'canceled':
+        return {
+          canAccept: false,
+          canDecline: false,
+          canReschedule: false,
+          canMessage: false,
+          canViewListing: true
+        };
+      default:
+        return {
+          canAccept: false,
+          canDecline: false,
+          canReschedule: false,
+          canMessage: true,
+          canViewListing: true
+        };
     }
   };
 
@@ -270,31 +320,64 @@ export default function AppointmentList({
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem onClick={() => handleAction(() => onViewBookingDetails(selectedAppointment?.id || ''))}>
-          <Edit size={16} style={{ marginRight: 8 }} /> View Details
-        </MenuItem>
-        {selectedAppointment?.status !== 'canceled' && selectedAppointment?.status !== 'completed' && (
-          <MenuItem onClick={() => handleAction(onCancel)}>
-            <CalendarX size={16} style={{ marginRight: 8 }} /> Cancel
-          </MenuItem>
-        )}
-        {selectedAppointment?.status !== 'completed' && selectedAppointment?.status !== 'canceled' && (
-          <MenuItem onClick={() => handleAction(onComplete)}>
-            <CheckCircle size={16} style={{ marginRight: 8 }} /> Mark Complete
-          </MenuItem>
-        )}
-        {selectedAppointment?.status !== 'canceled' && (
-          <MenuItem onClick={() => handleAction(onReschedule)}>
-            <Calendar size={16} style={{ marginRight: 8 }} /> Reschedule
-          </MenuItem>
-        )}
-        <MenuItem onClick={() => handleAction(onMessageCustomer)}>
-          <MessageSquare size={16} style={{ marginRight: 8 }} /> Message Customer
-        </MenuItem>
-        <Divider />
-        <MenuItem onClick={() => handleAction(onDelete)} sx={{ color: '#DF678C' }}>
-          <Trash2 size={16} style={{ marginRight: 8 }} /> Delete
-        </MenuItem>
+        {selectedAppointment && (() => {
+          const statusConfig = getStatusConfig(selectedAppointment);
+          const menuItems = [];
+
+          // View Appointment Details - Always available
+          menuItems.push(
+            <MenuItem key="view-details" onClick={() => handleAction(() => onViewBookingDetails(selectedAppointment?.id || ''))}>
+              <Edit size={16} style={{ marginRight: 8 }} /> View Appointment Details
+            </MenuItem>
+          );
+
+          // Accept Booking - Only for pending
+          if (statusConfig.canAccept && onAccept) {
+            menuItems.push(
+              <MenuItem key="accept" onClick={() => handleAction(onAccept)}>
+                <CheckCircle size={16} style={{ marginRight: 8 }} /> Accept Booking
+              </MenuItem>
+            );
+          }
+
+          // Decline Booking - Only for pending (renamed from Cancel)
+          if (statusConfig.canDecline) {
+            menuItems.push(
+              <MenuItem key="decline" onClick={() => handleAction(onCancel)}>
+                <XCircle size={16} style={{ marginRight: 8 }} /> Decline Booking
+              </MenuItem>
+            );
+          }
+
+                                  // Reschedule - Only for confirmed
+                        if (statusConfig.canReschedule) {
+                          menuItems.push(
+                            <MenuItem key="reschedule" onClick={() => handleAction(onReschedule)}>
+                              <Calendar size={16} style={{ marginRight: 8 }} /> Reschedule
+                            </MenuItem>
+                          );
+                        }
+
+                        // Message Customer - Status dependent
+                        if (statusConfig.canMessage) {
+                          menuItems.push(
+                            <MenuItem key="message" onClick={() => handleAction(onMessageCustomer)}>
+                              <MessageSquare size={16} style={{ marginRight: 8 }} /> Message Customer
+                            </MenuItem>
+                          );
+                        }
+
+                        // View Listing - Always available, opens parent listing
+                        if (statusConfig.canViewListing && onViewListing) {
+                          menuItems.push(
+                            <MenuItem key="view-listing" onClick={() => handleAction(onViewListing)}>
+                              <ExternalLink size={16} style={{ marginRight: 8 }} /> View Listing
+                            </MenuItem>
+                          );
+                        }
+
+          return menuItems;
+        })()}
       </Menu>
     </Box>
   );

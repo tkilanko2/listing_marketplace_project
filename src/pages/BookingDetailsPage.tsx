@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { 
   ArrowLeft, 
   Calendar, 
+  CalendarDays,
   Clock, 
   MapPin, 
   User, 
@@ -872,14 +873,16 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                                 }
                                 return 'Not specified';
                               })() },
-                              // Only show service address if payment is confirmed
+                              // Show generic service location label instead of actual address
                               ...(booking.paymentStatus === 'paid' ? [
-                                { icon: MapPin, label: "Service Address", value: (() => {
-                                  if (booking.serviceAddress && booking.serviceAddress !== 'Remote') {
-                                    // Remove state, zip code, and country from the address
-                                    return booking.serviceAddress.replace(/,\s*[A-Z]{2}\s*\d{5}/, '').replace(/,\s*United States$/, '');
+                                { icon: MapPin, label: "Service Location", value: (() => {
+                                  if (selectedServiceMode === 'at_seller') {
+                                    return 'Provider Address';
+                                  } else if (selectedServiceMode === 'at_buyer') {
+                                    return 'Your Address';
+                                  } else {
+                                    return 'Remote/Online';
                                   }
-                                  return booking.serviceAddress || 'Not specified';
                                 })() }
                               ] : []),
                             ].map(detail => (
@@ -999,6 +1002,68 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
 
           {/* Right Column (Summary Sidebar) */}
           <div className="space-y-6">
+            {/* Quick Actions Card - Moved to Top */}
+            <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
+              <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Quick Actions</h3>
+              <div className="space-y-3 mb-4">
+                {/* Primary Actions - Most Important */}
+                {statusConfig.canReschedule && (
+                  <button className="w-full flex items-center justify-center gap-2 bg-[#3D1560] text-[#FFFFFF] hover:bg-[#6D26AB] transition-colors duration-200 px-4 py-3 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg">
+                    <Calendar className="w-5 h-5" />
+                    Reschedule
+                  </button>
+                )}
+                {statusConfig.canCancel && (
+                  <button className="w-full flex items-center justify-center gap-2 border-2 border-[#DF678C] text-[#DF678C] hover:bg-[#FFE5ED] transition-colors duration-200 px-4 py-3 rounded-lg font-semibold text-sm">
+                    <X className="w-5 h-5" />
+                    Cancel Booking
+                  </button>
+                )}
+                <button 
+                  onClick={() => setAppointmentDetailsOpen(true)}
+                  className="w-full flex items-center justify-center gap-2 bg-[#E8E9ED] text-[#383A47] hover:bg-[#CDCED8] hover:text-[#1B1C20] transition-colors duration-200 px-4 py-3 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg"
+                >
+                  <Eye className="w-5 h-5" />
+                  View Full Details
+                </button>
+              </div>
+              
+              {/* Secondary Actions - Progressive Disclosure */}
+              <div className="border-t border-[#E8E9ED] pt-4">
+                <h4 className="text-sm font-medium text-[#70727F] mb-3">Additional Actions</h4>
+                <div className="space-y-2">
+                  {statusConfig.canMessage && (
+                    <button 
+                      onClick={() => {
+                        if (booking.appointmentDate && booking.service) {
+                          const startTime = booking.appointmentDate.toISOString().replace(/[-:]/g, '').replace(/\.\d+/g, '');
+                          const endTime = new Date(booking.appointmentDate.getTime() + (booking.service.duration * 60 * 1000)).toISOString().replace(/[-:]/g, '').replace(/\.\d+/g, '');
+                          const eventTitle = encodeURIComponent(`${booking.service.name} Appointment`);
+                          const locationText = booking.paymentStatus === 'paid' && booking.serviceAddress && booking.serviceAddress !== 'Remote' 
+                            ? booking.serviceAddress.replace(/,\s*[A-Z]{2}\s*\d{5}/, '').replace(/,\s*United States$/, '')
+                            : (booking.selectedServiceMode === 'remote' ? 'Remote/Online' : 'Address will be provided after payment');
+                          const eventDetails = encodeURIComponent(`Service: ${booking.service.name}\nProvider: ${formatProviderName(booking.service.provider.username)}\nProvider ID: ${booking.service.provider.id}\nBooking ID: ${booking.id}\nLocation: ${locationText}`);
+                          const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=${startTime}/${endTime}&details=${eventDetails}`;
+                          window.open(googleCalendarUrl, '_blank');
+                        }
+                      }}
+                      className="w-full flex items-center gap-2 text-[#3D1560] hover:text-[#6D26AB] hover:bg-[#EDD9FF] transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium"
+                    >
+                      <CalendarDays className="w-4 h-4" />
+                      Add to Google Calendar
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => onNavigateToMyBookings?.()}
+                    className="w-full flex items-center gap-2 text-[#3D1560] hover:text-[#6D26AB] hover:bg-[#EDD9FF] transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    My Bookings
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* Booking Summary Card */}
             <div className="bg-[#FFFFFF] rounded-lg shadow-sm border border-[#E8E9ED] p-6">
               <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Booking Summary</h3>
@@ -1099,60 +1164,7 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
               </div>
             </div>
 
-            {/* Quick Actions Card */}
-            <div className="bg-[#FFFFFF] rounded-lg shadow-sm border border-[#E8E9ED] p-6">
-              <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Quick Actions</h3>
-              <div className="space-y-3">
-                {statusConfig.canMessage && (
-                  <button 
-                    onClick={() => {
-                      if (booking.appointmentDate && booking.service) {
-                        const startTime = booking.appointmentDate.toISOString().replace(/[-:]/g, '').replace(/\.\d+/g, '');
-                        const endTime = new Date(booking.appointmentDate.getTime() + (booking.service.duration * 60 * 1000)).toISOString().replace(/[-:]/g, '').replace(/\.\d+/g, '');
-                        const eventTitle = encodeURIComponent(`${booking.service.name} Appointment`);
-                        const locationText = booking.paymentStatus === 'paid' && booking.serviceAddress && booking.serviceAddress !== 'Remote' 
-                          ? booking.serviceAddress.replace(/,\s*[A-Z]{2}\s*\d{5}/, '').replace(/,\s*United States$/, '')
-                          : (booking.selectedServiceMode === 'remote' ? 'Remote/Online' : 'Address will be provided after payment');
-                        const eventDetails = encodeURIComponent(`Service: ${booking.service.name}\nProvider: ${formatProviderName(booking.service.provider.username)}\nProvider ID: ${booking.service.provider.id}\nBooking ID: ${booking.id}\nLocation: ${locationText}`);
-                        const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=${startTime}/${endTime}&details=${eventDetails}`;
-                        window.open(googleCalendarUrl, '_blank');
-                      }
-                    }}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-[#3D1560] text-[#3D1560] rounded-lg hover:bg-[#EDD9FF] transition-colors duration-200"
-                  >
-                    <Calendar className="w-4 h-4" />
-                    Add to Google Calendar
-                  </button>
-                )}
-                {statusConfig.canReschedule && (
-                  <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] transition-colors duration-200">
-                    <Calendar className="w-4 h-4" />
-                    Reschedule
-                  </button>
-                )}
-                {statusConfig.canCancel && (
-                  <button className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-[#DF678C] text-[#DF678C] rounded-lg hover:bg-[#EDD9FF] transition-colors duration-200">
-                    <X className="w-4 h-4" />
-                    Cancel Booking
-                  </button>
-                )}
-                <button 
-                  onClick={() => setAppointmentDetailsOpen(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-[#CDCED8] text-[#383A47] rounded-lg hover:bg-[#E8E9ED] transition-colors duration-200"
-                >
-                  <Eye className="w-4 h-4" />
-                  View Full Details
-                </button>
-                                 {/* My Appointments CTA - Available for all service statuses */}
-                 <button 
-                   onClick={() => onNavigateToMyBookings?.()}
-                   className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-[#3D1560] text-[#3D1560] rounded-lg hover:bg-[#EDD9FF] transition-colors duration-200"
-                 >
-                   <Calendar className="w-4 h-4" />
-                   My Appointments
-                 </button>
-              </div>
-            </div>
+
 
             
           </div>
