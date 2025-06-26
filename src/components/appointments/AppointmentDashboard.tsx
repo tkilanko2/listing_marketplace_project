@@ -43,8 +43,7 @@ export default function AppointmentDashboard({
   const [filteredAppointments, setFilteredAppointments] = useState<Appointment[]>(appointments);
   
   // State for date range
-  const [dateView, setDateView] = useState<'today' | 'week' | 'month' | 'custom'>('week');
-  const [previousCustomRange, setPreviousCustomRange] = useState<{start: Date | null, end: Date | null} | null>(null);
+  const [dateView, setDateView] = useState<'today' | 'week' | 'month' | 'all'>('week');
   
   // Filter state
   const [filters, setFilters] = useState<FilterState>({
@@ -132,19 +131,8 @@ export default function AppointmentDashboard({
   }, [appointments]);
 
   // Handle date view change
-  const handleDateViewChange = (newView: 'today' | 'week' | 'month' | 'custom') => {
+  const handleDateViewChange = (newView: 'today' | 'week' | 'month' | 'all') => {
     setDateView(newView);
-    
-    // Preserve custom range if set
-    if (newView === 'custom' && filters.startDate && filters.endDate) {
-      setPreviousCustomRange({ start: filters.startDate, end: filters.endDate });
-      return;
-    }
-    
-    // If switching away from custom, store the current custom range
-    if (dateView === 'custom' && filters.startDate && filters.endDate) {
-      setPreviousCustomRange({ start: filters.startDate, end: filters.endDate });
-    }
     
     const today = new Date();
     let startDate: Date | null = today;
@@ -166,15 +154,10 @@ export default function AppointmentDashboard({
         startDate = new Date(today.getFullYear(), today.getMonth(), 1);
         endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
         break;
-      case 'custom':
-        // Restore previous custom range if available
-        if (previousCustomRange && previousCustomRange.start && previousCustomRange.end) {
-          startDate = previousCustomRange.start;
-          endDate = previousCustomRange.end;
-        } else {
-          startDate = null;
-          endDate = null;
-        }
+      case 'all':
+        // Show all appointments - no date filtering
+        startDate = null;
+        endDate = null;
         break;
     }
     
@@ -198,10 +181,9 @@ export default function AppointmentDashboard({
   const handleFilterChange = (newFilters: FilterState) => {
     setFilters(newFilters);
     
-    // If date range changed and not from our date buttons, set to custom view
+    // If date range changed and not from our date buttons, set to all view
     if (newFilters.startDate !== filters.startDate || newFilters.endDate !== filters.endDate) {
-      setDateView('custom');
-      setPreviousCustomRange({ start: newFilters.startDate, end: newFilters.endDate });
+      setDateView('all');
     }
   };
 
@@ -257,10 +239,10 @@ export default function AppointmentDashboard({
             Month
           </Button>
           <Button 
-            onClick={() => handleDateViewChange('custom')}
+            onClick={() => handleDateViewChange('all')}
             sx={{ 
-              backgroundColor: dateView === 'custom' ? '#EDD9FF' : 'transparent',
-              color: dateView === 'custom' ? '#3D1560' : '#70727F',
+              backgroundColor: dateView === 'all' ? '#EDD9FF' : 'transparent',
+              color: dateView === 'all' ? '#3D1560' : '#70727F',
               borderColor: '#CDCED8',
               '&:hover': {
                 backgroundColor: '#EDD9FF',
@@ -268,7 +250,7 @@ export default function AppointmentDashboard({
               }
             }}
           >
-            Custom
+            All
           </Button>
         </ButtonGroup>
         
