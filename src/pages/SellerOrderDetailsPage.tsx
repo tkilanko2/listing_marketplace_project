@@ -45,6 +45,7 @@ interface SellerOrderDetailsPageProps {
   order: Order;
   onBack: () => void;
   onNavigateToListing?: (productId: string) => void;
+  onNavigateToMessages?: (threadId?: string) => void;
 }
 
 interface SellerPaymentBreakdown {
@@ -288,7 +289,7 @@ const AddNotesModal: React.FC<AddNotesModalProps> = ({
   );
 };
 
-export function SellerOrderDetailsPage({ order, onBack, onNavigateToListing }: SellerOrderDetailsPageProps) {
+export function SellerOrderDetailsPage({ order, onBack, onNavigateToListing, onNavigateToMessages }: SellerOrderDetailsPageProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'earnings' | 'activity'>('details');
   const [trackingDetailsOpen, setTrackingDetailsOpen] = useState(false);
   const [addTrackingOpen, setAddTrackingOpen] = useState(false);
@@ -680,7 +681,9 @@ export function SellerOrderDetailsPage({ order, onBack, onNavigateToListing }: S
 
   const handleContactCustomer = () => {
     console.log('Contact customer for order:', order.id);
-    // In real app, this would open messaging interface
+    if (onNavigateToMessages) {
+      onNavigateToMessages(order.id);
+    }
   };
 
   const handleAddNotes = () => {

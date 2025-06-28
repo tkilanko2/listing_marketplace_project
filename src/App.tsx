@@ -25,6 +25,7 @@ import { ShippingInfoPage } from './pages/ShippingInfoPage';
 import { OrderConfirmation } from './pages/OrderConfirmation';
 import { BookingSubmissionConfirmationPage } from './pages/BookingSubmissionConfirmationPage';
 import { MyBookingsPage } from './pages/MyBookingsPage';
+import { MessagingPage } from './pages/MessagingPage';
 import { 
   BarChart, Calendar, DollarSign, ShoppingCart, Package, TrendingUp, 
   ArrowUp, Wallet, ChevronDown, ChevronLeft, ChevronRight, Search, 
@@ -66,6 +67,15 @@ function App() {
   const [selectedSellerBooking, setSelectedSellerBooking] = useState<Order | null>(null);
   const [highlightedProductId, setHighlightedProductId] = useState<string | null>(null);
   const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]);
+  const [messagingThreadId, setMessagingThreadId] = useState<string | null>(null);
+  const [messagingOrderInfo, setMessagingOrderInfo] = useState<{
+    id: string;
+    type: 'booking' | 'order';
+    title: string;
+    sellerName: string;
+    sellerId: string;
+  } | null>(null);
+  const [startNewThread, setStartNewThread] = useState(false);
   
   // State for My Shop modal (moved to App level to persist across navigation)
   const [showMyShopModal, setShowMyShopModal] = useState(false);
@@ -2978,6 +2988,33 @@ function App() {
     setCurrentPage('sellerDashboard_appointments');
   };
 
+  const handleNavigateToMessages = (threadId?: string, orderInfo?: {
+    id: string;
+    type: 'booking' | 'order';
+    title: string;
+    sellerName: string;
+    sellerId: string;
+  }) => {
+    setMessagingThreadId(threadId || null);
+    setMessagingOrderInfo(orderInfo || null);
+    setStartNewThread(!!orderInfo && !threadId); // Start new thread if orderInfo provided but no threadId
+    setCurrentPage('messages');
+  };
+
+  const handleBackFromMessages = () => {
+    // Go back to the previous page based on context
+    if (selectedSellerBooking) {
+      setCurrentPage('sellerBookingDetails');
+    } else if (selectedSellerOrder) {
+      setCurrentPage('sellerOrderDetails');
+    } else if (selectedOrder) {
+      setCurrentPage('orderDetails');
+    } else {
+      setCurrentPage('landing');
+    }
+    setMessagingThreadId(null);
+  };
+
   const handleViewAppointmentDetails = () => {
     // This will open the appointment details modal from the booking details page
     if (selectedSellerBooking) {
@@ -3008,6 +3045,7 @@ function App() {
     <SellerOrdersPage 
       onBack={() => setCurrentPage('sellerDashboard')}
       onViewOrderDetails={handleSellerOrderDetails}
+      onNavigateToMessages={handleNavigateToMessages}
     />
   );
 
@@ -3306,25 +3344,8 @@ function App() {
     const handleMessageCustomer = (appointment: Appointment) => {
       console.log('Message customer:', appointment);
       
-      // In a real app, you would open a messaging interface
-      setTimeout(() => {
-        setActionFeedback({
-          message: `Opening message composer for ${formatCustomerName(appointment.customer.name)}...`,
-          type: 'info',
-          visible: true
-        });
-        
-        // Simulate opening a messaging dialog
-        alert(`In a real application, a message composer would open to contact ${formatCustomerName(appointment.customer.name)} at ${appointment.customer.email}.`);
-        
-        // Close modal after action
-        setDetailsModalOpen(false);
-        
-        // Auto-hide feedback
-        setTimeout(() => {
-          setActionFeedback(prev => ({ ...prev, visible: false }));
-        }, 3000);
-      }, 500);
+      // Navigate to messaging system with the appointment ID as thread ID
+      handleNavigateToMessages(appointment.id);
     };
 
     const handleAcceptAppointment = (appointment: Appointment) => {
@@ -4541,6 +4562,7 @@ function App() {
                   userRegion="US" // This could be dynamic based on user location
                   selectedServiceMode={order.selectedServiceMode || 'at_seller'}
                   onNavigateToMyBookings={() => setCurrentPage('myBookings')}
+                  onNavigateToMessages={handleNavigateToMessages}
                 />
               );
             } else {
@@ -4621,6 +4643,7 @@ function App() {
               setCurrentPage('sellerDashboard_myShop');
               console.log('📍 Navigated to sellerDashboard_myShop');
             }}
+            onNavigateToMessages={handleNavigateToMessages}
           />
         )}
 
@@ -4635,6 +4658,7 @@ function App() {
             onViewAppointmentDetails={handleViewAppointmentDetails}
             userRegion="US"
             selectedServiceMode="at_seller"
+            onNavigateToMessages={handleNavigateToMessages}
           />
         )}
 
@@ -5037,6 +5061,10 @@ function App() {
             }}
             initialFilter={bookingsInitialFilter}
           />
+        )}
+
+        {currentPage === 'messages' && (
+          <MessagingPage />
         )}
 
         {/* My Shop Modal - Rendered at App level to persist across navigation */}

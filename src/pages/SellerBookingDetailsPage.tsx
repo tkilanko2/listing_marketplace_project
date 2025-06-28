@@ -49,6 +49,7 @@ interface SellerBookingDetailsPageProps {
   userRegion?: 'US' | 'EU' | 'UK';
   selectedServiceMode?: 'at_seller' | 'at_buyer' | 'remote';
   onNavigateToService?: (serviceId: string) => void;
+  onNavigateToMessages?: (threadId?: string) => void;
 }
 
 interface SellerPaymentBreakdown {
@@ -143,7 +144,8 @@ export function SellerBookingDetailsPage({
   onViewAppointmentDetails,
   userRegion = 'US', 
   selectedServiceMode = 'at_seller',
-  onNavigateToService
+  onNavigateToService,
+  onNavigateToMessages
 }: SellerBookingDetailsPageProps) {
   console.log('🔍 SellerBookingDetailsPage - Rendering with booking:', booking);
   
@@ -575,7 +577,9 @@ export function SellerBookingDetailsPage({
 
   const handleContactCustomer = () => {
     console.log('Opening customer contact');
-    // Here you would typically open messaging system
+    if (onNavigateToMessages) {
+      onNavigateToMessages(booking.id);
+    }
   };
 
   const handleViewPerformance = () => {

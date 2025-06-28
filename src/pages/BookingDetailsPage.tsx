@@ -43,6 +43,7 @@ interface BookingDetailsPageProps {
   userRegion?: 'US' | 'EU' | 'UK'; // For tax calculation display
   selectedServiceMode?: 'at_seller' | 'at_buyer' | 'remote'; // Service delivery mode
   onNavigateToMyBookings?: () => void; // Navigate to My Bookings page
+  onNavigateToMessages?: (threadId?: string) => void; // Navigate to messaging
 }
 
 interface PaymentBreakdown {
@@ -62,7 +63,7 @@ function mapServiceStatus(status: string, userRole: 'buyer' | 'seller'): string 
   return status;
 }
 
-export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selectedServiceMode = 'at_seller', onNavigateToMyBookings }: BookingDetailsPageProps) {
+export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selectedServiceMode = 'at_seller', onNavigateToMyBookings, onNavigateToMessages }: BookingDetailsPageProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'payment' | 'activity'>('details');
   const [appointmentDetailsOpen, setAppointmentDetailsOpen] = useState(false);
   const [serviceTermsOpen, setServiceTermsOpen] = useState(false);
@@ -925,7 +926,14 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                                 </div>
                               </div>
                             </div>
-                            <button className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium py-2 px-4 rounded-md border border-[#3D1560] hover:bg-[#EDD9FF] transition-all duration-200 flex items-center gap-2">
+                            <button 
+                              onClick={() => {
+                                if (onNavigateToMessages) {
+                                  onNavigateToMessages(booking.id);
+                                }
+                              }}
+                              className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium py-2 px-4 rounded-md border border-[#3D1560] hover:bg-[#EDD9FF] transition-all duration-200 flex items-center gap-2"
+                            >
                               <MessageCircle className="w-4 h-4" />
                               Contact
                             </button>

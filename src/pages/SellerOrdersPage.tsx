@@ -33,12 +33,13 @@ import { Order, OrderStatus } from '../types';
 interface SellerOrdersPageProps {
   onBack: () => void;
   onViewOrderDetails?: (orderId: string) => void;
+  onNavigateToMessages?: (threadId?: string) => void;
 }
 
 // Mock current seller ID - in real app this would come from auth context
 const CURRENT_SELLER_ID = 'SELLER001';
 
-export function SellerOrdersPage({ onBack, onViewOrderDetails }: SellerOrdersPageProps) {
+export function SellerOrdersPage({ onBack, onViewOrderDetails, onNavigateToMessages }: SellerOrdersPageProps) {
   // State
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'all'>('all');
@@ -180,7 +181,9 @@ export function SellerOrdersPage({ onBack, onViewOrderDetails }: SellerOrdersPag
 
   const handleContactCustomer = (orderId: string) => {
     console.log(`Contacting customer for order ${orderId}`);
-    // In real app, this would open messaging interface
+    if (onNavigateToMessages) {
+      onNavigateToMessages(orderId);
+    }
   };
 
   const handleBulkStatusUpdate = (newStatus: OrderStatus) => {
