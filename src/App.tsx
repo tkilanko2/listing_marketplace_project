@@ -26,6 +26,7 @@ import { OrderConfirmation } from './pages/OrderConfirmation';
 import { BookingSubmissionConfirmationPage } from './pages/BookingSubmissionConfirmationPage';
 import { MyBookingsPage } from './pages/MyBookingsPage';
 import { MessagingPage } from './pages/MessagingPage';
+import { SellerFinancePage } from './pages/SellerFinancePage';
 import { 
   BarChart, Calendar, DollarSign, ShoppingCart, Package, TrendingUp, 
   ArrowUp, Wallet, ChevronDown, ChevronLeft, ChevronRight, Search, 
@@ -3013,6 +3014,8 @@ function App() {
       setCurrentPage('landing');
     }
     setMessagingThreadId(null);
+    setMessagingOrderInfo(null);
+    setStartNewThread(false);
   };
 
   const handleViewAppointmentDetails = () => {
@@ -3459,26 +3462,14 @@ function App() {
     );
   }
 
-  // Seller Dashboard Finance placeholder
-  const SellerDashboardFinance = () => (
-    <PlaceholderPage title="Finance">
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Financial Overview</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-            <p className="text-sm text-gray-500 mb-1">Total Revenue (YTD)</p>
-            <p className="text-2xl font-bold text-gray-800">$124,395.28</p>
-            <div className="mt-2 flex items-center text-sm text-green-600">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-              </svg>
-              <span>+18.4% from last year</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </PlaceholderPage>
-  );
+  // Seller Dashboard Finance component using the imported SellerFinancePage
+  const SellerDashboardFinance = () => {
+    return (
+      <SellerFinancePage 
+        onBack={() => handleNavigate('sellerDashboard')}
+      />
+    );
+  };
 
   // Seller Dashboard Settings placeholder
   const SellerDashboardSettings = () => (
@@ -5064,7 +5055,28 @@ function App() {
         )}
 
         {currentPage === 'messages' && (
-          <MessagingPage />
+          <MessagingPage 
+            threadId={messagingThreadId || undefined}
+            currentUserId={user?.userId || 'user1'}
+            currentUserType={(() => {
+              // Determine user type based on current page context
+              if (currentPage === 'messages' && (selectedSellerOrder || selectedSellerBooking)) {
+                return 'seller';
+              }
+              // Check if we came from seller dashboard
+              if (messagingOrderInfo && (
+                selectedSellerOrder || 
+                selectedSellerBooking ||
+                currentPage.includes('seller')
+              )) {
+                return 'seller';
+              }
+              return 'buyer';
+            })()}
+            onBack={handleBackFromMessages}
+            startNewThread={startNewThread}
+            orderInfo={messagingOrderInfo || undefined}
+          />
         )}
 
         {/* My Shop Modal - Rendered at App level to persist across navigation */}

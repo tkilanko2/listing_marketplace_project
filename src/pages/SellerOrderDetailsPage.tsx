@@ -45,7 +45,13 @@ interface SellerOrderDetailsPageProps {
   order: Order;
   onBack: () => void;
   onNavigateToListing?: (productId: string) => void;
-  onNavigateToMessages?: (threadId?: string) => void;
+  onNavigateToMessages?: (threadId?: string, orderInfo?: {
+    id: string;
+    type: 'booking' | 'order';
+    title: string;
+    sellerName: string;
+    sellerId: string;
+  }) => void;
 }
 
 interface SellerPaymentBreakdown {
@@ -682,6 +688,7 @@ export function SellerOrderDetailsPage({ order, onBack, onNavigateToListing, onN
   const handleContactCustomer = () => {
     console.log('Contact customer for order:', order.id);
     if (onNavigateToMessages) {
+      // Sellers can only reply to existing threads, so just pass the thread ID
       onNavigateToMessages(order.id);
     }
   };

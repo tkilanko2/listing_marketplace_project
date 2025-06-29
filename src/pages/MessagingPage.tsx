@@ -104,7 +104,10 @@ export function MessagingPage({
     title: '',
     issueCategory: '',
     content: '',
-    attachments: [] as File[]
+    attachments: [] as File[],
+    recipientId: '',
+    recipientName: '',
+    messageType: 'general' as 'booking' | 'order' | 'general'
   });
 
   // Mock data - replace with actual API calls
@@ -227,10 +230,15 @@ export function MessagingPage({
       return;
     }
 
+    // For general messaging, require recipient selection
+    if (isCreatingNewThread && !orderInfo && (!messageForm.recipientId || !messageForm.recipientName)) {
+      return;
+    }
+
     // Mock sending message - replace with actual API call
     const newMessage: Message = {
       id: `msg_${Date.now()}`,
-      threadId: selectedThread?.id || orderInfo?.id || '',
+      threadId: selectedThread?.id || orderInfo?.id || `general_${Date.now()}`,
       senderId: currentUserId,
       senderType: currentUserType,
       senderName: currentUserType === 'buyer' ? 'You' : 'You',
@@ -247,7 +255,7 @@ export function MessagingPage({
     };
 
     if (isCreatingNewThread && orderInfo) {
-      // Create new thread
+      // Create new thread for specific order/booking
       const newThread: MessageThread = {
         id: orderInfo.id,
         type: orderInfo.type,
@@ -255,6 +263,25 @@ export function MessagingPage({
         participants: {
           buyer: { id: currentUserId, name: 'You' },
           seller: { id: orderInfo.sellerId, name: orderInfo.sellerName }
+        },
+        messages: [newMessage],
+        lastActivity: new Date(),
+        unreadCount: 0,
+        status: 'active'
+      };
+
+      setThreads(prev => [newThread, ...prev]);
+      setSelectedThread(newThread);
+      setIsCreatingNewThread(false);
+    } else if (isCreatingNewThread && !orderInfo) {
+      // Create new general thread
+      const newThread: MessageThread = {
+        id: `general_${Date.now()}`,
+        type: messageForm.messageType as 'booking' | 'order',
+        title: messageForm.title,
+        participants: {
+          buyer: { id: currentUserId, name: 'You' },
+          seller: { id: messageForm.recipientId, name: messageForm.recipientName }
         },
         messages: [newMessage],
         lastActivity: new Date(),
@@ -286,7 +313,10 @@ export function MessagingPage({
       title: '',
       issueCategory: '',
       content: '',
-      attachments: []
+      attachments: [],
+      recipientId: '',
+      recipientName: '',
+      messageType: 'general'
     });
     setShowMessageForm(false);
   };
@@ -324,8 +354,45 @@ export function MessagingPage({
           {/* Left Sidebar - Thread List */}
           <div className="lg:col-span-1 bg-[#FFFFFF] rounded-lg shadow-sm border border-[#E8E9ED] overflow-hidden">
             <div className="p-4 border-b border-[#E8E9ED]">
-              <h2 className="text-lg font-semibold text-[#1B1C20]">Conversations</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-[#1B1C20]">Conversations</h2>
+                {/* Show "New Message" CTA for buyers */}
+                {currentUserType === 'buyer' && !isCreatingNewThread && (
+                  <button
+                    onClick={() => {
+                      setIsCreatingNewThread(true);
+                      setSelectedThread(null);
+                      setShowMessageForm(true);
+                    }}
+                    className="flex items-center gap-1 text-xs bg-[#3D1560] text-white px-3 py-1.5 rounded-lg hover:bg-[#6D26AB] transition-colors"
+                  >
+                    <MessageCircle className="w-3 h-3" />
+                    New
+                  </button>
+                )}
+              </div>
             </div>
+            
+            {/* Add prominent CTA at top for buyers when not creating new thread */}
+            {currentUserType === 'buyer' && !isCreatingNewThread && threads.length === 0 && (
+              <div className="p-4 border-b border-[#E8E9ED] bg-[#F8F8FA]">
+                <button
+                  onClick={() => {
+                    setIsCreatingNewThread(true);
+                    setSelectedThread(null);
+                    setShowMessageForm(true);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 bg-[#3D1560] text-white px-4 py-3 rounded-lg hover:bg-[#6D26AB] transition-colors font-medium"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  Send New Message
+                </button>
+                <p className="text-xs text-[#70727F] text-center mt-2">
+                  Contact sellers about your orders or bookings
+                </p>
+              </div>
+            )}
+            
             <div className="overflow-y-auto h-full">
               {threads.map(thread => (
                 <button
@@ -377,12 +444,19 @@ export function MessagingPage({
                   <div className="flex items-center justify-between">
                     <div>
                       <h2 className="text-lg font-semibold text-[#1B1C20]">
-                        {isCreatingNewThread && orderInfo ? orderInfo.title : selectedThread?.title}
+                        {isCreatingNewThread && orderInfo 
+                          ? orderInfo.title 
+                          : isCreatingNewThread 
+                            ? (messageForm.title || 'New Message')
+                            : selectedThread?.title
+                        }
                       </h2>
                       <p className="text-sm text-[#70727F]">
                         {isCreatingNewThread && orderInfo 
                           ? `with ${orderInfo.sellerName}`
-                          : `with ${currentUserType === 'buyer' ? selectedThread?.participants.seller.name : selectedThread?.participants.buyer.name}`
+                          : isCreatingNewThread
+                            ? (messageForm.recipientName ? `with ${messageForm.recipientName}` : 'Select a seller')
+                            : `with ${currentUserType === 'buyer' ? selectedThread?.participants.seller.name : selectedThread?.participants.buyer.name}`
                         }
                       </p>
                     </div>
@@ -472,6 +546,54 @@ export function MessagingPage({
                 {showMessageForm && (
                   <div className="border-t border-[#E8E9ED] p-4">
                     <div className="space-y-4">
+                      {/* For general messaging without specific order info, show recipient selection */}
+                      {isCreatingNewThread && !orderInfo && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-[#F8F8FA] rounded-lg border border-[#E8E9ED]">
+                          <div>
+                            <label className="block text-sm font-medium text-[#383A47] mb-2">
+                              Message Type *
+                            </label>
+                            <select
+                              value={messageForm.messageType}
+                              onChange={(e) => setMessageForm(prev => ({ 
+                                ...prev, 
+                                messageType: e.target.value as 'booking' | 'order' | 'general',
+                                issueCategory: '' // Reset category when type changes
+                              }))}
+                              className="w-full px-3 py-2 border border-[#CDCED8] rounded-lg focus:ring-2 focus:ring-[#3D1560] focus:border-transparent"
+                            >
+                              <option value="general">General Inquiry</option>
+                              <option value="booking">Service Booking</option>
+                              <option value="order">Product Order</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-[#383A47] mb-2">
+                              Seller *
+                            </label>
+                            <select
+                              value={messageForm.recipientId}
+                              onChange={(e) => {
+                                const selectedSeller = e.target.value;
+                                const sellerName = e.target.options[e.target.selectedIndex].text;
+                                setMessageForm(prev => ({ 
+                                  ...prev, 
+                                  recipientId: selectedSeller,
+                                  recipientName: sellerName !== 'Select seller' ? sellerName : ''
+                                }));
+                              }}
+                              className="w-full px-3 py-2 border border-[#CDCED8] rounded-lg focus:ring-2 focus:ring-[#3D1560] focus:border-transparent"
+                            >
+                              <option value="">Select seller</option>
+                              <option value="seller1">Elite Cleaning Services</option>
+                              <option value="seller2">TechRepair Pro</option>
+                              <option value="seller3">Garden Masters</option>
+                              <option value="seller4">Creative Designs Studio</option>
+                            </select>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-[#383A47] mb-2">
@@ -495,7 +617,13 @@ export function MessagingPage({
                             className="w-full px-3 py-2 border border-[#CDCED8] rounded-lg focus:ring-2 focus:ring-[#3D1560] focus:border-transparent"
                           >
                             <option value="">Select category</option>
-                            {getIssueCategories(isCreatingNewThread && orderInfo ? orderInfo.type : selectedThread?.type || 'booking').map(category => (
+                            {getIssueCategories(
+                              isCreatingNewThread && orderInfo 
+                                ? orderInfo.type 
+                                : isCreatingNewThread 
+                                  ? (messageForm.messageType === 'general' ? 'booking' : messageForm.messageType)
+                                  : selectedThread?.type || 'booking'
+                            ).map(category => (
                               <option key={category} value={category}>{category}</option>
                             ))}
                           </select>
@@ -567,7 +695,12 @@ export function MessagingPage({
                         </button>
                         <button
                           onClick={handleSendMessage}
-                          disabled={!messageForm.title.trim() || !messageForm.content.trim() || !messageForm.issueCategory}
+                          disabled={
+                            !messageForm.title.trim() || 
+                            !messageForm.content.trim() || 
+                            !messageForm.issueCategory ||
+                            (isCreatingNewThread && !orderInfo && (!messageForm.recipientId || !messageForm.recipientName))
+                          }
                           className="flex items-center gap-2 px-4 py-2 bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                           <Send className="w-4 h-4" />
@@ -582,8 +715,28 @@ export function MessagingPage({
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center">
                   <MessageCircle className="w-12 h-12 text-[#CDCED8] mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-[#383A47] mb-2">Select a conversation</h3>
-                  <p className="text-[#70727F]">Choose a conversation from the list to start messaging</p>
+                  <h3 className="text-lg font-medium text-[#383A47] mb-2">
+                    {currentUserType === 'buyer' ? 'Start a conversation' : 'Select a conversation'}
+                  </h3>
+                  <p className="text-[#70727F] mb-4">
+                    {currentUserType === 'buyer' 
+                      ? 'Send a message to sellers about your orders or bookings' 
+                      : 'Choose a conversation from the list to start messaging'
+                    }
+                  </p>
+                  {currentUserType === 'buyer' && (
+                    <button
+                      onClick={() => {
+                        setIsCreatingNewThread(true);
+                        setSelectedThread(null);
+                        setShowMessageForm(true);
+                      }}
+                      className="flex items-center gap-2 bg-[#3D1560] text-white px-6 py-3 rounded-lg hover:bg-[#6D26AB] transition-colors font-medium mx-auto"
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      Send New Message
+                    </button>
+                  )}
                 </div>
               </div>
             )}

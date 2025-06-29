@@ -43,7 +43,13 @@ interface BookingDetailsPageProps {
   userRegion?: 'US' | 'EU' | 'UK'; // For tax calculation display
   selectedServiceMode?: 'at_seller' | 'at_buyer' | 'remote'; // Service delivery mode
   onNavigateToMyBookings?: () => void; // Navigate to My Bookings page
-  onNavigateToMessages?: (threadId?: string) => void; // Navigate to messaging
+  onNavigateToMessages?: (threadId?: string, orderInfo?: {
+    id: string;
+    type: 'booking' | 'order';
+    title: string;
+    sellerName: string;
+    sellerId: string;
+  }) => void; // Navigate to messaging
 }
 
 interface PaymentBreakdown {
@@ -929,7 +935,15 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                             <button 
                               onClick={() => {
                                 if (onNavigateToMessages) {
-                                  onNavigateToMessages(booking.id);
+                                  // Buyers can start new threads - check if thread exists, if not, pass order info
+                                  const orderInfo = {
+                                    id: booking.id,
+                                    type: 'booking' as const,
+                                    title: `Booking #${booking.id} - ${booking.service?.name || 'Service'}`,
+                                    sellerName: booking.service?.provider?.username || 'Provider',
+                                    sellerId: booking.service?.provider?.id || 'unknown'
+                                  };
+                                  onNavigateToMessages(booking.id, orderInfo);
                                 }
                               }}
                               className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium py-2 px-4 rounded-md border border-[#3D1560] hover:bg-[#EDD9FF] transition-all duration-200 flex items-center gap-2"

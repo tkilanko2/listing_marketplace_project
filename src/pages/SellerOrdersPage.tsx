@@ -33,7 +33,13 @@ import { Order, OrderStatus } from '../types';
 interface SellerOrdersPageProps {
   onBack: () => void;
   onViewOrderDetails?: (orderId: string) => void;
-  onNavigateToMessages?: (threadId?: string) => void;
+  onNavigateToMessages?: (threadId?: string, orderInfo?: {
+    id: string;
+    type: 'booking' | 'order';
+    title: string;
+    sellerName: string;
+    sellerId: string;
+  }) => void;
 }
 
 // Mock current seller ID - in real app this would come from auth context
@@ -182,6 +188,7 @@ export function SellerOrdersPage({ onBack, onViewOrderDetails, onNavigateToMessa
   const handleContactCustomer = (orderId: string) => {
     console.log(`Contacting customer for order ${orderId}`);
     if (onNavigateToMessages) {
+      // Sellers can only reply to existing threads, so just pass the thread ID
       onNavigateToMessages(orderId);
     }
   };

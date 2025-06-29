@@ -49,7 +49,13 @@ interface SellerBookingDetailsPageProps {
   userRegion?: 'US' | 'EU' | 'UK';
   selectedServiceMode?: 'at_seller' | 'at_buyer' | 'remote';
   onNavigateToService?: (serviceId: string) => void;
-  onNavigateToMessages?: (threadId?: string) => void;
+  onNavigateToMessages?: (threadId?: string, orderInfo?: {
+    id: string;
+    type: 'booking' | 'order';
+    title: string;
+    sellerName: string;
+    sellerId: string;
+  }) => void;
 }
 
 interface SellerPaymentBreakdown {
@@ -578,6 +584,7 @@ export function SellerBookingDetailsPage({
   const handleContactCustomer = () => {
     console.log('Opening customer contact');
     if (onNavigateToMessages) {
+      // Sellers can only reply to existing threads, so just pass the thread ID
       onNavigateToMessages(booking.id);
     }
   };
