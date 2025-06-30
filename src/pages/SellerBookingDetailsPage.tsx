@@ -56,6 +56,8 @@ interface SellerBookingDetailsPageProps {
     sellerName: string;
     sellerId: string;
   }) => void;
+  onConfirmBooking?: (bookingId: string) => void;
+  onDeclineBooking?: (bookingId: string, reason?: string) => void;
 }
 
 interface SellerPaymentBreakdown {
@@ -74,6 +76,15 @@ interface AddNotesModalProps {
   notes: string;
   setNotes: (value: string) => void;
   onSubmit: () => void;
+}
+
+interface BookingConfirmationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  onDecline: () => void;
+  booking: BookingOrder;
+  customerName: string;
 }
 
 interface SellerActivityEntry {
@@ -144,6 +155,114 @@ const AddBookingNotesModal: React.FC<AddNotesModalProps> = ({
   );
 };
 
+const BookingConfirmationModal: React.FC<BookingConfirmationModalProps> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  onDecline,
+  booking,
+  customerName
+}) => {
+  if (!isOpen) return null;
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short',
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-[#FFFFFF] rounded-xl shadow-xl max-w-md w-full">
+        <div className="bg-[#3D1560] text-white p-4 rounded-t-xl flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Confirm Booking Request</h3>
+          <button 
+            onClick={onClose}
+            className="text-white hover:text-[#CDCED8] transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        
+        <div className="p-6 space-y-4">
+          <div className="bg-[#F8F8FA] p-4 rounded-lg">
+            <h4 className="font-semibold text-[#1B1C20] mb-3">Booking Details</h4>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-[#70727F]">Customer:</span>
+                <span className="text-[#383A47] font-medium">{customerName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#70727F]">Service:</span>
+                <span className="text-[#383A47] font-medium">{booking.service?.name}</span>
+              </div>
+              {booking.appointmentDate && (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-[#70727F]">Date:</span>
+                    <span className="text-[#383A47] font-medium">{formatDate(booking.appointmentDate)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#70727F]">Time:</span>
+                    <span className="text-[#383A47] font-medium">{formatTime(booking.appointmentDate)}</span>
+                  </div>
+                </>
+              )}
+              <div className="flex justify-between">
+                <span className="text-[#70727F]">Duration:</span>
+                <span className="text-[#383A47] font-medium">{booking.service?.duration} minutes</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#70727F]">Total Amount:</span>
+                <span className="text-[#3D1560] font-bold">${booking.totalAmount.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-[#EDD9FF] p-4 rounded-lg border border-[#3D1560]">
+            <div className="flex gap-3">
+              <Info className="w-5 h-5 text-[#3D1560] mt-0.5 flex-shrink-0" />
+              <div>
+                <h4 className="font-semibold text-[#3D1560] mb-1">Important</h4>
+                <p className="text-sm text-[#3D1560] opacity-90">
+                  By confirming this booking, you commit to providing the service at the scheduled time. 
+                  The customer is waiting for your confirmation and payment has been secured.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-4 border-t border-[#E8E9ED]">
+            <button
+              onClick={onDecline}
+              className="flex-1 px-4 py-2 border border-[#DF678C] text-[#DF678C] rounded-lg hover:bg-[#FFE5ED] transition-colors font-medium"
+            >
+              Decline
+            </button>
+            <button
+              onClick={onConfirm}
+              className="flex-1 px-4 py-2 bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] transition-colors font-medium"
+            >
+              Confirm Booking
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export function SellerBookingDetailsPage({ 
   booking, 
   onBack, 
@@ -151,7 +270,9 @@ export function SellerBookingDetailsPage({
   userRegion = 'US', 
   selectedServiceMode = 'at_seller',
   onNavigateToService,
-  onNavigateToMessages
+  onNavigateToMessages,
+  onConfirmBooking,
+  onDeclineBooking
 }: SellerBookingDetailsPageProps) {
   console.log('🔍 SellerBookingDetailsPage - Rendering with booking:', booking);
   
@@ -181,6 +302,7 @@ export function SellerBookingDetailsPage({
   const [notes, setNotes] = useState('');
   const [addNotesOpen, setAddNotesOpen] = useState(false);
   const [addedNotes, setAddedNotes] = useState<Array<{id: number, note: string, timestamp: Date}>>([]);
+  const [bookingConfirmationOpen, setBookingConfirmationOpen] = useState(false);
 
   // Helper functions
   const mapServiceStatus = (status: string, userRole: 'buyer' | 'seller'): string => {
@@ -296,15 +418,16 @@ export function SellerBookingDetailsPage({
   // Get status configuration
   const getStatusConfig = () => {
     switch (mappedStatus as OrderStatus) {
+      case 'pending':
       case 'requested':
         return {
           color: 'text-[#70727F]',
           bgColor: 'bg-[#E8E9ED]',
           borderColor: 'border-[#70727F]',
           icon: Clock3,
-          title: 'New Booking Request',
-          description: 'Customer is waiting for your confirmation',
-          urgency: '⏰ Respond within 24 hours to maintain response rate',
+          title: 'Booking Confirmation Required',
+          description: 'Customer is waiting for you to confirm this booking',
+          urgency: '', // Removed to avoid duplication with customer waiting message
           canAccept: true,
           canDecline: true,
           canReschedule: false,
@@ -603,6 +726,26 @@ export function SellerBookingDetailsPage({
     console.log('Booking ID copied to clipboard');
   };
 
+  const handleAcceptBooking = () => {
+    setBookingConfirmationOpen(true);
+  };
+
+  const handleConfirmBooking = () => {
+    if (onConfirmBooking) {
+      onConfirmBooking(booking.id);
+    }
+    setBookingConfirmationOpen(false);
+    console.log('Booking confirmed:', booking.id);
+  };
+
+  const handleDeclineBooking = () => {
+    if (onDeclineBooking) {
+      onDeclineBooking(booking.id);
+    }
+    setBookingConfirmationOpen(false);
+    console.log('Booking declined:', booking.id);
+  };
+
   // Enhanced seller activity timeline for bookings
   const getActivityTimeline = (): SellerActivityEntry[] => {
     const baseActivities: SellerActivityEntry[] = [
@@ -727,14 +870,31 @@ export function SellerBookingDetailsPage({
               </div>
             </div>
             
-            {statusConfig.urgency && (
-              <div className="flex items-start gap-3 p-3 bg-[#FFFFFF] bg-opacity-50 rounded-lg border border-[#FFFFFF] border-opacity-30">
-                <Info className="w-5 h-5 text-[#3D1560] mt-0.5 flex-shrink-0" />
+            {/* Enhanced waiting message for booking requests */}
+            {(mappedStatus === 'pending' || mappedStatus === 'requested') && (
+              <div className="flex items-start gap-3 p-4 bg-[#EDD9FF] rounded-lg border-l-4 border-[#3D1560]">
+                <div className="w-8 h-8 rounded-full bg-[#3D1560] flex items-center justify-center flex-shrink-0">
+                  <User className="w-4 h-4 text-white" />
+                </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-[#3D1560]">{statusConfig.urgency}</p>
+                  <p className="text-sm font-semibold text-[#1B1C20] mb-1">
+                    {customerInfo.name} is waiting for your response
+                  </p>
+                  <p className="text-xs text-[#383A47] leading-relaxed">
+                    ⏰ Respond within 24 hours • 💰 Payment secured • Please confirm or decline to maintain your response rate.
+                  </p>
+                </div>
+                <div className="text-right">
+                  <button 
+                    onClick={handleAcceptBooking}
+                    className="px-3 py-1.5 bg-[#3D1560] text-white rounded-md hover:bg-[#6D26AB] transition-colors text-xs font-medium"
+                  >
+                    Confirm Now
+                  </button>
                 </div>
               </div>
             )}
+
           </div>
         </div>
 
@@ -1000,9 +1160,12 @@ export function SellerBookingDetailsPage({
               <div className="space-y-3 mb-4">
                 {/* Primary Actions - Most Important */}
                 {statusConfig.canAccept && (
-                  <button className="w-full flex items-center justify-center gap-2 bg-[#3D1560] text-[#FFFFFF] hover:bg-[#6D26AB] transition-colors duration-200 px-4 py-3 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg">
+                  <button 
+                    onClick={handleAcceptBooking}
+                    className="w-full flex items-center justify-center gap-2 bg-[#3D1560] text-[#FFFFFF] hover:bg-[#6D26AB] transition-colors duration-200 px-4 py-3 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg"
+                  >
                     <CheckCircle className="w-5 h-5" />
-                    Accept Booking
+                    Confirm Booking
                   </button>
                 )}
                 {statusConfig.canReschedule && (
@@ -1021,7 +1184,10 @@ export function SellerBookingDetailsPage({
                   </button>
                 )}
                 {statusConfig.canDecline && (
-                  <button className="w-full flex items-center justify-center gap-2 border-2 border-[#DF678C] text-[#DF678C] hover:bg-[#FFE5ED] transition-colors duration-200 px-4 py-3 rounded-lg font-semibold text-sm">
+                  <button 
+                    onClick={handleDeclineBooking}
+                    className="w-full flex items-center justify-center gap-2 border-2 border-[#DF678C] text-[#DF678C] hover:bg-[#FFE5ED] transition-colors duration-200 px-4 py-3 rounded-lg font-semibold text-sm"
+                  >
                     <XCircle className="w-5 h-5" />
                     Decline Booking
                   </button>
@@ -1187,6 +1353,16 @@ export function SellerBookingDetailsPage({
       {appointmentDetailsOpen && (
         <AppointmentDetailsModal />
       )}
+
+      {/* Booking Confirmation Modal */}
+      <BookingConfirmationModal
+        isOpen={bookingConfirmationOpen}
+        onClose={() => setBookingConfirmationOpen(false)}
+        onConfirm={handleConfirmBooking}
+        onDecline={handleDeclineBooking}
+        booking={booking}
+        customerName={customerInfo.name}
+      />
 
       {/* Add Notes Modal */}
       <AddBookingNotesModal

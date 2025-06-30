@@ -2126,3 +2126,402 @@ export function getServiceBookingsForSeller(providerId: string): any[] {
     order.service.provider.id === providerId
   );
 }
+
+// ========================================
+// FINANCIAL DATA STRUCTURES & EXPORTS
+// ========================================
+
+// Financial Transaction Interface
+export interface FinancialTransaction {
+  id: string;
+  transactionId: string;
+  bookingId?: string;
+  orderId?: string;
+  type: 'booking_payment' | 'order_payment' | 'refund' | 'payout' | 'fee' | 'adjustment';
+  status: 'completed' | 'pending' | 'failed' | 'cancelled';
+  amount: number;
+  currency: string;
+  customerPaidAmount: number;
+  platformFee: number;
+  paymentProcessingFee: number;
+  transactionFee: number;
+  netToSeller: number;
+  paymentMethod: 'credit_card' | 'debit_card' | 'paypal' | 'bank_transfer' | 'apple_pay' | 'google_pay';
+  customerName: string;
+  description: string;
+  date: Date;
+  settledDate?: Date;
+  taxAmount?: number;
+  taxRate?: number;
+  region: 'US' | 'EU' | 'UK' | 'CA' | 'AU';
+  category: 'service_booking' | 'product_order' | 'refund' | 'withdrawal' | 'fee' | 'other';
+}
+
+// Payout Record Interface
+export interface PayoutRecord {
+  id: string;
+  amount: number;
+  currency: string;
+  status: 'completed' | 'pending' | 'processing' | 'failed';
+  method: 'bank_transfer' | 'paypal' | 'stripe_express';
+  accountDetails: {
+    type: 'bank' | 'paypal' | 'stripe';
+    last4?: string;
+    bankName?: string;
+    email?: string;
+  };
+  initiatedDate: Date;
+  completedDate?: Date;
+  fee: number;
+  netAmount: number;
+  transactionIds: string[];
+  description: string;
+}
+
+// Financial Summary Interface
+export interface FinancialSummary {
+  totalRevenue: number;
+  netEarnings: number;
+  pendingEarnings: number;
+  availableForWithdrawal: number;
+  totalFees: number;
+  totalTaxes: number;
+  completedTransactions: number;
+  pendingTransactions: number;
+  revenueGrowth: number;
+  transactionVolume30d: number;
+  averageOrderValue: number;
+  refundRate: number;
+  categoryBreakdown: { [key: string]: number };
+  monthlyRevenue: { month: string; amount: number }[];
+  topPerformingServices: { name: string; revenue: number; bookings: number }[];
+  monthlyTarget: number;
+}
+
+// Generate mock financial transactions
+export const allFinancialTransactions: FinancialTransaction[] = [
+  // Service Bookings
+  {
+    id: 'TXN-BKG-CS-001',
+    transactionId: 'pi_3MtwBwLkdIwHu7ix28a3tqPa',
+    bookingId: 'BKG-CS-001',
+    type: 'booking_payment',
+    status: 'completed',
+    amount: 120.00,
+    currency: 'USD',
+    customerPaidAmount: 120.00,
+    platformFee: 3.00,     // 2.5%
+    paymentProcessingFee: 3.78, // 2.9% + $0.30
+    transactionFee: 0.25,
+    netToSeller: 112.97,   // 120 - 3 - 3.78 - 0.25
+    paymentMethod: 'credit_card',
+    customerName: 'Sarah Johnson',
+    description: 'Personal Training Session - 1 Hour',
+    date: new Date('2024-04-01T10:30:00Z'),
+    settledDate: new Date('2024-04-03T10:30:00Z'),
+    taxAmount: 9.60,       // 8% sales tax
+    taxRate: 0.08,
+    region: 'US',
+    category: 'service_booking'
+  },
+  {
+    id: 'TXN-BKG-CS-002',
+    transactionId: 'pi_3MtwBwLkdIwHu7ix28a3tqPb',
+    bookingId: 'BKG-CS-002',
+    type: 'booking_payment',
+    status: 'completed',
+    amount: 85.00,
+    currency: 'USD',
+    customerPaidAmount: 85.00,
+    platformFee: 2.13,     // 2.5%
+    paymentProcessingFee: 2.77, // 2.9% + $0.30
+    transactionFee: 0.25,
+    netToSeller: 79.85,
+    paymentMethod: 'debit_card',
+    customerName: 'Michael Chen',
+    description: 'Hair Styling Service',
+    date: new Date('2024-04-02T14:15:00Z'),
+    settledDate: new Date('2024-04-04T14:15:00Z'),
+    taxAmount: 6.80,
+    taxRate: 0.08,
+    region: 'US',
+    category: 'service_booking'
+  },
+  {
+    id: 'TXN-BKG-CS-003',
+    transactionId: 'pi_3MtwBwLkdIwHu7ix28a3tqPc',
+    bookingId: 'BKG-CS-003',
+    type: 'booking_payment',
+    status: 'completed',
+    amount: 150.00,
+    currency: 'USD',
+    customerPaidAmount: 150.00,
+    platformFee: 3.75,     // 2.5%
+    paymentProcessingFee: 4.65, // 2.9% + $0.30
+    transactionFee: 0.25,
+    netToSeller: 141.35,
+    paymentMethod: 'apple_pay',
+    customerName: 'Emily Rodriguez',
+    description: 'Massage Therapy - Deep Tissue',
+    date: new Date('2024-04-03T16:00:00Z'),
+    settledDate: new Date('2024-04-05T16:00:00Z'),
+    taxAmount: 12.00,
+    taxRate: 0.08,
+    region: 'US',
+    category: 'service_booking'
+  },
+  // Product Orders
+  {
+    id: 'TXN-ORD-P-045',
+    transactionId: 'pi_3MtwBwLkdIwHu7ix28a3tqPd',
+    orderId: 'ORD-P-045',
+    type: 'order_payment',
+    status: 'completed',
+    amount: 299.99,
+    currency: 'USD',
+    customerPaidAmount: 299.99,
+    platformFee: 12.00,    // 4% for products
+    paymentProcessingFee: 9.00, // 2.9% + $0.30
+    transactionFee: 0.25,
+    netToSeller: 278.74,
+    paymentMethod: 'credit_card',
+    customerName: 'David Wilson',
+    description: 'Wireless Bluetooth Headphones',
+    date: new Date('2024-04-04T09:22:00Z'),
+    settledDate: new Date('2024-04-06T09:22:00Z'),
+    taxAmount: 24.00,
+    taxRate: 0.08,
+    region: 'US',
+    category: 'product_order'
+  },
+  {
+    id: 'TXN-ORD-P-046',
+    transactionId: 'pi_3MtwBwLkdIwHu7ix28a3tqPe',
+    orderId: 'ORD-P-046',
+    type: 'order_payment',
+    status: 'completed',
+    amount: 49.99,
+    currency: 'USD',
+    customerPaidAmount: 49.99,
+    platformFee: 2.00,     // 4% for products
+    paymentProcessingFee: 1.75, // 2.9% + $0.30
+    transactionFee: 0.25,
+    netToSeller: 45.99,
+    paymentMethod: 'paypal',
+    customerName: 'Jessica Martinez',
+    description: 'Organic Skincare Set',
+    date: new Date('2024-04-05T11:45:00Z'),
+    settledDate: new Date('2024-04-07T11:45:00Z'),
+    taxAmount: 4.00,
+    taxRate: 0.08,
+    region: 'US',
+    category: 'product_order'
+  },
+  // More transactions for the past 30 days
+  ...Array.from({ length: 50 }, (_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - Math.floor(Math.random() * 30));
+    const amount = Math.random() * 200 + 25; // $25-$225
+    const isService = Math.random() > 0.4;
+    const platformFeeRate = isService ? 0.025 : 0.04;
+    const platformFee = amount * platformFeeRate;
+    const paymentProcessingFee = amount * 0.029 + 0.30;
+    const transactionFee = 0.25;
+    const netToSeller = amount - platformFee - paymentProcessingFee - transactionFee;
+    
+    return {
+      id: `TXN-${isService ? 'BKG' : 'ORD'}-${String(i + 100).padStart(3, '0')}`,
+      transactionId: `pi_3MtwBwLkdIwHu7ix28a3tq${String.fromCharCode(65 + i)}`,
+      bookingId: isService ? `BKG-${String(i + 100).padStart(3, '0')}` : undefined,
+      orderId: !isService ? `ORD-${String(i + 100).padStart(3, '0')}` : undefined,
+      type: isService ? 'booking_payment' : 'order_payment' as const,
+      status: Math.random() > 0.05 ? 'completed' : 'pending' as const,
+      amount: Math.round(amount * 100) / 100,
+      currency: 'USD',
+      customerPaidAmount: Math.round(amount * 100) / 100,
+      platformFee: Math.round(platformFee * 100) / 100,
+      paymentProcessingFee: Math.round(paymentProcessingFee * 100) / 100,
+      transactionFee,
+      netToSeller: Math.round(netToSeller * 100) / 100,
+      paymentMethod: ['credit_card', 'debit_card', 'paypal', 'apple_pay', 'google_pay'][Math.floor(Math.random() * 5)] as any,
+      customerName: [
+        'Alice Johnson', 'Bob Smith', 'Carol Davis', 'David Brown', 'Emma Wilson',
+        'Frank Miller', 'Grace Lee', 'Henry Taylor', 'Ivy Chang', 'Jack White'
+      ][Math.floor(Math.random() * 10)],
+      description: isService 
+        ? ['Personal Training', 'Hair Styling', 'Massage Therapy', 'Photography', 'Consulting'][Math.floor(Math.random() * 5)]
+        : ['Electronics', 'Fashion', 'Home & Garden', 'Sports & Fitness', 'Beauty'][Math.floor(Math.random() * 5)],
+      date,
+      settledDate: new Date(date.getTime() + 2 * 24 * 60 * 60 * 1000), // 2 days later
+      taxAmount: Math.round(amount * 0.08 * 100) / 100,
+      taxRate: 0.08,
+      region: 'US',
+      category: isService ? 'service_booking' : 'product_order'
+    } as FinancialTransaction;
+  })
+];
+
+// Generate mock payout records
+export const mockPayoutRecords: PayoutRecord[] = [
+  {
+    id: 'PAY-OUT-789012',
+    amount: 1250.75,
+    currency: 'USD',
+    status: 'completed',
+    method: 'bank_transfer',
+    accountDetails: {
+      type: 'bank',
+      last4: '4321',
+      bankName: 'Chase Bank'
+    },
+    initiatedDate: new Date('2024-03-28T10:00:00Z'),
+    completedDate: new Date('2024-03-30T15:30:00Z'),
+    fee: 2.50,
+    netAmount: 1248.25,
+    transactionIds: ['TXN-BKG-CS-001', 'TXN-BKG-CS-002', 'TXN-ORD-P-045'],
+    description: 'Weekly payout for Mar 21-28, 2024'
+  },
+  {
+    id: 'PAY-OUT-789013',
+    amount: 890.40,
+    currency: 'USD',
+    status: 'processing',
+    method: 'paypal',
+    accountDetails: {
+      type: 'paypal',
+      email: 'seller@email.com'
+    },
+    initiatedDate: new Date('2024-04-04T10:00:00Z'),
+    fee: 1.75,
+    netAmount: 888.65,
+    transactionIds: ['TXN-BKG-CS-003', 'TXN-ORD-P-046'],
+    description: 'Weekly payout for Mar 28-Apr 4, 2024'
+  },
+  // Historical payouts
+  ...Array.from({ length: 12 }, (_, i) => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - i);
+    date.setDate(1); // First of month
+    const amount = Math.random() * 2000 + 500; // $500-$2500
+    const fee = amount < 1000 ? 2.50 : amount * 0.0025; // $2.50 or 0.25%
+    
+    return {
+      id: `PAY-OUT-${789000 + i}`,
+      amount: Math.round(amount * 100) / 100,
+      currency: 'USD',
+      status: i === 0 ? 'processing' : 'completed' as const,
+      method: Math.random() > 0.5 ? 'bank_transfer' : 'paypal' as const,
+      accountDetails: {
+        type: Math.random() > 0.5 ? 'bank' : 'paypal' as const,
+        last4: Math.random() > 0.5 ? '4321' : undefined,
+        bankName: Math.random() > 0.5 ? 'Chase Bank' : undefined,
+        email: Math.random() > 0.5 ? undefined : 'seller@email.com'
+      },
+      initiatedDate: date,
+      completedDate: i === 0 ? undefined : new Date(date.getTime() + 2 * 24 * 60 * 60 * 1000),
+      fee: Math.round(fee * 100) / 100,
+      netAmount: Math.round((amount - fee) * 100) / 100,
+      transactionIds: [`TXN-BKG-CS-${i}01`, `TXN-ORD-P-${i}02`],
+      description: `Monthly payout for ${date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
+    } as PayoutRecord;
+  })
+];
+
+// Calculate financial summary
+export function calculateFinancialSummary(
+  transactions: FinancialTransaction[] = allFinancialTransactions,
+  timeFilter: 'all' | '30d' | '7d' | '24h' = 'all'
+): FinancialSummary {
+  const now = new Date();
+  let filteredTransactions = transactions;
+  
+  // Apply time filter
+  if (timeFilter !== 'all') {
+    const days = timeFilter === '30d' ? 30 : timeFilter === '7d' ? 7 : 1;
+    const cutoffDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    filteredTransactions = transactions.filter(t => t.date >= cutoffDate);
+  }
+  
+  const completedTransactions = filteredTransactions.filter(t => t.status === 'completed');
+  const pendingTransactions = filteredTransactions.filter(t => t.status === 'pending');
+  
+  const totalRevenue = completedTransactions.reduce((sum, t) => sum + t.amount, 0);
+  const totalFees = completedTransactions.reduce((sum, t) => 
+    sum + t.platformFee + t.paymentProcessingFee + t.transactionFee, 0);
+  const totalTaxes = completedTransactions.reduce((sum, t) => sum + (t.taxAmount || 0), 0);
+  const netEarnings = completedTransactions.reduce((sum, t) => sum + t.netToSeller, 0);
+  const pendingEarnings = pendingTransactions.reduce((sum, t) => sum + t.netToSeller, 0);
+  
+  // Calculate available for withdrawal (settled transactions minus already paid out)
+  const settledTransactions = completedTransactions.filter(t => 
+    t.settledDate && t.settledDate <= now
+  );
+  const settledEarnings = settledTransactions.reduce((sum, t) => sum + t.netToSeller, 0);
+  const totalPayouts = mockPayoutRecords
+    .filter(p => p.status === 'completed')
+    .reduce((sum, p) => sum + p.amount, 0);
+  const availableForWithdrawal = Math.max(0, settledEarnings - totalPayouts);
+  
+  // Category breakdown
+  const categoryBreakdown: { [key: string]: number } = {};
+  completedTransactions.forEach(t => {
+    categoryBreakdown[t.category] = (categoryBreakdown[t.category] || 0) + t.amount;
+  });
+  
+  // Monthly revenue for last 12 months
+  const monthlyRevenue: { month: string; amount: number }[] = [];
+  for (let i = 11; i >= 0; i--) {
+    const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+    const monthTransactions = completedTransactions.filter(t => 
+      t.date >= month && t.date <= monthEnd
+    );
+    const monthAmount = monthTransactions.reduce((sum, t) => sum + t.amount, 0);
+    monthlyRevenue.push({
+      month: month.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+      amount: monthAmount
+    });
+  }
+  
+  // Calculate growth (comparing current period to previous period)
+  let revenueGrowth = 0;
+  if (timeFilter !== 'all') {
+    const days = timeFilter === '30d' ? 30 : timeFilter === '7d' ? 7 : 1;
+    const previousPeriodStart = new Date(now.getTime() - 2 * days * 24 * 60 * 60 * 1000);
+    const previousPeriodEnd = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    
+    const previousTransactions = transactions.filter(t => 
+      t.date >= previousPeriodStart && t.date < previousPeriodEnd && t.status === 'completed'
+    );
+    const previousRevenue = previousTransactions.reduce((sum, t) => sum + t.amount, 0);
+    
+    if (previousRevenue > 0) {
+      revenueGrowth = ((totalRevenue - previousRevenue) / previousRevenue) * 100;
+    }
+  }
+  
+  return {
+    totalRevenue: Math.round(totalRevenue * 100) / 100,
+    netEarnings: Math.round(netEarnings * 100) / 100,
+    pendingEarnings: Math.round(pendingEarnings * 100) / 100,
+    availableForWithdrawal: Math.round(availableForWithdrawal * 100) / 100,
+    totalFees: Math.round(totalFees * 100) / 100,
+    totalTaxes: Math.round(totalTaxes * 100) / 100,
+    completedTransactions: completedTransactions.length,
+    pendingTransactions: pendingTransactions.length,
+    revenueGrowth: Math.round(revenueGrowth * 100) / 100,
+    transactionVolume30d: filteredTransactions.length,
+    averageOrderValue: completedTransactions.length > 0 
+      ? Math.round((totalRevenue / completedTransactions.length) * 100) / 100 
+      : 0,
+    refundRate: 0, // Could be calculated if refund transactions exist
+    categoryBreakdown,
+    monthlyRevenue,
+    topPerformingServices: [
+      { name: 'Personal Training', revenue: 2450.50, bookings: 18 },
+      { name: 'Hair Styling', revenue: 1890.25, bookings: 22 },
+      { name: 'Massage Therapy', revenue: 1675.00, bookings: 12 }
+    ],
+    monthlyTarget: 15000
+  };
+}

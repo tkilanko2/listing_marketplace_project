@@ -412,7 +412,7 @@ export function SellerFinancePage({ onBack }: SellerFinancePageProps) {
       const matchesSearch = searchTerm === '' || 
         transaction.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         transaction.transactionId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (transaction.serviceCategory && transaction.serviceCategory.toLowerCase().includes(searchTerm.toLowerCase()));
+        (transaction.category && transaction.category.toLowerCase().includes(searchTerm.toLowerCase()));
       
       const matchesStatus = statusFilter === 'all' || transaction.status === statusFilter;
       
@@ -422,6 +422,7 @@ export function SellerFinancePage({ onBack }: SellerFinancePageProps) {
 
   // Get revenue by category based on time filter
   const revenueByCategory = useMemo(() => {
+    // Filter transactions based on time filter
     const filteredTransactionsByTime = allFinancialTransactions.filter(transaction => {
       if (timeFilter === 'all') return true;
       
@@ -432,20 +433,20 @@ export function SellerFinancePage({ onBack }: SellerFinancePageProps) {
       return transaction.date >= cutoffDate;
     });
     
-    // Calculate revenue by category
-    const serviceTransactions = filteredTransactionsByTime.filter(t => t.type === 'service');
-    const productTransactions = filteredTransactionsByTime.filter(t => t.type === 'product');
+    // Calculate revenue by category using the filtered transactions
+    const serviceTransactions = filteredTransactionsByTime.filter(t => t.type === 'booking_payment');
+    const productTransactions = filteredTransactionsByTime.filter(t => t.type === 'order_payment');
     
     return {
       'Service Bookings': {
         count: serviceTransactions.length,
         revenue: serviceTransactions.reduce((sum, t) => sum + t.amount, 0),
-        netEarnings: serviceTransactions.reduce((sum, t) => sum + t.netEarnings, 0)
+        netEarnings: serviceTransactions.reduce((sum, t) => sum + t.netToSeller, 0)
       },
       'Product Sales': {
         count: productTransactions.length,
         revenue: productTransactions.reduce((sum, t) => sum + t.amount, 0),
-        netEarnings: productTransactions.reduce((sum, t) => sum + t.netEarnings, 0)
+        netEarnings: productTransactions.reduce((sum, t) => sum + t.netToSeller, 0)
       }
     };
   }, [timeFilter]);
@@ -460,7 +461,7 @@ export function SellerFinancePage({ onBack }: SellerFinancePageProps) {
     return `${firstName} ${lastInitial}`;
   };
 
-  const formatCurrency = (amount: number) => `$${amount.toFixed(2)}`;
+  const formatCurrency = (amount: number | undefined) => `$${(amount || 0).toFixed(2)}`;
   const formatDate = (date: Date) => date.toLocaleDateString('en-US', { 
     year: 'numeric', 
     month: 'short', 
@@ -578,7 +579,7 @@ export function SellerFinancePage({ onBack }: SellerFinancePageProps) {
             value={formatCurrency(financialSummary.netEarnings)}
             icon={DollarSign}
             trend="up"
-            trendValue={`${financialSummary.profitMargin.toFixed(1)}% margin`}
+            trendValue={`${((financialSummary.netEarnings / financialSummary.totalRevenue) * 100).toFixed(1)}% margin`}
             color="primary"
             delay={100}
           />
@@ -646,43 +647,69 @@ export function SellerFinancePage({ onBack }: SellerFinancePageProps) {
           </div>
 
           <div className="bg-[#FFFFFF] p-6 rounded-xl border border-[#E8E9ED] shadow-sm hover:shadow-md transition-shadow">
-            <h3 className="text-lg font-semibold text-[#1B1C20] mb-6">Revenue Mix</h3>
+            <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Quick Actions</h3>
             
-            {/* Donut Chart */}
-            <div className="flex justify-center mb-6">
-              <DonutChart data={donutData} size={140} strokeWidth={12} />
-            </div>
-            
-            {/* Legend */}
-            <div className="space-y-3">
-              {donutData.map((item, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                    <span className="text-sm text-[#383A47]">{item.label}</span>
-                  </div>
-                  <span className="text-sm font-medium text-[#1B1C20]">{item.value}%</span>
+            {/* Key Status Info */}
+            <div className="mb-4 p-3 bg-[#F8F8FA] rounded-lg border border-[#E8E9ED]">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-[#4CAF50]" />
+                  <span className="text-sm text-[#383A47]">Next Payout</span>
                 </div>
-              ))}
-            </div>
-            
-            {/* Progress Bars */}
-            <div className="mt-6 space-y-3">
-              {donutData.map((item, index) => (
-                <div key={index}>
-                  <div className="flex justify-between text-xs text-[#70727F] mb-1">
-                    <span>{item.label}</span>
-                    <span>{item.value}%</span>
-                  </div>
-                  <ProgressBar 
-                    value={item.value} 
-                    max={100} 
-                    color={item.color} 
-                    height={6}
-                    animated={true}
-                  />
+                <span className="text-sm font-medium text-[#4CAF50]">April 18</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Building className="w-4 h-4 text-[#DF678C]" />
+                  <span className="text-sm text-[#383A47]">Tax Documents</span>
                 </div>
-              ))}
+                <span className="px-2 py-1 text-xs bg-[#FFE5ED] text-[#DF678C] rounded-full">Action Needed</span>
+              </div>
+            </div>
+
+            {/* Rectangular Quick Actions */}
+            <div className="space-y-2">
+              <button 
+                onClick={handleWithdrawClick}
+                className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-[#4CAF50] to-[#45A049] text-white rounded-lg hover:from-[#45A049] hover:to-[#3E8E41] transition-all duration-200 group"
+              >
+                <div className="flex items-center gap-3">
+                  <Wallet className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <span className="font-medium">Withdraw Funds</span>
+                </div>
+                <span className="text-sm opacity-90">{formatCurrency(financialSummary.availableForWithdrawal)}</span>
+              </button>
+              
+              <button 
+                onClick={handleExportClick}
+                className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-[#3D1560] to-[#6D26AB] text-white rounded-lg hover:from-[#6D26AB] hover:to-[#9B53D9] transition-all duration-200 group"
+              >
+                <div className="flex items-center gap-3">
+                  <Download className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <span className="font-medium">Export Reports</span>
+                </div>
+                <span className="text-sm opacity-90">CSV/PDF</span>
+              </button>
+            </div>
+
+            {/* Secondary Actions */}
+            <div className="mt-4 pt-3 border-t border-[#E8E9ED]">
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setActiveTab('payouts')}
+                  className="flex-1 flex items-center justify-center gap-2 p-2 text-sm text-[#DF678C] bg-[#FFE5ED] hover:bg-[#FFD1DC] rounded-lg transition-colors"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  Banking
+                </button>
+                <button 
+                  onClick={() => setActiveTab('tax')}
+                  className="flex-1 flex items-center justify-center gap-2 p-2 text-sm text-[#70727F] bg-[#F8F8FA] hover:bg-[#E8E9ED] rounded-lg transition-colors"
+                >
+                  <FileText className="w-4 h-4" />
+                  Tax Docs
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -708,10 +735,10 @@ export function SellerFinancePage({ onBack }: SellerFinancePageProps) {
                 }`} />
                 <div>
                   <p className="text-sm font-medium text-[#383A47]">
-                    {formatCurrency(transaction.amount)} → {formatCurrency(transaction.netEarnings)} net
+                    {formatCurrency(transaction.amount)} → {formatCurrency(transaction.netToSeller)} net
                   </p>
                   <p className="text-xs text-[#70727F]">
-                    {formatDate(transaction.date)} | {transaction.serviceCategory || 'Product'} | ID: {transaction.id}
+                    {formatDate(transaction.date)} | {transaction.category} | ID: {transaction.id}
                   </p>
                 </div>
               </div>
@@ -761,7 +788,7 @@ export function SellerFinancePage({ onBack }: SellerFinancePageProps) {
           <div className="bg-[#F8F8FA] p-4 rounded-lg">
             <h4 className="text-sm font-medium text-[#70727F] mb-2">Gross Revenue</h4>
             <p className="text-2xl font-bold text-[#1B1C20]">{formatCurrency(financialSummary.totalRevenue)}</p>
-            <p className="text-xs text-[#70727F] mt-1">{financialSummary.transactionCount} transactions</p>
+            <p className="text-xs text-[#70727F] mt-1">{financialSummary.completedTransactions} transactions</p>
           </div>
           <div className="bg-[#FFE5ED] p-4 rounded-lg">
             <h4 className="text-sm font-medium text-[#70727F] mb-2">Total Fees</h4>
@@ -771,7 +798,7 @@ export function SellerFinancePage({ onBack }: SellerFinancePageProps) {
           <div className="bg-[#EDD9FF] p-4 rounded-lg">
             <h4 className="text-sm font-medium text-[#3D1560] mb-2">Net Earnings</h4>
             <p className="text-2xl font-bold text-[#3D1560]">{formatCurrency(financialSummary.netEarnings)}</p>
-            <p className="text-xs text-[#3D1560] opacity-80 mt-1">{financialSummary.profitMargin.toFixed(1)}% profit margin</p>
+            <p className="text-xs text-[#3D1560] opacity-80 mt-1">{((financialSummary.netEarnings / financialSummary.totalRevenue) * 100).toFixed(1)}% profit margin</p>
           </div>
         </div>
 
@@ -782,28 +809,28 @@ export function SellerFinancePage({ onBack }: SellerFinancePageProps) {
             <div className="text-center p-3 bg-[#F8F8FA] rounded-lg">
               <p className="text-xs text-[#70727F] mb-1">Platform Fees</p>
               <p className="text-lg font-bold text-[#383A47]">
-                {formatCurrency(filteredTransactionsForRevenue.reduce((sum, t) => sum + t.fees.platformFee, 0))}
+                {formatCurrency(filteredTransactionsForRevenue.reduce((sum, t) => sum + t.platformFee, 0))}
               </p>
               <p className="text-xs text-[#70727F]">2.5% avg</p>
             </div>
             <div className="text-center p-3 bg-[#F8F8FA] rounded-lg">
               <p className="text-xs text-[#70727F] mb-1">Payment Processing</p>
               <p className="text-lg font-bold text-[#383A47]">
-                {formatCurrency(filteredTransactionsForRevenue.reduce((sum, t) => sum + t.fees.paymentProcessing, 0))}
+                {formatCurrency(filteredTransactionsForRevenue.reduce((sum, t) => sum + t.paymentProcessingFee, 0))}
               </p>
               <p className="text-xs text-[#70727F]">2.9% + $0.30</p>
             </div>
             <div className="text-center p-3 bg-[#F8F8FA] rounded-lg">
               <p className="text-xs text-[#70727F] mb-1">Transaction Fees</p>
               <p className="text-lg font-bold text-[#383A47]">
-                {formatCurrency(filteredTransactionsForRevenue.reduce((sum, t) => sum + t.fees.transactionFee, 0))}
+                {formatCurrency(filteredTransactionsForRevenue.reduce((sum, t) => sum + t.transactionFee, 0))}
               </p>
               <p className="text-xs text-[#70727F]">$0.25 each</p>
             </div>
             <div className="text-center p-3 bg-[#F8F8FA] rounded-lg">
               <p className="text-xs text-[#70727F] mb-1">Withdrawal Fees</p>
               <p className="text-lg font-bold text-[#383A47]">
-                {formatCurrency(filteredTransactionsForRevenue.reduce((sum, t) => sum + t.fees.withdrawalFee, 0))}
+                {formatCurrency(0)}
               </p>
               <p className="text-xs text-[#70727F]">Waived &gt;$50</p>
             </div>
@@ -817,7 +844,7 @@ export function SellerFinancePage({ onBack }: SellerFinancePageProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
           <div>
             <p className="text-sm text-[#70727F] mb-1">Average Transaction Value</p>
-            <p className="text-xl font-bold text-[#383A47]">{formatCurrency(financialSummary.averageTransaction)}</p>
+            <p className="text-xl font-bold text-[#383A47]">{formatCurrency(financialSummary.averageOrderValue)}</p>
           </div>
           <div>
             <p className="text-sm text-[#70727F] mb-1">Revenue Growth Rate</p>
@@ -943,14 +970,14 @@ export function SellerFinancePage({ onBack }: SellerFinancePageProps) {
                 </div>
                 <div>
                   <p className="font-medium text-[#383A47]">{formatCurrency(payout.amount)}</p>
-                  <p className="text-sm text-[#70727F]">{formatDate(payout.date)} • {payout.transactionId}</p>
+                  <p className="text-sm text-[#70727F]">{formatDate(payout.initiatedDate)} • {payout.transactionIds[0]}</p>
                 </div>
               </div>
               <div className="text-right">
                 <span className="px-2 py-1 text-xs bg-[#E8F5E9] text-[#4CAF50] rounded-full">
                   Completed
                 </span>
-                <p className="text-xs text-[#70727F] mt-1">to {payout.bankAccount}</p>
+                <p className="text-xs text-[#70727F] mt-1">to {payout.accountDetails.bankName || payout.accountDetails.email || 'Payment Account'}</p>
               </div>
             </button>
           ))}
@@ -1013,7 +1040,7 @@ export function SellerFinancePage({ onBack }: SellerFinancePageProps) {
                        '⏸️ Pending'}
                     </span>
                     <span className="text-xs text-[#70727F]">
-                      {formatDate(transaction.date)} | {transaction.serviceCategory || 'Product'}
+                      {formatDate(transaction.date)} | {transaction.category || 'Product'}
                     </span>
                   </div>
                   <div className="flex items-center gap-6 text-sm">
@@ -1023,15 +1050,15 @@ export function SellerFinancePage({ onBack }: SellerFinancePageProps) {
                     </div>
                     <div>
                       <span className="text-[#70727F]">Net: </span>
-                      <span className="font-medium text-[#4CAF50]">{formatCurrency(transaction.netEarnings)}</span>
+                      <span className="font-medium text-[#4CAF50]">{formatCurrency(transaction.netToSeller)}</span>
                     </div>
                     <div>
                       <span className="text-[#70727F]">Fees: </span>
                       <span className="font-medium text-[#DF678C]">
-                        {formatCurrency(transaction.fees.platformFee + transaction.fees.paymentProcessing + transaction.fees.transactionFee + transaction.fees.withdrawalFee)}
+                        {formatCurrency(transaction.platformFee + transaction.paymentProcessingFee + transaction.transactionFee)}
                       </span>
                       <span className="text-xs text-[#70727F] ml-1">
-                        ({(((transaction.fees.platformFee + transaction.fees.paymentProcessing + transaction.fees.transactionFee + transaction.fees.withdrawalFee) / transaction.amount) * 100).toFixed(1)}%)
+                        ({(((transaction.platformFee + transaction.paymentProcessingFee + transaction.transactionFee) / transaction.amount) * 100).toFixed(1)}%)
                       </span>
                     </div>
                   </div>

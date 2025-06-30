@@ -236,7 +236,7 @@ export default function SellerBookingList({
                           {appointment.customer.name}
                         </Typography>
                         <Typography variant="body2" color="#70727F">
-                          {appointment.customer.email}
+                          {appointment.customer.id || `CM${appointment.id.slice(-6).toUpperCase()}`}
                         </Typography>
                       </Box>
                     </Box>
@@ -331,11 +331,11 @@ export default function SellerBookingList({
             </MenuItem>
           );
 
-          // Accept Booking - Only for pending
+          // Confirm Booking - Only for pending
           if (statusConfig.canAccept && onAccept) {
             menuItems.push(
               <MenuItem key="accept" onClick={() => handleAction(onAccept)}>
-                <CheckCircle size={16} style={{ marginRight: 8 }} /> Accept Booking
+                <CheckCircle size={16} style={{ marginRight: 8 }} /> Confirm Booking
               </MenuItem>
             );
           }

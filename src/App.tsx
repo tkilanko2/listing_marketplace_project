@@ -3468,7 +3468,7 @@ function App() {
       <SellerFinancePage 
         onBack={() => handleNavigate('sellerDashboard')}
       />
-    );
+  );
   };
 
   // Seller Dashboard Settings placeholder

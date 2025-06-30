@@ -61,14 +61,18 @@ export default function SellerBookingDashboard({
     // Apply filters
     let result = [...appointments];
     
-    // Filter by search term (customer name, service name, etc.)
+    // Filter by search term (customer name, customer ID, service name, etc.)
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
-      result = result.filter(appointment => 
-        appointment.customer.name.toLowerCase().includes(searchTerm) ||
-        appointment.customer.email.toLowerCase().includes(searchTerm) ||
-        appointment.service.name.toLowerCase().includes(searchTerm)
-      );
+      result = result.filter(appointment => {
+        const customerId = appointment.customer.id || `CM${appointment.id.slice(-6).toUpperCase()}`;
+        return (
+          appointment.customer.name.toLowerCase().includes(searchTerm) ||
+          appointment.customer.email.toLowerCase().includes(searchTerm) ||
+          customerId.toLowerCase().includes(searchTerm) ||
+          appointment.service.name.toLowerCase().includes(searchTerm)
+        );
+      });
     }
     
     // Filter by status

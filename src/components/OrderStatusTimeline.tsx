@@ -155,7 +155,11 @@ export function OrderStatusTimeline({ currentStatus, orderType, orderDate, booki
     const flowSequenceIds = definedSteps.map(step => step.id);
     // mappedDisplayStatus will be 'confirmed' for a buyer if original currentStatus was 'scheduled'.
     // This index is used to mark the 'current' step in the role-specific definedSteps.
-    const currentIndexInFlow = flowSequenceIds.indexOf(mappedDisplayStatus);
+    // Handle 'pending' status as equivalent to 'requested' for service bookings
+    let currentIndexInFlow = flowSequenceIds.indexOf(mappedDisplayStatus);
+    if (currentIndexInFlow === -1 && mappedDisplayStatus === 'pending') {
+      currentIndexInFlow = flowSequenceIds.indexOf('requested');
+    }
     console.log('[OrderStatusTimeline] Service Flow Sequence IDs:', flowSequenceIds, 'Current Index in Flow:', currentIndexInFlow);
 
     // Ensure 'requested' step always has its date if it's part of the defined steps.

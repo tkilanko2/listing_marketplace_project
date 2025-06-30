@@ -260,7 +260,7 @@ const SellerAppointmentDetailsModal: React.FC<SellerAppointmentDetailsModalProps
                   {formatCustomerName(appointment.customer.name)}
                 </Typography>
                 <Typography variant="body2" color="#70727F">
-                  {appointment.customer.email}
+                  {appointment.customer.id || `CM${appointment.id.slice(-6).toUpperCase()}`}
                 </Typography>
                 {appointment.customer.phone && (
                   <Typography variant="body2" color="#70727F">
