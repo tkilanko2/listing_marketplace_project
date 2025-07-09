@@ -4493,7 +4493,7 @@ function App() {
         {currentPage === 'booking' && selectedListing?.type === 'service' && (
           <BookingPage 
             selectedService={selectedListing}
-            allServices={mockServices.filter(s => s.provider.id === selectedListing.provider.id)}
+            allServices={mockServices.filter(s => s.category === 'Professional Consultation')}
             onBack={handleBackToLanding}
             onProceedToPayment={handleProceedToPayment}
           />

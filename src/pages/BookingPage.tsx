@@ -222,7 +222,7 @@ export function BookingPage({ selectedService, allServices, onBack, onProceedToP
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             <div className="lg:col-span-2">
               <div className="bg-white rounded-lg shadow-sm p-6 mb-8 border border-[#CDCED8]">
-                <h2 className="text-xl font-semibold mb-4 text-[#1B1C20]">Select a Service</h2>
+                <h2 className="text-xl font-semibold mb-4 text-[#1B1C20]">Select a Service Tier</h2>
                 <ServiceList
                   services={allServices}
                   selectedService={currentService}
@@ -308,8 +308,8 @@ export function BookingPage({ selectedService, allServices, onBack, onProceedToP
                           <Users className="h-6 w-6 text-[#3D1560]" />
                         </div>
                         <div className="ml-3">
-                          <p className="text-sm font-medium text-[#383A47]">Select a Service</p>
-                          <p className="text-sm text-[#70727F]">Choose from available services</p>
+                          <p className="text-sm font-medium text-[#383A47]">Select a Service Tier</p>
+                          <p className="text-sm text-[#70727F]">Choose from available service tiers</p>
                         </div>
                       </div>
                       <div className="flex items-start">

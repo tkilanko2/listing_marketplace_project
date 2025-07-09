@@ -132,10 +132,13 @@ export const providers = Array.from({ length: 15 }, (_, index) => ({
 // Service categories with their respective curated image IDs
 const serviceCategories = [
   {
-    category: 'Beauty & Wellness',
+    category: 'Professional Consultation',
     services: [
       { 
-        name: 'Premium Haircut & Styling',
+        name: 'Basic Consultation',
+        description: 'Essential consultation session with standard advice and basic recommendations.',
+        duration: 30,
+        price: 45,
         images: [
           'https://images.unsplash.com/photo-1560066984-138dadb4c035',
           'https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1',
@@ -144,130 +147,50 @@ const serviceCategories = [
         onlinePayment: false
       },
       { 
-        name: 'Spa Massage Therapy',
+        name: 'Standard Consultation',
+        description: 'Comprehensive consultation with detailed analysis, professional recommendations, and follow-up notes.',
+        duration: 60,
+        price: 85,
         images: [
-          'https://images.unsplash.com/photo-1544161515-4ab6ce6db874',
-          'https://images.unsplash.com/photo-1600334129128-685c5582fd35',
-          'https://images.unsplash.com/photo-1519823551278-64ac92734fb1'
+          'https://images.unsplash.com/photo-1560066984-138dadb4c035',
+          'https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1',
+          'https://images.unsplash.com/photo-1562322140-8baeececf3df'
         ],
         onlinePayment: true
       },
       { 
-        name: 'Professional Makeup Service',
+        name: 'Premium Consultation',
+        description: 'In-depth consultation with expert analysis, customized action plan, priority support, and 30-day follow-up.',
+        duration: 90,
+        price: 125,
         images: [
-          'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9',
-          'https://images.unsplash.com/photo-1549236177-f9b0031756eb',
-          'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2'
-        ],
-        onlinePayment: true
-      }
-    ]
-  },
-  {
-    category: 'Home Services',
-    services: [
-      { 
-        name: 'Moving Service',
-        images: [
-          'https://images.unsplash.com/photo-1600585152220-90363fe7e115',
-          'https://images.unsplash.com/photo-1603796846097-bee99e4a601f',
-          'https://images.unsplash.com/photo-1527554677374-236d3bc88a34'
-        ],
-        onlinePayment: false
-      },
-      { 
-        name: 'Interior Painting',
-        images: [
-          'https://images.unsplash.com/photo-1589939705384-5185137a7f0f',
-          'https://images.unsplash.com/photo-1562259949-e8e7689d7828',
-          'https://images.unsplash.com/photo-1595428774223-ef52624120d2'
-        ],
-        onlinePayment: false
-      },
-      { 
-        name: 'Home Cleaning Service',
-        images: [
-          'https://images.unsplash.com/photo-1581578731548-c64695cc6952',
-          'https://images.unsplash.com/photo-1527515637462-cff94eecc1ac',
-          'https://images.unsplash.com/photo-1556911220-bda9f33a8b1f'
-        ],
-        onlinePayment: true
-      }
-    ]
-  },
-  {
-    category: 'Education',
-    services: [
-      { 
-        name: 'Art & Craft Workshop',
-        images: [
-          'https://images.unsplash.com/photo-1499892477393-f675706cbe6e',
-          'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b',
-          'https://images.unsplash.com/photo-1513364776144-60967b0f800f'
-        ],
-        onlinePayment: false
-      },
-      { 
-        name: 'Coding Bootcamp',
-        images: [
-          'https://images.unsplash.com/photo-1516321318423-f06f85e504b3',
-          'https://images.unsplash.com/photo-1461749280684-dccba630e2f6',
-          'https://images.unsplash.com/photo-1498050108023-c5249f4df085'
+          'https://images.unsplash.com/photo-1560066984-138dadb4c035',
+          'https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1',
+          'https://images.unsplash.com/photo-1562322140-8baeececf3df'
         ],
         onlinePayment: true
       },
       { 
-        name: 'Language Tutoring',
+        name: 'Executive Consultation',
+        description: 'VIP consultation experience with senior expert, comprehensive strategy development, implementation roadmap, and 60-day support.',
+        duration: 120,
+        price: 185,
         images: [
-          'https://images.unsplash.com/photo-1544654803-b69140b285a1',
-          'https://images.unsplash.com/photo-1561089489-f13d5e730d72',
-          'https://images.unsplash.com/photo-1587918536598-d1c4a600a6d6'
+          'https://images.unsplash.com/photo-1560066984-138dadb4c035',
+          'https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1',
+          'https://images.unsplash.com/photo-1562322140-8baeececf3df'
         ],
         onlinePayment: true
-      }
-    ]
-  },
-  {
-    category: 'Tech Support',
-    services: [
-      { 
-        name: 'Computer Repair',
-        images: [
-          'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b',
-          'https://images.unsplash.com/photo-1515343480029-43cdfe6b6aae',
-          'https://images.unsplash.com/photo-1563770660941-20978e870e26'
-        ],
-        onlinePayment: false
       },
       { 
-        name: 'Website Development',
+        name: 'Platinum Consultation',
+        description: 'Ultimate consultation package with top-tier expert, complete strategic planning, dedicated support team, and 90-day implementation assistance.',
+        duration: 150,
+        price: 245,
         images: [
-          'https://images.unsplash.com/photo-1547658719-da2b51169166',
-          'https://images.unsplash.com/photo-1494599948593-3dafe8338d71',
-          'https://images.unsplash.com/photo-1559028012-481c04fa702d'
-        ],
-        onlinePayment: true
-      }
-    ]
-  },
-  {
-    category: 'Transportation',
-    services: [
-      { 
-        name: 'Chauffeur Service',
-        images: [
-          'https://images.unsplash.com/photo-1511919884226-fd3cad34687c',
-          'https://images.unsplash.com/photo-1552519507-da3b142c6e3d',
-          'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2'
-        ],
-        onlinePayment: false
-      },
-      { 
-        name: 'Airport Transfer',
-        images: [
-          'https://images.unsplash.com/photo-1570125909232-eb263c188f7e',
-          'https://images.unsplash.com/photo-1436491865332-7a61a109cc05',
-          'https://images.unsplash.com/photo-1566121933407-3c7ccdd26763'
+          'https://images.unsplash.com/photo-1560066984-138dadb4c035',
+          'https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1',
+          'https://images.unsplash.com/photo-1562322140-8baeececf3df'
         ],
         onlinePayment: true
       }
@@ -1179,9 +1102,10 @@ const mockProducts: Product[] = productCategories.flatMap((category, categoryInd
 // Update service generation to include new service-specific fields
 const mockServices: Service[] = serviceCategories.flatMap((category, categoryIndex) =>
   category.services.map((service, serviceIndex) => {
-    const provider = providers[Math.floor(Math.random() * providers.length)];
-    const price = Math.floor(Math.random() * 150) + 50;
-    const duration = [30, 45, 60, 90, 120][Math.floor(Math.random() * 5)];
+    // Use the same provider for all consultation tiers so they show together
+    const provider = providers[0]; // Always use the first provider for consistency
+    const price = (service as any).price || Math.floor(Math.random() * 150) + 50;
+    const duration = (service as any).duration || [30, 45, 60, 90, 120][Math.floor(Math.random() * 5)];
     
     // Generate predictable listing IDs: LISTING_SERV_001, LISTING_SERV_002, etc.
     const globalServiceIndex = serviceCategories.slice(0, categoryIndex).reduce((sum, cat) => sum + cat.services.length, 0) + serviceIndex + 1;
@@ -1226,7 +1150,7 @@ const mockServices: Service[] = serviceCategories.flatMap((category, categoryInd
       name: service.name,
       duration,
       price,
-      description: `Professional ${service.name.toLowerCase()} service tailored to your needs`,
+      description: (service as any).description || `Professional ${service.name.toLowerCase()} service tailored to your needs`,
       shortDescription: `Expert ${service.name.toLowerCase()} service in ${provider.location.city}`,
       longDescription: `Experience premium ${service.name.toLowerCase()} service from one of ${provider.location.city}'s top-rated providers. Our service includes comprehensive consultation, professional execution, and satisfaction guarantee. Available for ${serviceDeliveryModes.map(mode => 
         mode === 'at_buyer' ? 'home visits' : 
@@ -1263,15 +1187,23 @@ const mockServices: Service[] = serviceCategories.flatMap((category, categoryInd
 export const mockListings: ListingItem[] = [...mockProducts, ...mockServices];
 export { mockServices, mockProducts };
 
-// Mock Orders Data
-export const mockOrders: Order[] = [
+// Mock Orders Data - Removed createMockOrders function to avoid circular dependency
+/* const createMockOrders = (): Order[] => [
   {
     id: 'BKG001',
-    listingId: mockServices[0].id, // Reference to the parent service listing
+    listingId: mockServices[0]?.id || 'LISTING_SERV_001', // Reference to the parent service listing
     userId: 'USER001',
     items: [],
     type: 'service',
-    service: { ...mockServices[0], provider: providers[0] }, // Assign to first provider
+    service: {
+      id: 'LISTING_SERV_001',
+      name: 'Basic Consultation',
+      duration: 30,
+      price: 45,
+      provider: providers[0],
+      category: 'Professional Consultation',
+      description: 'Essential consultation session'
+    } as any, // Assign to first provider
     appointmentDate: new Date('2024-01-20'),
     status: 'completed', // Changed to completed since it's a past date
     paymentStatus: 'paid' as PaymentStatus,
@@ -1877,6 +1809,36 @@ export const mockOrders: Order[] = [
       { label: 'Cancel', handler: () => console.log('Cancel booking BKG001'), type: 'cancel' },
       { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG001'), type: 'reschedule' },
       { label: 'Message Provider', handler: () => console.log('Message provider for booking BKG001'), type: 'message' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG001'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  }
+]; */
+
+// Create a simple mock orders array without circular dependencies
+export const mockOrders: Order[] = [
+  {
+    id: 'BKG001',
+    listingId: 'LISTING_SERV_001',
+    userId: 'USER001',
+    items: [],
+    type: 'service',
+    service: {
+      id: 'LISTING_SERV_001',
+      name: 'Basic Consultation',
+      duration: 30,
+      price: 45,
+      provider: providers[0],
+      category: 'Professional Consultation',
+      description: 'Essential consultation session'
+    } as any,
+    appointmentDate: new Date('2024-01-20'),
+    status: 'completed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date('2024-01-10'),
+    totalAmount: 45.00,
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Professional Consultation'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    actions: [
       { label: 'View Details', handler: () => console.log('View details of booking BKG001'), type: 'reorder' }
     ] as unknown as OrderActionType[]
   }
