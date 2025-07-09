@@ -137,6 +137,11 @@ export interface Review {
   comment: string;
   createdAt: Date;
   customerName: string;
+  // Add fields for tracking review relationships
+  reviewerId: string; // ID of the person who wrote the review
+  revieweeId: string; // ID of the person being reviewed
+  bookingId?: string; // Optional: link review to specific booking
+  reviewType: 'service_provider' | 'customer'; // Type of review
 }
 
 export interface CategoryFilters {
@@ -354,4 +359,11 @@ export interface Order {
   activityLog?: ActivityLogEntry[];
   cancelReason?: string;
   actions: OrderActionType[];
+  // Add review tracking fields
+  reviews?: {
+    customerReviewedProvider?: boolean; // Has customer reviewed the service provider?
+    providerReviewedCustomer?: boolean; // Has provider reviewed the customer?
+    customerReviewId?: string; // ID of customer's review
+    providerReviewId?: string; // ID of provider's review
+  };
 }

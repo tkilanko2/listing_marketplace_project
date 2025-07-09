@@ -3436,6 +3436,7 @@ function App() {
           onMessageCustomer={handleMessageCustomer}
           onAccept={handleAcceptAppointment}
           onViewListing={handleViewListing}
+          onReviewCustomer={handleReviewCustomer}
           onCreateAppointment={handleCreateAppointment}
         />
         
@@ -3468,7 +3469,7 @@ function App() {
       <SellerFinancePage 
         onBack={() => handleNavigate('sellerDashboard')}
       />
-  );
+    );
   };
 
   // Seller Dashboard Settings placeholder
@@ -4401,6 +4402,31 @@ function App() {
     };
   }, []);
 
+  // Review handlers for bookings
+  const handleReviewProvider = (booking: Order) => {
+    console.log('📝 Buyer reviewing service provider for booking:', booking.id);
+    // TODO: Open review modal or navigate to review page
+    // For now, show a feedback message
+    setActionFeedback({
+      visible: true,
+      message: `Review form opened for ${booking.service?.provider.name}`,
+      type: 'success'
+    });
+    setTimeout(() => setActionFeedback({ visible: false, message: '', type: 'success' }), 3000);
+  };
+
+  const handleReviewCustomer = (appointment: Appointment) => {
+    console.log('📝 Seller reviewing customer for appointment:', appointment.id);
+    // TODO: Open review modal or navigate to review page
+    // For now, show a feedback message
+    setActionFeedback({
+      visible: true,
+      message: `Review form opened for customer ${appointment.customer.name}`,
+      type: 'success'
+    });
+    setTimeout(() => setActionFeedback({ visible: false, message: '', type: 'success' }), 3000);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar
@@ -5050,6 +5076,7 @@ function App() {
               setOrderAction('details');
               setCurrentPage('myOrders');
             }}
+            onReviewProvider={handleReviewProvider}
             initialFilter={bookingsInitialFilter}
           />
         )}

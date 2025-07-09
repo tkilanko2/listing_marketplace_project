@@ -38,6 +38,7 @@ interface SellerBookingListProps {
   onMessageCustomer: (appointment: Appointment) => void;
   onAccept?: (appointment: Appointment) => void;
   onViewListing?: (appointment: Appointment) => void;
+  onReviewCustomer?: (appointment: Appointment) => void; // Add review customer handler
 }
 
 export default function SellerBookingList({
@@ -48,7 +49,8 @@ export default function SellerBookingList({
   onReschedule,
   onMessageCustomer,
   onAccept,
-  onViewListing
+  onViewListing,
+  onReviewCustomer
 }: SellerBookingListProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
@@ -70,6 +72,21 @@ export default function SellerBookingList({
     }
   };
 
+  // Helper function to check if seller can review customer
+  const canSellerReviewCustomer = (appointment: Appointment): boolean => {
+    // Only allow reviews for completed services
+    if (appointment.status !== 'completed') return false;
+    
+    // Check if service was completed within the last 30 days
+    const completionDate = new Date(appointment.start);
+    const daysSinceCompletion = Math.floor((new Date().getTime() - completionDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysSinceCompletion > 30) return false;
+    
+    // In a real app, would check if seller has already reviewed this customer for this booking
+    // For now, assume they haven't reviewed yet
+    return true;
+  };
+
   // Get status-aware actions configuration (simplified menu)
   const getStatusConfig = (appointment: Appointment) => {
     const status = appointment.status;
@@ -80,7 +97,8 @@ export default function SellerBookingList({
           canDecline: true,
           canReschedule: false,
           canMessage: true,
-          canViewListing: true
+          canViewListing: true,
+          canReview: false
         };
       case 'confirmed':
         return {
@@ -88,7 +106,8 @@ export default function SellerBookingList({
           canDecline: false,
           canReschedule: true,
           canMessage: true,
-          canViewListing: true
+          canViewListing: true,
+          canReview: false
         };
       case 'completed':
         return {
@@ -96,7 +115,8 @@ export default function SellerBookingList({
           canDecline: false,
           canReschedule: false,
           canMessage: true,
-          canViewListing: true
+          canViewListing: true,
+          canReview: canSellerReviewCustomer(appointment) && onReviewCustomer // Only show if handler provided and conditions met
         };
       case 'canceled':
         return {
@@ -104,7 +124,8 @@ export default function SellerBookingList({
           canDecline: false,
           canReschedule: false,
           canMessage: false,
-          canViewListing: true
+          canViewListing: true,
+          canReview: false
         };
       default:
         return {
@@ -112,7 +133,8 @@ export default function SellerBookingList({
           canDecline: false,
           canReschedule: false,
           canMessage: true,
-          canViewListing: true
+          canViewListing: true,
+          canReview: false
         };
     }
   };
@@ -349,32 +371,50 @@ export default function SellerBookingList({
             );
           }
 
-                                  // Reschedule - Only for confirmed
-                        if (statusConfig.canReschedule) {
-                          menuItems.push(
-                            <MenuItem key="reschedule" onClick={() => handleAction(onReschedule)}>
-                              <Calendar size={16} style={{ marginRight: 8 }} /> Reschedule
-                            </MenuItem>
-                          );
-                        }
+          // Reschedule - Only for confirmed
+          if (statusConfig.canReschedule) {
+            menuItems.push(
+              <MenuItem key="reschedule" onClick={() => handleAction(onReschedule)}>
+                <Calendar size={16} style={{ marginRight: 8 }} /> Reschedule
+              </MenuItem>
+            );
+          }
 
-                        // Message Customer - Status dependent
-                        if (statusConfig.canMessage) {
-                          menuItems.push(
-                            <MenuItem key="message" onClick={() => handleAction(onMessageCustomer)}>
-                              <MessageSquare size={16} style={{ marginRight: 8 }} /> Message Customer
-                            </MenuItem>
-                          );
-                        }
+          // Review Customer - Only for completed bookings where review is possible
+          if (statusConfig.canReview && onReviewCustomer) {
+            menuItems.push(
+              <MenuItem key="review-customer" onClick={() => handleAction(onReviewCustomer)} sx={{ color: '#4CAF50' }}>
+                <svg 
+                  width="16" 
+                  height="16" 
+                  fill="currentColor" 
+                  viewBox="0 0 20 20" 
+                  style={{ marginRight: 8 }}
+                >
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                Review Customer
+              </MenuItem>
+            );
+          }
 
-                        // View Listing - Always available, opens parent listing
-                        if (statusConfig.canViewListing && onViewListing) {
-                          menuItems.push(
-                            <MenuItem key="view-listing" onClick={() => handleAction(onViewListing)}>
-                              <ExternalLink size={16} style={{ marginRight: 8 }} /> View Listing
-                            </MenuItem>
-                          );
-                        }
+          // Message Customer - Status dependent
+          if (statusConfig.canMessage) {
+            menuItems.push(
+              <MenuItem key="message" onClick={() => handleAction(onMessageCustomer)}>
+                <MessageSquare size={16} style={{ marginRight: 8 }} /> Message Customer
+              </MenuItem>
+            );
+          }
+
+          // View Listing - Always available, opens parent listing
+          if (statusConfig.canViewListing && onViewListing) {
+            menuItems.push(
+              <MenuItem key="view-listing" onClick={() => handleAction(onViewListing)}>
+                <ExternalLink size={16} style={{ marginRight: 8 }} /> View Listing
+              </MenuItem>
+            );
+          }
 
           return menuItems;
         })()}

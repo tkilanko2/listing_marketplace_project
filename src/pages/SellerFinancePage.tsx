@@ -45,7 +45,7 @@ interface SellerFinancePageProps {
   onBack?: () => void;
 }
 
-type ActiveTab = 'overview' | 'revenue' | 'payouts' | 'transactions' | 'tax';
+type ActiveTab = 'overview' | 'revenue' | 'payouts' | 'transactions';
 type TimeFilter = 'all' | '30d' | '7d' | '24h';
 
 // Modal state types
@@ -74,26 +74,7 @@ interface ExportModalState {
   format: 'csv' | 'excel' | 'pdf';
 }
 
-interface TaxDocumentModalState {
-  isOpen: boolean;
-  document: {
-    id: string;
-    title: string;
-    type: string;
-    year: string;
-    size: string;
-    pages: number;
-  } | null;
-}
 
-interface ComplianceDetailsModalState {
-  isOpen: boolean;
-  item: {
-    title: string;
-    status: string;
-    details: any;
-  } | null;
-}
 
 // Loading and Animation Components
 const SkeletonLoader = ({ className = "" }: { className?: string }) => (
@@ -397,8 +378,7 @@ export function SellerFinancePage({ onBack }: SellerFinancePageProps) {
     columns: ['transactionId', 'date', 'customerName', 'amount', 'fees', 'netEarnings'],
     format: 'csv'
   });
-  const [taxDocModal, setTaxDocModal] = useState<TaxDocumentModalState>({ isOpen: false, document: null });
-  const [complianceModal, setComplianceModal] = useState<ComplianceDetailsModalState>({ isOpen: false, item: null });
+
 
   // Calculate financial summary based on filters
   const financialSummary = useMemo(() => 
@@ -503,54 +483,7 @@ export function SellerFinancePage({ onBack }: SellerFinancePageProps) {
     });
   };
 
-  const handleTaxDocumentClick = (docId: string) => {
-    const documents = {
-      '2023-annual': {
-        id: '2023-annual',
-        title: '2023 Annual Tax Statement',
-        type: '1099-NEC',
-        year: '2023',
-        size: '847 KB',
-        pages: 3
-      },
-      'q4-2023': {
-        id: 'q4-2023',
-        title: 'Q4 2023 Quarterly Summary',
-        type: 'Quarterly Report',
-        year: '2023',
-        size: '1.2 MB',
-        pages: 5
-      }
-    };
-    setTaxDocModal({ isOpen: true, document: documents[docId as keyof typeof documents] || null });
-  };
 
-  const handleComplianceClick = (title: string, status: string) => {
-    const complianceData = {
-      'Tax ID Verification': {
-        title: 'Tax ID Verification',
-        status: 'Complete',
-        details: {
-          ein: '**-***7890',
-          businessName: 'Smith Photography LLC',
-          verifiedDate: 'January 15, 2024',
-          verifiedBy: 'IRS Database Match',
-          benefits: ['Instant payouts available', 'Higher transaction limits', 'Priority customer support']
-        }
-      },
-      'Banking Verification': {
-        title: 'Banking Verification',
-        status: 'Complete',
-        details: {
-          bankName: 'Chase Bank',
-          accountType: 'Business Checking',
-          verifiedDate: 'January 10, 2024',
-          lastUpdate: 'March 1, 2024'
-        }
-      }
-    };
-    setComplianceModal({ isOpen: true, item: complianceData[title as keyof typeof complianceData] || null });
-  };
 
   const renderOverviewTab = () => {
     // Sample data for charts
@@ -660,10 +593,10 @@ export function SellerFinancePage({ onBack }: SellerFinancePageProps) {
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Building className="w-4 h-4 text-[#DF678C]" />
-                  <span className="text-sm text-[#383A47]">Tax Documents</span>
+                  <Building className="w-4 h-4 text-[#4CAF50]" />
+                  <span className="text-sm text-[#383A47]">Account Verified</span>
                 </div>
-                <span className="px-2 py-1 text-xs bg-[#FFE5ED] text-[#DF678C] rounded-full">Action Needed</span>
+                <span className="px-2 py-1 text-xs bg-[#E8F5E9] text-[#4CAF50] rounded-full">Complete</span>
               </div>
             </div>
 
@@ -703,11 +636,11 @@ export function SellerFinancePage({ onBack }: SellerFinancePageProps) {
                   Banking
                 </button>
                 <button 
-                  onClick={() => setActiveTab('tax')}
+                  onClick={() => setActiveTab('transactions')}
                   className="flex-1 flex items-center justify-center gap-2 p-2 text-sm text-[#70727F] bg-[#F8F8FA] hover:bg-[#E8E9ED] rounded-lg transition-colors"
                 >
                   <FileText className="w-4 h-4" />
-                  Tax Docs
+                  Transactions
                 </button>
               </div>
             </div>
@@ -1086,132 +1019,7 @@ export function SellerFinancePage({ onBack }: SellerFinancePageProps) {
     </div>
   );
 
-  const renderTaxTab = () => (
-    <div className="space-y-6">
-      {/* Tax Summary */}
-      <div className="bg-[#FFFFFF] p-6 rounded-lg border border-[#E8E9ED] shadow-sm">
-        <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Tax Summary (2023)</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
-          <div className="text-center p-4 bg-[#F8F8FA] rounded-lg">
-            <p className="text-sm text-[#70727F] mb-1">Total Earnings</p>
-            <p className="text-xl font-bold text-[#383A47]">{formatCurrency(financialSummary.totalRevenue * 3.2)}</p>
-          </div>
-          <div className="text-center p-4 bg-[#F8F8FA] rounded-lg">
-            <p className="text-sm text-[#70727F] mb-1">Total Fees Paid</p>
-            <p className="text-xl font-bold text-[#383A47]">{formatCurrency(financialSummary.totalFees * 3.2)}</p>
-          </div>
-          <div className="text-center p-4 bg-[#FFE5ED] rounded-lg">
-            <p className="text-sm text-[#70727F] mb-1">Est. Tax Liability</p>
-            <p className="text-xl font-bold text-[#DF678C]">{formatCurrency(financialSummary.totalRevenue * 3.2 * 0.25)}</p>
-            <p className="text-xs text-[#70727F] mt-1">25% rate</p>
-          </div>
-          <div className="text-center p-4 bg-[#EDD9FF] rounded-lg">
-            <p className="text-sm text-[#70727F] mb-1">1099-NEC Status</p>
-            <p className="text-sm font-medium text-[#3D1560]">Will be issued</p>
-            <p className="text-xs text-[#70727F] mt-1">January 2024</p>
-          </div>
-        </div>
-      </div>
 
-      {/* Tax Documents */}
-      <div className="bg-[#FFFFFF] p-6 rounded-lg border border-[#E8E9ED] shadow-sm">
-        <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Tax Documents</h3>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-4 border border-[#E8E9ED] rounded-lg">
-            <div className="flex items-center gap-3">
-              <FileText className="w-6 h-6 text-[#3D1560]" />
-              <div>
-                <p className="font-medium text-[#383A47]">2023 Annual Statement</p>
-                <p className="text-sm text-[#70727F]">Complete year-end tax summary</p>
-              </div>
-            </div>
-            <button 
-              onClick={() => handleTaxDocumentClick('2023-annual')}
-              className="flex items-center gap-2 text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium"
-            >
-              <Download className="w-4 h-4" />
-              Download PDF
-            </button>
-          </div>
-          
-          <div className="flex items-center justify-between p-4 border border-[#E8E9ED] rounded-lg">
-            <div className="flex items-center gap-3">
-              <FileText className="w-6 h-6 text-[#3D1560]" />
-              <div>
-                <p className="font-medium text-[#383A47]">Q4 2023 Quarterly Summary</p>
-                <p className="text-sm text-[#70727F]">October - December earnings</p>
-              </div>
-            </div>
-            <button 
-              onClick={() => handleTaxDocumentClick('q4-2023')}
-              className="flex items-center gap-2 text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium"
-            >
-              <Download className="w-4 h-4" />
-              Download PDF
-            </button>
-          </div>
-          
-          <div className="flex items-center justify-between p-4 border border-[#E8E9ED] rounded-lg">
-            <div className="flex items-center gap-3">
-              <Calendar className="w-6 h-6 text-[#70727F]" />
-              <div>
-                <p className="font-medium text-[#383A47]">Monthly Revenue Reports</p>
-                <p className="text-sm text-[#70727F]">Generate custom reports</p>
-              </div>
-            </div>
-            <button className="flex items-center gap-2 text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium">
-              <RefreshCw className="w-4 h-4" />
-              Generate
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Compliance Status */}
-      <div className="bg-[#FFFFFF] p-6 rounded-lg border border-[#E8E9ED] shadow-sm">
-        <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Compliance Status</h3>
-        <div className="space-y-4">
-          <button 
-            onClick={() => handleComplianceClick('Tax ID Verification', 'Complete')}
-            className="w-full flex items-center justify-between p-3 bg-[#E8F5E9] rounded-lg hover:bg-[#E0F2E0] transition-colors text-left"
-          >
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-[#4CAF50]" />
-              <span className="text-[#383A47]">Tax ID Verification</span>
-            </div>
-            <span className="text-sm font-medium text-[#4CAF50]">Complete</span>
-          </button>
-          
-          <button 
-            onClick={() => handleComplianceClick('Banking Verification', 'Complete')}
-            className="w-full flex items-center justify-between p-3 bg-[#E8F5E9] rounded-lg hover:bg-[#E0F2E0] transition-colors text-left"
-          >
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-[#4CAF50]" />
-              <span className="text-[#383A47]">Banking Verification</span>
-            </div>
-            <span className="text-sm font-medium text-[#4CAF50]">Complete</span>
-          </button>
-          
-          <div className="flex items-center justify-between p-3 bg-[#E8F5E9] rounded-lg">
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-[#4CAF50]" />
-              <span className="text-[#383A47]">Identity Verification</span>
-            </div>
-            <span className="text-sm font-medium text-[#4CAF50]">Complete</span>
-          </div>
-          
-          <div className="flex items-center justify-between p-3 bg-[#FFF8DD] rounded-lg">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-[#DAA520]" />
-              <span className="text-[#383A47]">Business License</span>
-            </div>
-            <span className="text-sm font-medium text-[#DAA520]">Optional (Recommended)</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 
 
 
@@ -1821,8 +1629,7 @@ export function SellerFinancePage({ onBack }: SellerFinancePageProps) {
               { id: 'overview', label: 'Overview', icon: BarChart3 },
               { id: 'revenue', label: 'Revenue & Earnings', icon: TrendingUp },
               { id: 'payouts', label: 'Payouts & Banking', icon: Wallet },
-              { id: 'transactions', label: 'Transactions', icon: CreditCard },
-              { id: 'tax', label: 'Tax & Compliance', icon: FileText }
+              { id: 'transactions', label: 'Transactions', icon: CreditCard }
             ].map((tab) => {
               const Icon = tab.icon;
               return (
@@ -1849,7 +1656,6 @@ export function SellerFinancePage({ onBack }: SellerFinancePageProps) {
           {activeTab === 'revenue' && renderRevenueTab()}
           {activeTab === 'payouts' && renderPayoutsTab()}
           {activeTab === 'transactions' && renderTransactionsTab()}
-          {activeTab === 'tax' && renderTaxTab()}
         </div>
 
         {/* Transaction Details Modal */}

@@ -133,8 +133,9 @@ export function OrderStatusTimeline({ currentStatus, orderType, orderDate, booki
     console.log('[OrderStatusTimeline] getServiceTimeline START - userRole:', userRole, 'mappedDisplayStatus (for indexing):', mappedDisplayStatus, 'original currentStatus:', currentStatus);
     
     let definedSteps: TimelineStep[];
-    // Define the sequence of steps based on userRole
+    // Define the sequence of steps based on userRole - Pure Role-Based Mapping
     if (userRole === 'buyer') {
+      // Buyers only see "Confirmed" - never "Scheduled"
       definedSteps = [
         { id: 'requested', label: 'Booking Requested', icon: Calendar, status: 'future', description: 'Service booking request submitted', date: orderDate },
         { id: 'confirmed', label: 'Confirmed', icon: CheckCircle, status: 'future', description: 'Provider confirmed your booking.' },
@@ -142,9 +143,9 @@ export function OrderStatusTimeline({ currentStatus, orderType, orderDate, booki
         { id: 'completed', label: 'Completed', icon: CheckCircle, status: 'future', description: 'Service completed successfully.' }
       ];
     } else { // Seller view
+      // Sellers only see "Scheduled" - never "Confirmed"
       definedSteps = [
         { id: 'requested', label: 'Booking Requested', icon: Calendar, status: 'future', description: 'Service booking request submitted.', date: orderDate },
-        { id: 'confirmed', label: 'Confirmed', icon: CheckCircle, status: 'future', description: 'You confirmed this booking.' },
         { id: 'scheduled', label: 'Scheduled', icon: Clock3, status: 'future', description: 'Appointment is scheduled with client.' },
         { id: 'in_progress', label: 'In Progress', icon: PlayCircle, status: 'future', description: 'Service is currently being performed.' },
         { id: 'completed', label: 'Completed', icon: CheckCircle, status: 'future', description: 'Service completed successfully.' }
@@ -198,17 +199,25 @@ export function OrderStatusTimeline({ currentStatus, orderType, orderDate, booki
       }
     }
     
-    let finalTimelineSteps = [...definedSteps]; // Start with the processed normal flow steps
+    let finalTimelineSteps = [...definedSteps];
 
     // Handle special terminal/branching statuses
     if (mappedDisplayStatus === 'cancelled') {
       // Determine the logical point of cancellation to mark previous steps completed/skipped
       let lastNormalStepBeforeCancelId = 'requested'; // Default if cancelled very early
-      if (currentStatus === 'confirmed' || (userRole === 'buyer' && currentStatus === 'scheduled')) {
+      if (userRole === 'buyer') {
+        if (currentStatus === 'confirmed' || currentStatus === 'scheduled') {
           lastNormalStepBeforeCancelId = 'confirmed';
-      } else if (currentStatus === 'in_progress') {
+        } else if (currentStatus === 'in_progress') {
           lastNormalStepBeforeCancelId = 'in_progress';
-      } // If currentStatus is 'requested', lastNormalStepBeforeCancelId remains 'requested'
+        }
+      } else { // seller
+        if (currentStatus === 'confirmed' || currentStatus === 'scheduled') {
+          lastNormalStepBeforeCancelId = 'scheduled';
+        } else if (currentStatus === 'in_progress') {
+          lastNormalStepBeforeCancelId = 'in_progress';
+        }
+      }
 
       const cancelPointIndex = flowSequenceIds.indexOf(lastNormalStepBeforeCancelId);
 
@@ -223,11 +232,13 @@ export function OrderStatusTimeline({ currentStatus, orderType, orderDate, booki
       });
       finalTimelineSteps.push({ id: 'cancelled', label: 'Cancelled', icon: XCircle, status: 'current', description: 'Booking has been cancelled' });
     } else if (mappedDisplayStatus === 'rescheduled') {
-      // For 'rescheduled', 'requested' and 'confirmed' are typically completed. Others are future.
+      // For 'rescheduled', 'requested' and the confirmation step (role-specific) are typically completed. Others are future.
       finalTimelineSteps.forEach(step => {
-        if (step.id === 'requested' || step.id === 'confirmed') {
+        if (step.id === 'requested') {
           step.status = 'completed';
-          if (step.id === 'confirmed' && !step.date) { const confDate = new Date(orderDate); confDate.setDate(orderDate.getDate() + 1); step.date = confDate; }
+        } else if ((userRole === 'buyer' && step.id === 'confirmed') || (userRole === 'seller' && step.id === 'scheduled')) {
+          step.status = 'completed';
+          if (!step.date) { const confDate = new Date(orderDate); confDate.setDate(orderDate.getDate() + 1); step.date = confDate; }
         } else if (flowSequenceIds.includes(step.id)) { // only mark normal flow steps as future
           step.status = 'future';
         }
@@ -236,13 +247,9 @@ export function OrderStatusTimeline({ currentStatus, orderType, orderDate, booki
     } else if (mappedDisplayStatus === 'no_show') {
       // Determine last completed step before 'no_show'
       // For buyer: 'confirmed' (as 'scheduled' maps to 'confirmed')
-      // For seller: 'scheduled' (or 'confirmed' if 'scheduled' isn't used/reached)
-      let lastNormalStepIdForNoShow = userRole === 'buyer' ? 'confirmed' : (flowSequenceIds.includes('scheduled') ? 'scheduled' : 'confirmed');
+      // For seller: 'scheduled' 
+      let lastNormalStepIdForNoShow = userRole === 'buyer' ? 'confirmed' : 'scheduled';
       
-      // If 'no_show' occurs during 'in_progress', then 'in_progress' would be the last "active" normal step.
-      // However, 'no_show' typically implies the service *didn't* start or wasn't attended *at scheduled time*.
-      // So, 'confirmed' (for buyer) or 'scheduled' (for seller) are the most logical preceding completed steps.
-
       const lastNormalStepIndex = flowSequenceIds.indexOf(lastNormalStepIdForNoShow);
 
       finalTimelineSteps.forEach(step => {

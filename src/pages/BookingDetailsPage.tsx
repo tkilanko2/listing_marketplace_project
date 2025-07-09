@@ -78,6 +78,29 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
   const userRole: 'buyer' | 'seller' = 'buyer';
   const mappedStatus = mapServiceStatus(booking.status, userRole) as OrderStatus;
 
+  // Helper function to check if buyer can review the service provider
+  const canBuyerReviewProvider = (): boolean => {
+    // Only allow reviews for completed services
+    if (mappedStatus !== 'completed') return false;
+    
+    // Check if customer has already reviewed the provider for this booking
+    if (booking.reviews?.customerReviewedProvider) return false;
+    
+    // Check if service was completed within the last 30 days
+    const completionDate = booking.appointmentDate || booking.orderDate;
+    const daysSinceCompletion = Math.floor((new Date().getTime() - completionDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysSinceCompletion > 30) return false;
+    
+    return true;
+  };
+
+  const handleReviewProvider = () => {
+    console.log('Opening review modal for provider:', booking.service?.provider.id);
+    // In a real app, this would open a review modal or navigate to review page
+    // For now, just show a placeholder action
+    alert(`Review ${booking.service?.provider.username || 'Provider'}\n\nThis would open a review form where you can:\n- Rate the service (1-5 stars)\n- Write a detailed review\n- Add photos (optional)\n- Submit feedback about the service experience`);
+  };
+
   // Calculate payment breakdown based on region
   const calculatePaymentBreakdown = (): PaymentBreakdown => {
     const serviceFee = booking.totalAmount;
@@ -146,6 +169,7 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
 
   const getStatusConfig = () => {
     switch (mappedStatus as OrderStatus) {
+      case 'pending':
       case 'requested':
         return {
           color: 'text-[#70727F]', // Secondary text color
@@ -157,7 +181,8 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
           canCancel: true,
           canReschedule: false,
           canMessage: true,
-          canViewDetails: false
+          canViewDetails: false,
+          canReview: false // Add review capability flag
         };
       case 'confirmed':
         return {
@@ -170,20 +195,8 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
           canCancel: true,
           canReschedule: true,
           canMessage: true,
-          canViewDetails: true
-        };
-      case 'scheduled':
-        return {
-          color: 'text-[#6D26AB]', // Primary hover
-          bgColor: 'bg-[#EDD9FF]', // Primary disabled background
-          borderColor: 'border-[#6D26AB]',
-          icon: Calendar,
-          title: 'Scheduled',
-          description: 'Appointment is coming up',
-          canCancel: true,
-          canReschedule: true,
-          canMessage: true,
-          canViewDetails: true
+          canViewDetails: true,
+          canReview: false
         };
       case 'in_progress':
         return {
@@ -196,7 +209,8 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
           canCancel: false,
           canReschedule: false,
           canMessage: true,
-          canViewDetails: true
+          canViewDetails: true,
+          canReview: false
         };
       case 'completed':
         return {
@@ -209,7 +223,8 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
           canCancel: false,
           canReschedule: false,
           canMessage: true,
-          canViewDetails: true
+          canViewDetails: true,
+          canReview: canBuyerReviewProvider() // Dynamic review capability
         };
       case 'cancelled':
         return {
@@ -222,7 +237,8 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
           canCancel: false,
           canReschedule: false,
           canMessage: true,
-          canViewDetails: false
+          canViewDetails: false,
+          canReview: false
         };
       case 'no_show':
         return {
@@ -235,7 +251,8 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
           canCancel: false,
           canReschedule: true,
           canMessage: true,
-          canViewDetails: false
+          canViewDetails: false,
+          canReview: false
         };
       case 'rescheduled':
         return {
@@ -248,7 +265,8 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
           canCancel: true,
           canReschedule: true,
           canMessage: true,
-          canViewDetails: true
+          canViewDetails: true,
+          canReview: false
         };
       default:
         return {
@@ -261,7 +279,8 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
           canCancel: false,
           canReschedule: false,
           canMessage: false,
-          canViewDetails: false
+          canViewDetails: false,
+          canReview: false
         };
     }
   };
@@ -605,6 +624,17 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                   Reschedule
                 </button>
               )}
+              {statusConfig.canReview && (
+                <button 
+                  onClick={handleReviewProvider}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] transition-colors text-sm font-medium"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  Review Service
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -690,6 +720,7 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
               let timeEstimate = '';
               
               switch (mappedStatus) {
+                case 'pending':
                 case 'requested':
                   urgencyMessage = '⏳ Waiting for provider confirmation - most providers respond within 2 hours';
                   timeEstimate = 'Expected response: Within 2-4 hours';
@@ -1039,6 +1070,17 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                   <button className="w-full flex items-center justify-center gap-2 border-2 border-[#DF678C] text-[#DF678C] hover:bg-[#FFE5ED] transition-colors duration-200 px-4 py-3 rounded-lg font-semibold text-sm">
                     <X className="w-5 h-5" />
                     Cancel Booking
+                  </button>
+                )}
+                {canBuyerReviewProvider() && (
+                  <button 
+                    onClick={handleReviewProvider}
+                    className="w-full flex items-center justify-center gap-2 bg-[#4CAF50] text-[#FFFFFF] hover:bg-[#45A049] transition-colors duration-200 px-4 py-3 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    Review Service
                   </button>
                 )}
                 <button 

@@ -22,6 +22,7 @@ interface SellerBookingDashboardProps {
   onMessageCustomer?: (appointment: Appointment) => void;
   onAccept?: (appointment: Appointment) => void;
   onViewListing?: (appointment: Appointment) => void;
+  onReviewCustomer?: (appointment: Appointment) => void; // Add review customer handler
   onCreateAppointment?: () => void;
 }
 
@@ -36,6 +37,7 @@ export default function SellerBookingDashboard({
   onMessageCustomer = () => {},
   onAccept = () => {},
   onViewListing = () => {},
+  onReviewCustomer = () => {},
   onCreateAppointment = () => {}
 }: SellerBookingDashboardProps) {
   // State for view toggle (list or calendar)
@@ -313,6 +315,7 @@ export default function SellerBookingDashboard({
           onMessageCustomer={onMessageCustomer}
           onAccept={onAccept}
           onViewListing={onViewListing}
+          onReviewCustomer={onReviewCustomer}
         />
       ) : (
         <CalendarView 

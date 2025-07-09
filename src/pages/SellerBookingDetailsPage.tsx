@@ -26,7 +26,11 @@ import {
   Edit,
   BarChart3,
   Shield,
-  ExternalLink
+  ExternalLink,
+  Circle,
+  RefreshCw,
+  AlertTriangle,
+  RotateCcw
 } from 'lucide-react';
 import { Order, OrderStatus } from '../types';
 import { OrderStatusTimeline } from '../components/OrderStatusTimeline';
@@ -415,6 +419,22 @@ export function SellerBookingDetailsPage({
   const mappedStatus = mapServiceStatus(booking.status, userRole) as OrderStatus;
   const paymentBreakdown = calculateSellerPaymentBreakdown();
 
+  // Helper function to check if seller can review the customer
+  const canSellerReviewCustomer = (): boolean => {
+    // Only allow reviews for completed services
+    if (mappedStatus !== 'completed') return false;
+    
+    // Check if provider has already reviewed the customer for this booking
+    if (booking.reviews?.providerReviewedCustomer) return false;
+    
+    // Check if service was completed within the last 30 days
+    const completionDate = booking.appointmentDate || booking.orderDate;
+    const daysSinceCompletion = Math.floor((new Date().getTime() - completionDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysSinceCompletion > 30) return false;
+    
+    return true;
+  };
+
   // Get status configuration
   const getStatusConfig = () => {
     switch (mappedStatus as OrderStatus) {
@@ -434,7 +454,8 @@ export function SellerBookingDetailsPage({
           canMessage: true,
           canViewAppointment: false,
           canAddNotes: true,
-          canViewPerformance: true
+          canViewPerformance: true,
+          canReview: false // Add review capability flag
         };
       case 'scheduled':
         return {
@@ -451,7 +472,26 @@ export function SellerBookingDetailsPage({
           canMessage: true,
           canViewAppointment: true,
           canAddNotes: true,
-          canViewPerformance: true
+          canViewPerformance: true,
+          canReview: false
+        };
+      case 'in_progress':
+        return {
+          color: 'text-[#6D26AB]',
+          bgColor: 'bg-[#EDD9FF]',
+          borderColor: 'border-[#6D26AB]',
+          icon: RefreshCw,
+          title: 'Service in Progress',
+          description: 'Service is currently being performed',
+          urgency: '🔄 Service is active',
+          canAccept: false,
+          canDecline: false,
+          canReschedule: false,
+          canMessage: true,
+          canViewAppointment: true,
+          canAddNotes: true,
+          canViewPerformance: true,
+          canReview: false
         };
       case 'completed':
         return {
@@ -468,13 +508,68 @@ export function SellerBookingDetailsPage({
           canMessage: true,
           canViewAppointment: true,
           canAddNotes: true,
-          canViewPerformance: true
+          canViewPerformance: true,
+          canReview: canSellerReviewCustomer() // Dynamic review capability
+        };
+      case 'cancelled':
+        return {
+          color: 'text-[#DF678C]',
+          bgColor: 'bg-[#FFE5ED]',
+          borderColor: 'border-[#DF678C]',
+          icon: XCircle,
+          title: 'Booking Cancelled',
+          description: 'This booking has been cancelled',
+          urgency: '',
+          canAccept: false,
+          canDecline: false,
+          canReschedule: false,
+          canMessage: true,
+          canViewAppointment: false,
+          canAddNotes: true,
+          canViewPerformance: true,
+          canReview: false
+        };
+      case 'no_show':
+        return {
+          color: 'text-[#DF678C]',
+          bgColor: 'bg-[#FFE5ED]',
+          borderColor: 'border-[#DF678C]',
+          icon: AlertTriangle,
+          title: 'Customer No Show',
+          description: 'Customer did not show up for the appointment',
+          urgency: '',
+          canAccept: false,
+          canDecline: false,
+          canReschedule: true,
+          canMessage: true,
+          canViewAppointment: false,
+          canAddNotes: true,
+          canViewPerformance: true,
+          canReview: false
+        };
+      case 'rescheduled':
+        return {
+          color: 'text-[#70727F]',
+          bgColor: 'bg-[#E8E9ED]',
+          borderColor: 'border-[#70727F]',
+          icon: RotateCcw,
+          title: 'Rescheduled',
+          description: 'Appointment has been moved to a new time',
+          urgency: '',
+          canAccept: false,
+          canDecline: false,
+          canReschedule: true,
+          canMessage: true,
+          canViewAppointment: true,
+          canAddNotes: true,
+          canViewPerformance: true,
+          canReview: false
         };
       default:
         return {
-          color: 'text-[#3D1560]',
-          bgColor: 'bg-[#EDD9FF]',
-          borderColor: 'border-[#3D1560]',
+          color: 'text-[#70727F]',
+          bgColor: 'bg-[#CDCED8]',
+          borderColor: 'border-[#70727F]',
           icon: Calendar,
           title: 'Booking Status',
           description: 'Service booking details',
@@ -485,7 +580,8 @@ export function SellerBookingDetailsPage({
           canMessage: true,
           canViewAppointment: false,
           canAddNotes: true,
-          canViewPerformance: true
+          canViewPerformance: true,
+          canReview: false
         };
     }
   };
@@ -710,6 +806,13 @@ export function SellerBookingDetailsPage({
       // Sellers can only reply to existing threads, so just pass the thread ID
       onNavigateToMessages(booking.id);
     }
+  };
+
+  const handleReviewCustomer = () => {
+    console.log('Opening review modal for customer:', customerInfo.name);
+    // In a real app, this would open a review modal or navigate to review page
+    // For now, just show a placeholder action
+    alert(`Review ${formatCustomerName(customerInfo.name)}\n\nThis would open a review form where you can:\n- Rate the customer (1-5 stars)\n- Write feedback about communication, punctuality, etc.\n- Provide constructive feedback to help future service providers\n- Submit your experience working with this customer`);
   };
 
   const handleViewPerformance = () => {
@@ -1181,6 +1284,17 @@ export function SellerBookingDetailsPage({
                   >
                     <Eye className="w-5 h-5" />
                     View Appointment Details
+                  </button>
+                )}
+                {statusConfig.canReview && (
+                  <button 
+                    onClick={handleReviewCustomer}
+                    className="w-full flex items-center justify-center gap-2 bg-[#3D1560] text-[#FFFFFF] hover:bg-[#6D26AB] transition-colors duration-200 px-4 py-3 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    Review Customer
                   </button>
                 )}
                 {statusConfig.canDecline && (

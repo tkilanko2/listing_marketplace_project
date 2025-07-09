@@ -26,10 +26,11 @@ import { Order } from '../types';
 interface MyBookingsPageProps {
   onBack: () => void;
   onViewBookingDetails?: (bookingId: string) => void;
+  onReviewProvider?: (booking: Order) => void; // Add review provider handler
   initialFilter?: 'all' | 'pending' | 'confirmed';
 }
 
-export function MyBookingsPage({ onBack, onViewBookingDetails, initialFilter = 'all' }: MyBookingsPageProps) {
+export function MyBookingsPage({ onBack, onViewBookingDetails, onReviewProvider, initialFilter = 'all' }: MyBookingsPageProps) {
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'pending' | 'confirmed'>(initialFilter);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -188,6 +189,21 @@ export function MyBookingsPage({ onBack, onViewBookingDetails, initialFilter = '
       }
       return newDate;
     });
+  };
+
+  // Helper function to check if buyer can review the service provider
+  const canBuyerReviewProvider = (booking: Order): boolean => {
+    // Only allow reviews for completed services
+    if (booking.status !== 'completed') return false;
+    
+    // Check if service was completed within the last 30 days
+    const completionDate = booking.appointmentDate ? new Date(booking.appointmentDate) : new Date(booking.orderDate);
+    const daysSinceCompletion = Math.floor((new Date().getTime() - completionDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysSinceCompletion > 30) return false;
+    
+    // In a real app, would check if customer has already reviewed the provider for this booking
+    // For now, assume they haven't reviewed yet
+    return true;
   };
 
   return (
@@ -548,6 +564,29 @@ export function MyBookingsPage({ onBack, onViewBookingDetails, initialFilter = '
                                 ${booking.totalAmount.toFixed(2)}
                               </span>
                             </div>
+                            
+                            {/* Quick Actions for Completed Bookings */}
+                            {canBuyerReviewProvider(booking) && onReviewProvider && (
+                              <div className="mt-3 pt-3 border-t border-[#E8E9ED]">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onReviewProvider(booking);
+                                  }}
+                                  className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium bg-[#4CAF50] text-white rounded-lg hover:bg-[#45A049] transition-colors duration-200"
+                                >
+                                  <svg 
+                                    width="16" 
+                                    height="16" 
+                                    fill="currentColor" 
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                  </svg>
+                                  Review Service
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
