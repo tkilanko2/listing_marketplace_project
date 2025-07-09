@@ -573,7 +573,7 @@ export function MyBookingsPage({ onBack, onViewBookingDetails, onReviewProvider,
                                     e.stopPropagation();
                                     onReviewProvider(booking);
                                   }}
-                                  className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium bg-[#4CAF50] text-white rounded-lg hover:bg-[#45A049] transition-colors duration-200"
+                                  className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium bg-[#DF678C] text-white rounded-lg hover:bg-[#D84773] transition-colors duration-200"
                                 >
                                   <svg 
                                     width="16" 

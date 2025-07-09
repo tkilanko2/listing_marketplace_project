@@ -383,7 +383,7 @@ export default function SellerBookingList({
           // Review Customer - Only for completed bookings where review is possible
           if (statusConfig.canReview && onReviewCustomer) {
             menuItems.push(
-              <MenuItem key="review-customer" onClick={() => handleAction(onReviewCustomer)} sx={{ color: '#4CAF50' }}>
+              <MenuItem key="review-customer" onClick={() => handleAction(onReviewCustomer)} sx={{ color: '#DF678C' }}>
                 <svg 
                   width="16" 
                   height="16" 
