@@ -327,20 +327,30 @@ export function OrderStatusTimeline({ currentStatus, orderType, orderDate, booki
           <div className="absolute top-[18px] left-7 right-7 h-0.5 bg-[#E8E9ED] z-0"></div>
 
           {/* Colored Progress / Status Lines */}
+          {/* 
+            Connector Line Logic:
+            - Pink: Any line involving skipped steps
+            - Green: Completed → Completed/Current (full progress)
+            - Grey: Current → Future or Completed → Future (partial/gap progress)
+            - Light Grey: Future → Future or other cases (no progress)
+          */}
           {timeline.slice(0, -1).map((step, index) => {
             const nextStep = timeline[index + 1];
             let segmentColorCls: string;
 
-            if (step.status === 'completed' && (nextStep.status === 'completed' || nextStep.status === 'current')) {
-              segmentColorCls = 'bg-[#4CAF50]'; // Green if current step completed and next is completed or current
+            // Comprehensive connector line logic
+            if (step.status === 'skipped' || nextStep.status === 'skipped') {
+              segmentColorCls = 'bg-[#DF678C]'; // Pink if either step is skipped
+            } else if (step.status === 'completed' && (nextStep.status === 'completed' || nextStep.status === 'current')) {
+              segmentColorCls = 'bg-[#4CAF50]'; // Green if completed step connects to completed/current
             } else if (step.status === 'current' && nextStep.status === 'future') {
-              // If current step is 'current', the line TO IT should be green (handled by previous segment), line FROM IT to next future is grey
-              segmentColorCls = 'bg-[#CDCED8]'; 
-            } else if (step.status === 'skipped' || nextStep.status === 'skipped') {
-              segmentColorCls = 'bg-[#DF678C]'; // Pink if this or next is skipped
-            }
-             else { // Default for future connections or other cases
-              segmentColorCls = 'bg-[#E8E9ED]';
+              segmentColorCls = 'bg-[#CDCED8]'; // Grey from current to future (partial progress)
+            } else if (step.status === 'completed' && nextStep.status === 'future') {
+              segmentColorCls = 'bg-[#CDCED8]'; // Grey from completed to future (gap in progress)
+            } else if (step.status === 'future' && nextStep.status === 'future') {
+              segmentColorCls = 'bg-[#E8E9ED]'; // Light grey between future steps
+            } else {
+              segmentColorCls = 'bg-[#E8E9ED]'; // Default light grey for other cases
             }
             
             const segmentWidthPercentage = 100 / (timeline.length > 1 ? timeline.length -1 : 1) ;
@@ -419,15 +429,23 @@ export function OrderStatusTimeline({ currentStatus, orderType, orderDate, booki
             const StepIcon = step.icon;
             const isLast = index === timeline.length - 1;
             
-            let connectingLineColorCls: string = 'bg-[#E8E9ED]'; // Default grey
+            let connectingLineColorCls: string = 'bg-[#E8E9ED]'; // Default light grey
             if (!isLast) {
               const nextStep = timeline[index + 1];
-              if (step.status === 'completed' && (nextStep.status === 'completed' || nextStep.status === 'current')) {
-                connectingLineColorCls = 'bg-[#4CAF50]'; // Green
-              } else if (step.status === 'skipped' || nextStep.status === 'skipped') {
-                connectingLineColorCls = 'bg-[#DF678C]'; // Pink
+              
+              // Comprehensive connector line logic (matches desktop)
+              if (step.status === 'skipped' || nextStep.status === 'skipped') {
+                connectingLineColorCls = 'bg-[#DF678C]'; // Pink if either step is skipped
+              } else if (step.status === 'completed' && (nextStep.status === 'completed' || nextStep.status === 'current')) {
+                connectingLineColorCls = 'bg-[#4CAF50]'; // Green if completed step connects to completed/current
               } else if (step.status === 'current' && nextStep.status === 'future') {
-                connectingLineColorCls = 'bg-[#CDCED8]'; // Grey from current to future
+                connectingLineColorCls = 'bg-[#CDCED8]'; // Grey from current to future (partial progress)
+              } else if (step.status === 'completed' && nextStep.status === 'future') {
+                connectingLineColorCls = 'bg-[#CDCED8]'; // Grey from completed to future (gap in progress)
+              } else if (step.status === 'future' && nextStep.status === 'future') {
+                connectingLineColorCls = 'bg-[#E8E9ED]'; // Light grey between future steps
+              } else {
+                connectingLineColorCls = 'bg-[#E8E9ED]'; // Default light grey for other cases
               }
             }
 

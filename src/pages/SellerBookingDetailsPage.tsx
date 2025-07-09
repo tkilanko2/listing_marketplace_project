@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { Order, OrderStatus } from '../types';
 import { OrderStatusTimeline } from '../components/OrderStatusTimeline';
+import { ReviewModal } from '../components/ReviewModal';
 
 // Extended Order interface to include customer for booking context
 interface BookingOrder extends Order {
@@ -307,6 +308,7 @@ export function SellerBookingDetailsPage({
   const [addNotesOpen, setAddNotesOpen] = useState(false);
   const [addedNotes, setAddedNotes] = useState<Array<{id: number, note: string, timestamp: Date}>>([]);
   const [bookingConfirmationOpen, setBookingConfirmationOpen] = useState(false);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
   // Helper functions
   const mapServiceStatus = (status: string, userRole: 'buyer' | 'seller'): string => {
@@ -810,9 +812,27 @@ export function SellerBookingDetailsPage({
 
   const handleReviewCustomer = () => {
     console.log('Opening review modal for customer:', customerInfo.name);
-    // In a real app, this would open a review modal or navigate to review page
-    // For now, just show a placeholder action
-    alert(`Review ${formatCustomerName(customerInfo.name)}\n\nThis would open a review form where you can:\n- Rate the customer (1-5 stars)\n- Write feedback about communication, punctuality, etc.\n- Provide constructive feedback to help future service providers\n- Submit your experience working with this customer`);
+    setReviewModalOpen(true);
+  };
+
+  const handleReviewSubmit = async (reviewData: {
+    rating: number;
+    review: string;
+    images: File[];
+  }) => {
+    console.log('Submitting customer review:', {
+      bookingId: booking.id,
+      customerId: booking.customer?.id,
+      customerName: customerInfo.name,
+      ...reviewData
+    });
+    
+    // In a real app, this would make an API call to submit the review
+    // For now, just simulate the submission
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    console.log('Customer review submitted successfully');
+    // You could show a success toast here
   };
 
   const handleViewPerformance = () => {
@@ -1485,6 +1505,17 @@ export function SellerBookingDetailsPage({
         notes={notes}
         setNotes={setNotes}
         onSubmit={handleSaveNotes}
+      />
+
+      {/* Review Modal */}
+      <ReviewModal
+        isOpen={reviewModalOpen}
+        onClose={() => setReviewModalOpen(false)}
+        onSubmit={handleReviewSubmit}
+        reviewType="customer"
+        revieweeName={formatCustomerName(customerInfo.name)}
+        serviceName={booking.service?.name}
+        bookingId={booking.id}
       />
     </div>
   );

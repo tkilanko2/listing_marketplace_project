@@ -36,6 +36,7 @@ import {
 import { Order, ActivityLogEntry, Service, OrderStatus } from '../types';
 import SellerTermsModal from '../components/SellerTermsModal';
 import { OrderStatusTimeline } from '../components/OrderStatusTimeline';
+import { ReviewModal } from '../components/ReviewModal';
 
 interface BookingDetailsPageProps {
   booking: Order;
@@ -73,6 +74,7 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
   const [activeTab, setActiveTab] = useState<'details' | 'payment' | 'activity'>('details');
   const [appointmentDetailsOpen, setAppointmentDetailsOpen] = useState(false);
   const [serviceTermsOpen, setServiceTermsOpen] = useState(false);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
   // Assume My Orders is always buyer view
   const userRole: 'buyer' | 'seller' = 'buyer';
@@ -96,9 +98,26 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
 
   const handleReviewProvider = () => {
     console.log('Opening review modal for provider:', booking.service?.provider.id);
-    // In a real app, this would open a review modal or navigate to review page
-    // For now, just show a placeholder action
-    alert(`Review ${booking.service?.provider.username || 'Provider'}\n\nThis would open a review form where you can:\n- Rate the service (1-5 stars)\n- Write a detailed review\n- Add photos (optional)\n- Submit feedback about the service experience`);
+    setReviewModalOpen(true);
+  };
+
+  const handleReviewSubmit = async (reviewData: {
+    rating: number;
+    review: string;
+    images: File[];
+  }) => {
+    console.log('Submitting provider review:', {
+      bookingId: booking.id,
+      providerId: booking.service?.provider.id,
+      ...reviewData
+    });
+    
+    // In a real app, this would make an API call to submit the review
+    // For now, just simulate the submission
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    console.log('Review submitted successfully');
+    // You could show a success toast here
   };
 
   // Calculate payment breakdown based on region
@@ -1244,6 +1263,17 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
           serviceName={booking.service.name}
           providerName={formatProviderName(booking.service.provider.username)}
           serviceType="service" // Explicitly set for bookings
+        />
+      )}
+      {booking.service && (
+        <ReviewModal
+          isOpen={reviewModalOpen}
+          onClose={() => setReviewModalOpen(false)}
+          onSubmit={handleReviewSubmit}
+          reviewType="provider"
+          revieweeName={formatProviderName(booking.service.provider.username)}
+          serviceName={booking.service.name}
+          bookingId={booking.id}
         />
       )}
     </div>
