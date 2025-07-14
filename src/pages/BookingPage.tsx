@@ -223,11 +223,34 @@ export function BookingPage({ selectedService, allServices, onBack, onProceedToP
             <div className="lg:col-span-2">
               <div className="bg-white rounded-lg shadow-sm p-6 mb-8 border border-[#CDCED8]">
                 <h2 className="text-xl font-semibold mb-4 text-[#1B1C20]">Select a Service Tier</h2>
-                <ServiceList
-                  services={allServices}
-                  selectedService={currentService}
-                  onServiceSelect={setCurrentService}
-                />
+                <div className="relative overflow-x-auto">
+                  <div className="flex space-x-4 pb-2">
+                    {currentService.tiers?.map((tier) => (
+                      <div
+                        key={tier.id}
+                        onClick={() => setCurrentService({...currentService, defaultTier: tier.id})}
+                        className={`
+                          cursor-pointer p-4 rounded-lg border transition-all
+                          min-w-[250px] max-w-[300px]
+                          ${currentService.defaultTier === tier.id 
+                            ? 'border-[#3D1560] bg-[#EDD9FF]' 
+                            : 'border-[#CDCED8] hover:border-[#6D26AB] bg-white'
+                          }
+                        `}
+                      >
+                        <h3 className="font-medium text-[#1B1C20] mb-1">{tier.name}</h3>
+                        <p className="text-[#70727F] text-sm mb-2">{tier.description}</p>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center text-sm text-[#70727F]">
+                            <Clock className="w-4 h-4 mr-1 text-[#3D1560]" />
+                            <span>{tier.duration}m</span>
+                          </div>
+                          <span className="font-medium text-[#3D1560]">${tier.price}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <div className="bg-white rounded-lg shadow-sm p-6 border border-[#CDCED8]">

@@ -12,7 +12,7 @@ import { MyOrdersPage } from './pages/MyOrdersPage';
 import { ProductOrderDetailsPage } from './pages/ProductOrderDetailsPage';
 import RecentlyViewedPage from './pages/RecentlyViewedPage';
 import SavedItemsPage from './pages/SavedItemsPage';
-import { mockServices, mockProducts, mockListings, mockOrders, createBooking, mockBookings, getBookingsForProvider, getAllOrdersWithBookings, getOrdersForSeller, getServiceBookingsForSeller, CURRENT_SELLER_ID, providers } from './mockData';
+import { mockServices, mockProducts, mockListings, mockOrders, createBooking, mockBookings, getBookingsForProvider, getAllOrdersWithBookings, getOrdersForSeller, getServiceBookingsForSeller, CURRENT_SELLER_ID, providers, getAllListings, getServiceTiers } from './mockData';
 import { SellerOrdersPage } from './pages/SellerOrdersPage';
 import { SellerOrderDetailsPage } from './pages/SellerOrderDetailsPage';
 import { SellerBookingDetailsPage } from './pages/SellerBookingDetailsPage';
@@ -4453,7 +4453,7 @@ function App() {
       <div className={`pt-16 ${shouldShowSidebar() ? 'ml-64' : ''}`}>
         {currentPage === 'landing' && (
           <LandingPage 
-            listings={mockListings}
+            listings={getAllListings()}
             onListingSelect={handleListingSelect}
             isAuthenticated={isAuthenticated}
             user={user}
@@ -4493,7 +4493,7 @@ function App() {
         {currentPage === 'booking' && selectedListing?.type === 'service' && (
           <BookingPage 
             selectedService={selectedListing}
-            allServices={mockServices.filter(s => s.category === 'Professional Consultation')}
+            allServices={getServiceTiers(selectedListing.serviceType)}
             onBack={handleBackToLanding}
             onProceedToPayment={handleProceedToPayment}
           />

@@ -825,7 +825,7 @@ export function ProductOrderDetailsPage({ order, onBack, userRegion = 'US', onNa
                    </div>
 
                    <div className="flex justify-between text-sm font-medium border-t border-[#CDCED8] pt-2">
-                     <span className="text-[#383A47]">Total Amount</span>
+                     <span className="text-[#383A47]">Amount</span>
                      <span className="text-[#3D1560] font-bold">${order.totalAmount.toFixed(2)}</span>
                    </div>
                  </div>

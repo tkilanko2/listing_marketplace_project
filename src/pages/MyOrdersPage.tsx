@@ -458,7 +458,7 @@ export function MyOrdersPage({
                         <>
                           <p className="text-lg font-semibold text-[#383A47]">{order.service.name}</p>
                           <p className="text-sm text-[#70727F]">
-                            Duration: {order.service.duration} minutes • Provider: {order.service.provider.username}
+                            Duration: {order.service.duration} minutes • Provider: {order.service.provider.name || order.service.provider.username}
                           </p>
                         </>
                       )}

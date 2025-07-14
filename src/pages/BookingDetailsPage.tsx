@@ -571,12 +571,12 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                 <div className="w-10 h-10 rounded-full overflow-hidden border border-[#CDCED8] flex-shrink-0">
                   <img 
                     src={booking.service.provider.avatar} 
-                    alt={formatProviderName(booking.service.provider.username)}
+                    alt={booking.service.provider.name || formatProviderName(booking.service.provider.username)}
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-[#1B1C20] text-sm truncate">{formatProviderName(booking.service.provider.username)}</p>
+                  <p className="font-medium text-[#1B1C20] text-sm truncate">{booking.service.provider.name || formatProviderName(booking.service.provider.username)}</p>
                   <p className="text-xs text-[#70727F] mb-1">ID: {booking.service.provider.id}</p>
                   <div className="flex items-center gap-1 text-xs text-[#70727F]">
                     <Star className="w-3.5 h-3.5 text-yellow-500 fill-current" />
@@ -971,7 +971,7 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                               />
                             </div>
                             <div className="flex-1">
-                              <h4 className="text-lg font-semibold text-[#3D1560] mb-0.5">{formatProviderName(provider.username)}</h4>
+                              <h4 className="text-lg font-semibold text-[#3D1560] mb-0.5">{provider.name || formatProviderName(provider.username)}</h4>
                               <p className="text-xs text-[#70727F] mb-1">ID: {provider.id}</p>
                               <div className="flex items-center gap-3 text-sm text-[#70727F]">
                                 <div className="flex items-center gap-1">
@@ -1025,7 +1025,7 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                         </div>
                         <hr className="border-t border-[#E8E9ED] my-2" />
                         <div className="flex justify-between items-center text-base">
-                          <span className="text-[#383A47] font-semibold">Total Amount Paid:</span>
+                          <span className="text-[#383A47] font-semibold">Amount Paid:</span>
                           <span className="text-[#1B1C20] font-bold text-lg">${paymentBreakdown.total.toFixed(2)}</span>
                         </div>
                       </div>
@@ -1223,7 +1223,7 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                   </div>
 
                   <div className="flex justify-between text-sm font-medium border-t border-[#CDCED8] pt-2">
-                    <span className="text-[#383A47]">Total Amount</span>
+                    <span className="text-[#383A47]">Amount</span>
                     <span className="text-[#3D1560] font-bold">${booking.totalAmount.toFixed(2)}</span>
                   </div>
                 </div>
@@ -1261,7 +1261,7 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
           open={serviceTermsOpen} 
           onClose={() => setServiceTermsOpen(false)} 
           serviceName={booking.service.name}
-          providerName={formatProviderName(booking.service.provider.username)}
+          providerName={booking.service.provider.name || formatProviderName(booking.service.provider.username)}
           serviceType="service" // Explicitly set for bookings
         />
       )}
@@ -1271,7 +1271,7 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
           onClose={() => setReviewModalOpen(false)}
           onSubmit={handleReviewSubmit}
           reviewType="provider"
-          revieweeName={formatProviderName(booking.service.provider.username)}
+          revieweeName={booking.service.provider.name || formatProviderName(booking.service.provider.username)}
           serviceName={booking.service.name}
           bookingId={booking.id}
         />

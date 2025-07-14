@@ -98,9 +98,18 @@ function generateReviews() {
 }
 
 // Generate provider data
-export const providers = Array.from({ length: 15 }, (_, index) => ({
+export const providers = Array.from({ length: 15 }, (_, index) => {
+  const firstNames = ['Michael', 'Sarah', 'David', 'Emma', 'James', 'Lisa', 'Robert', 'Anna', 'John', 'Maria', 'William', 'Jennifer', 'Christopher', 'Amanda', 'Daniel'];
+  const lastNames = ['Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas'];
+  
+  const firstName = firstNames[index % firstNames.length];
+  const lastName = lastNames[index % lastNames.length];
+  const displayName = `${firstName} ${lastName.charAt(0)}.`;
+  
+  return {
   id: generateProviderId(),
   username: generateProviderUsername(),
+    name: displayName, // Add display name with first name and initial
   // Using professional headshots for provider avatars
   avatar: [
     'https://images.unsplash.com/photo-1560250097-0b93528c311a',
@@ -127,72 +136,602 @@ export const providers = Array.from({ length: 15 }, (_, index) => ({
     'We provide all necessary equipment. Please ensure someone is present during the entire service duration.',
     'Payment is due upon completion. We accept cash, cards, and digital payments. Cancellation policy: 24 hours notice required.'
   ][Math.floor(Math.random() * 5)] : undefined
-}));
+  };
+});
 
 // Service categories with their respective curated image IDs
 const serviceCategories = [
   {
-    category: 'Professional Consultation',
+    category: 'Professional Business & Career Consultation Services',
+    serviceType: 'consultation',
     services: [
       { 
-        name: 'Basic Consultation',
-        description: 'Essential consultation session with standard advice and basic recommendations.',
-        duration: 30,
-        price: 45,
+        name: 'Career Guidance & Professional Development Consultation',
+        tiers: [
+          {
+            id: 'basic',
+            name: 'Basic',
+            description: 'Essential consultation session with standard advice and basic recommendations for career growth and professional development.',
+            duration: 30,
+            price: 45,
+            onlinePayment: false
+          },
+          {
+            id: 'standard',
+            name: 'Standard',
+            description: 'Comprehensive consultation with detailed analysis, professional recommendations, and follow-up notes for business growth.',
+            duration: 60,
+            price: 85,
+            onlinePayment: true
+          },
+          {
+            id: 'premium',
+            name: 'Premium',
+            description: 'In-depth consultation with expert analysis, customized action plan, priority support, and 30-day follow-up for senior executives.',
+            duration: 90,
+            price: 125,
+            onlinePayment: true
+          },
+          {
+            id: 'executive',
+            name: 'Executive',
+            description: 'VIP consultation experience with senior expert, comprehensive strategy development, implementation roadmap, and 60-day support.',
+            duration: 120,
+            price: 185,
+            onlinePayment: true
+          },
+          {
+            id: 'platinum',
+            name: 'Platinum',
+            description: 'Ultimate consultation package with top-tier expert, complete strategic planning, dedicated support team, and 90-day implementation assistance.',
+            duration: 150,
+            price: 245,
+            onlinePayment: true
+          }
+        ],
         images: [
           'https://images.unsplash.com/photo-1560066984-138dadb4c035',
           'https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1',
           'https://images.unsplash.com/photo-1562322140-8baeececf3df'
-        ],
+        ]
+      },
+      { 
+        name: 'Business Strategy & Market Analysis Consultation',
+        tiers: [
+          {
+            id: 'basic',
+            name: 'Basic',
+            description: 'Essential market analysis with basic business strategy recommendations.',
+            duration: 45,
+            price: 65,
         onlinePayment: false
       },
       { 
-        name: 'Standard Consultation',
-        description: 'Comprehensive consultation with detailed analysis, professional recommendations, and follow-up notes.',
-        duration: 60,
-        price: 85,
-        images: [
-          'https://images.unsplash.com/photo-1560066984-138dadb4c035',
-          'https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1',
-          'https://images.unsplash.com/photo-1562322140-8baeececf3df'
-        ],
+            id: 'standard',
+            name: 'Standard',
+            description: 'Comprehensive market analysis with detailed strategy development and implementation guidance.',
+            duration: 90,
+            price: 125,
         onlinePayment: true
       },
       { 
-        name: 'Premium Consultation',
-        description: 'In-depth consultation with expert analysis, customized action plan, priority support, and 30-day follow-up.',
-        duration: 90,
-        price: 125,
+            id: 'premium',
+            name: 'Premium',
+            description: 'Expert-level market analysis with comprehensive strategy, competitive analysis, and ongoing support.',
+            duration: 120,
+            price: 185,
+        onlinePayment: true
+          }
+        ],
         images: [
           'https://images.unsplash.com/photo-1560066984-138dadb4c035',
           'https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1',
           'https://images.unsplash.com/photo-1562322140-8baeececf3df'
+        ]
+      }
+    ]
+  },
+  {
+    category: 'Professional Hair Styling & Barber Services',
+    serviceType: 'beauty',
+    services: [
+      { 
+        name: 'Afro Hair Barbing & Styling Services',
+        tiers: [
+          {
+            id: 'basic',
+            name: 'Basic Cut',
+            description: 'Standard haircut with basic styling and beard trim.',
+            duration: 30,
+            price: 25,
+            onlinePayment: false
+          },
+          {
+            id: 'standard',
+            name: 'Standard Package',
+            description: 'Complete haircut with styling, beard trim, and basic grooming.',
+            duration: 45,
+            price: 45,
+            onlinePayment: true
+          },
+          {
+            id: 'premium',
+            name: 'Premium Styling',
+            description: 'Premium haircut with advanced styling, beard sculpting, and hair treatment.',
+            duration: 60,
+            price: 65,
+            onlinePayment: true
+          },
+          {
+            id: 'deluxe',
+            name: 'Deluxe Experience',
+            description: 'Complete grooming experience with haircut, styling, beard work, and premium treatments.',
+            duration: 90,
+            price: 85,
+            onlinePayment: true
+          }
         ],
+        images: [
+          'https://images.unsplash.com/photo-1503951914875-452162b0f3f1',
+          'https://images.unsplash.com/photo-1621605815971-fbc98d665033',
+          'https://images.unsplash.com/photo-1622286346003-c519a7853a63'
+        ]
+      },
+      { 
+        name: 'Professional Hair Cutting & Styling Services',
+        tiers: [
+          {
+            id: 'basic',
+            name: 'Basic Cut',
+            description: 'Standard haircut with basic styling.',
+            duration: 30,
+            price: 35,
+        onlinePayment: false
+      },
+      { 
+            id: 'standard',
+            name: 'Standard Styling',
+            description: 'Haircut with professional styling and basic treatments.',
+            duration: 45,
+            price: 55,
+            onlinePayment: true
+          },
+          {
+            id: 'premium',
+            name: 'Premium Package',
+            description: 'Advanced haircut with premium styling, treatments, and consultation.',
+            duration: 75,
+            price: 85,
+            onlinePayment: true
+          }
+        ],
+        images: [
+          'https://images.unsplash.com/photo-1503951914875-452162b0f3f1',
+          'https://images.unsplash.com/photo-1621605815971-fbc98d665033',
+          'https://images.unsplash.com/photo-1622286346003-c519a7853a63'
+        ]
+      }
+    ]
+  },
+  {
+    category: 'Luxury Garden Design & Landscaping Services',
+    serviceType: 'home_services',
+    services: [
+      { 
+        name: 'Garden Design & Landscaping Services',
+        tiers: [
+          {
+            id: 'consultation',
+            name: 'Consultation',
+            description: 'Garden design consultation with basic recommendations and layout suggestions.',
+            duration: 60,
+            price: 75,
+            onlinePayment: false
+          },
+          {
+            id: 'design',
+            name: 'Design Package',
+            description: 'Complete garden design with detailed plans, plant selection, and implementation guide.',
+            duration: 120,
+            price: 145,
+            onlinePayment: true
+          },
+          {
+            id: 'premium',
+            name: 'Premium Design',
+            description: 'Premium garden design with 3D visualization, custom features, and project management.',
+            duration: 180,
+            price: 225,
+            onlinePayment: true
+          },
+          {
+            id: 'luxury',
+            name: 'Luxury Package',
+            description: 'Luxury garden design with complete project management, premium materials, and ongoing maintenance.',
+            duration: 240,
+            price: 345,
+            onlinePayment: true
+          }
+        ],
+        images: [
+          'https://images.unsplash.com/photo-1416879595882-3373a0480b5b',
+          'https://images.unsplash.com/photo-1565011523534-747a8601f9a7',
+          'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13'
+        ]
+      },
+      { 
+        name: 'Landscape Architecture & Planning Services',
+        tiers: [
+          {
+            id: 'basic',
+            name: 'Basic Planning',
+            description: 'Basic landscape planning with site analysis and design recommendations.',
+            duration: 90,
+            price: 95,
+        onlinePayment: false
+      },
+      { 
+            id: 'standard',
+            name: 'Standard Architecture',
+            description: 'Comprehensive landscape architecture with detailed plans and material specifications.',
+            duration: 150,
+            price: 175,
+            onlinePayment: true
+          },
+          {
+            id: 'premium',
+            name: 'Premium Architecture',
+            description: 'Advanced landscape architecture with 3D modeling, sustainability planning, and project oversight.',
+            duration: 210,
+            price: 275,
+            onlinePayment: true
+          }
+        ],
+        images: [
+          'https://images.unsplash.com/photo-1416879595882-3373a0480b5b',
+          'https://images.unsplash.com/photo-1565011523534-747a8601f9a7',
+          'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13'
+        ]
+      }
+    ]
+  },
+  {
+    category: 'Professional Photography & Video Production Services',
+    serviceType: 'creative',
+    services: [
+      { 
+        name: 'Professional Photography Services',
+        tiers: [
+          {
+            id: 'basic',
+            name: 'Basic Session',
+            description: 'Basic photography session with standard editing and digital delivery.',
+            duration: 60,
+            price: 85,
+            onlinePayment: false
+          },
+          {
+            id: 'standard',
+            name: 'Standard Package',
+            description: 'Professional photography with advanced editing, multiple outfits, and print options.',
+            duration: 120,
+            price: 145,
+            onlinePayment: true
+          },
+          {
+            id: 'premium',
+            name: 'Premium Session',
+            description: 'Premium photography with professional lighting, extensive editing, and luxury presentation.',
+            duration: 180,
+            price: 225,
+            onlinePayment: true
+          },
+          {
+            id: 'luxury',
+            name: 'Luxury Experience',
+            description: 'Luxury photography experience with makeup artist, styling consultation, and premium albums.',
+            duration: 240,
+            price: 345,
+            onlinePayment: true
+          }
+        ],
+        images: [
+          'https://images.unsplash.com/photo-1606721977440-2b36fccf1f5a',
+          'https://images.unsplash.com/photo-1554048612-b6a482b224ce',
+          'https://images.unsplash.com/photo-1542038784456-1ea8e689d8b5'
+        ]
+      },
+      { 
+        name: 'Video Production & Editing Services',
+        tiers: [
+          {
+            id: 'basic',
+            name: 'Basic Edit',
+            description: 'Basic video editing with standard cuts, transitions, and color correction.',
+            duration: 120,
+            price: 125,
+            onlinePayment: false
+          },
+          {
+            id: 'standard',
+            name: 'Standard Production',
+            description: 'Professional video editing with advanced effects, music, and graphics.',
+            duration: 180,
+            price: 185,
+            onlinePayment: true
+          },
+          {
+            id: 'premium',
+            name: 'Premium Production',
+            description: 'Premium video production with cinematic editing, custom graphics, and sound design.',
+            duration: 240,
+            price: 275,
+        onlinePayment: true
+          }
+        ],
+        images: [
+          'https://images.unsplash.com/photo-1606721977440-2b36fccf1f5a',
+          'https://images.unsplash.com/photo-1554048612-b6a482b224ce',
+          'https://images.unsplash.com/photo-1542038784456-1ea8e689d8b5'
+        ]
+      }
+    ]
+  },
+  {
+    category: 'Premium Fitness & Personal Training Services',
+    serviceType: 'fitness',
+    services: [
+      { 
+        name: 'Personal Training & Fitness Coaching Services',
+        tiers: [
+          {
+            id: 'basic',
+            name: 'Basic Training',
+            description: 'Basic personal training session with standard workout routine.',
+            duration: 45,
+            price: 55,
+            onlinePayment: false
+          },
+          {
+            id: 'standard',
+            name: 'Standard Package',
+            description: 'Comprehensive personal training with customized workout plan and nutrition guidance.',
+            duration: 60,
+            price: 75,
+            onlinePayment: true
+          },
+          {
+            id: 'premium',
+            name: 'Premium Training',
+            description: 'Premium personal training with advanced techniques, meal planning, and progress tracking.',
+            duration: 90,
+            price: 105,
+            onlinePayment: true
+          },
+          {
+            id: 'elite',
+            name: 'Elite Package',
+            description: 'Elite training experience with specialized equipment, advanced nutrition, and lifestyle coaching.',
+            duration: 120,
+            price: 145,
+            onlinePayment: true
+          }
+        ],
+        images: [
+          'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b',
+          'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e',
+          'https://images.unsplash.com/photo-1517836357463-d25dfeac3438'
+        ]
+      }
+    ]
+  },
+  {
+    category: 'Professional Tutoring & Educational Services',
+    serviceType: 'education',
+    services: [
+      { 
+        name: 'Mathematics & Science Tutoring Services',
+        tiers: [
+          {
+            id: 'basic',
+            name: 'Basic Tutoring',
+            description: 'Basic tutoring session with standard curriculum support.',
+            duration: 45,
+            price: 35,
+        onlinePayment: false
+      },
+      { 
+            id: 'standard',
+            name: 'Standard Package',
+            description: 'Comprehensive tutoring with customized learning plan and progress tracking.',
+            duration: 60,
+            price: 55,
+            onlinePayment: true
+          },
+          {
+            id: 'premium',
+            name: 'Premium Tutoring',
+            description: 'Premium tutoring with advanced techniques, exam preparation, and homework support.',
+            duration: 90,
+            price: 85,
+            onlinePayment: true
+          }
+        ],
+        images: [
+          'https://images.unsplash.com/photo-1516321318423-f06f85e504b3',
+          'https://images.unsplash.com/photo-1509062522246-3755977927d7',
+          'https://images.unsplash.com/photo-1472173148041-00294f0814a2'
+        ]
+      },
+      { 
+        name: 'Language Learning & Conversation Practice Services',
+        tiers: [
+          {
+            id: 'basic',
+            name: 'Basic Lessons',
+            description: 'Basic language lessons with standard conversation practice.',
+            duration: 45,
+            price: 30,
+            onlinePayment: false
+          },
+          {
+            id: 'standard',
+            name: 'Standard Package',
+            description: 'Comprehensive language learning with customized curriculum and cultural context.',
+            duration: 60,
+            price: 45,
         onlinePayment: true
       },
       { 
-        name: 'Executive Consultation',
-        description: 'VIP consultation experience with senior expert, comprehensive strategy development, implementation roadmap, and 60-day support.',
-        duration: 120,
-        price: 185,
-        images: [
-          'https://images.unsplash.com/photo-1560066984-138dadb4c035',
-          'https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1',
-          'https://images.unsplash.com/photo-1562322140-8baeececf3df'
-        ],
+            id: 'premium',
+            name: 'Premium Immersion',
+            description: 'Premium language immersion with native speaker practice and advanced techniques.',
+            duration: 90,
+            price: 75,
         onlinePayment: true
+          }
+        ],
+        images: [
+          'https://images.unsplash.com/photo-1516321318423-f06f85e504b3',
+          'https://images.unsplash.com/photo-1509062522246-3755977927d7',
+          'https://images.unsplash.com/photo-1472173148041-00294f0814a2'
+        ]
+      }
+    ]
+  },
+  {
+    category: 'Professional Cleaning & Maintenance Services',
+    serviceType: 'home_services',
+    services: [
+      { 
+        name: 'House Cleaning & Deep Cleaning Services',
+        tiers: [
+          {
+            id: 'basic',
+            name: 'Basic Cleaning',
+            description: 'Basic house cleaning with standard sanitization and organization.',
+            duration: 90,
+            price: 65,
+        onlinePayment: false
       },
       { 
-        name: 'Platinum Consultation',
-        description: 'Ultimate consultation package with top-tier expert, complete strategic planning, dedicated support team, and 90-day implementation assistance.',
-        duration: 150,
-        price: 245,
-        images: [
-          'https://images.unsplash.com/photo-1560066984-138dadb4c035',
-          'https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1',
-          'https://images.unsplash.com/photo-1562322140-8baeececf3df'
-        ],
+            id: 'standard',
+            name: 'Standard Package',
+            description: 'Comprehensive cleaning with deep sanitization and detailed attention to all areas.',
+            duration: 150,
+            price: 95,
+            onlinePayment: true
+          },
+          {
+            id: 'premium',
+            name: 'Premium Cleaning',
+            description: 'Premium cleaning service with eco-friendly products, appliance cleaning, and organization.',
+            duration: 210,
+            price: 135,
+            onlinePayment: true
+          },
+          {
+            id: 'luxury',
+            name: 'Luxury Package',
+            description: 'Luxury cleaning experience with premium products, detailed service, and maintenance tips.',
+            duration: 270,
+            price: 185,
         onlinePayment: true
+          }
+        ],
+        images: [
+          'https://images.unsplash.com/photo-1585421514738-01798e348b17',
+          'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13',
+          'https://images.unsplash.com/photo-1581578731548-c64695cc6952'
+        ]
+      }
+    ]
+  },
+  {
+    category: 'Professional Tech Support & Computer Services',
+    serviceType: 'tech_support',
+    services: [
+      { 
+        name: 'Computer Repair & Technical Support Services',
+        tiers: [
+          {
+            id: 'basic',
+            name: 'Basic Support',
+            description: 'Basic computer troubleshooting and software support.',
+            duration: 60,
+            price: 45,
+        onlinePayment: false
+      },
+      { 
+            id: 'standard',
+            name: 'Standard Repair',
+            description: 'Comprehensive computer repair with hardware diagnosis and optimization.',
+            duration: 90,
+            price: 75,
+            onlinePayment: true
+          },
+          {
+            id: 'premium',
+            name: 'Premium Service',
+            description: 'Premium tech support with advanced repairs, data recovery, and system optimization.',
+            duration: 120,
+            price: 105,
+            onlinePayment: true
+          }
+        ],
+        images: [
+          'https://images.unsplash.com/photo-1498050108023-c5249f4df085',
+          'https://images.unsplash.com/photo-1559028006-448665bd7c7f',
+          'https://images.unsplash.com/photo-1483058712412-4245e9b90334'
+        ]
+      }
+    ]
+  },
+  {
+    category: 'Professional Event Planning & Management Services',
+    serviceType: 'event_planning',
+    services: [
+      { 
+        name: 'Event Planning & Coordination Services',
+        tiers: [
+          {
+            id: 'basic',
+            name: 'Basic Planning',
+            description: 'Basic event planning with venue suggestions and basic coordination.',
+            duration: 120,
+            price: 125,
+            onlinePayment: false
+          },
+          {
+            id: 'standard',
+            name: 'Standard Package',
+            description: 'Comprehensive event planning with vendor coordination and day-of management.',
+            duration: 180,
+            price: 185,
+            onlinePayment: true
+          },
+          {
+            id: 'premium',
+            name: 'Premium Planning',
+            description: 'Premium event planning with custom design, full coordination, and luxury touches.',
+            duration: 240,
+            price: 275,
+            onlinePayment: true
+          },
+          {
+            id: 'luxury',
+            name: 'Luxury Experience',
+            description: 'Luxury event planning with exclusive venues, premium vendors, and white-glove service.',
+            duration: 300,
+            price: 425,
+        onlinePayment: true
+          }
+        ],
+        images: [
+          'https://images.unsplash.com/photo-1511795409834-ef04bbd61622',
+          'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3',
+          'https://images.unsplash.com/photo-1505236858219-8359eb29e329'
+        ]
       }
     ]
   }
@@ -1102,55 +1641,69 @@ const mockProducts: Product[] = productCategories.flatMap((category, categoryInd
 // Update service generation to include new service-specific fields
 const mockServices: Service[] = serviceCategories.flatMap((category, categoryIndex) =>
   category.services.map((service, serviceIndex) => {
-    // Use the same provider for all consultation tiers so they show together
-    const provider = providers[0]; // Always use the first provider for consistency
-    const price = (service as any).price || Math.floor(Math.random() * 150) + 50;
-    const duration = (service as any).duration || [30, 45, 60, 90, 120][Math.floor(Math.random() * 5)];
+    // Use the same provider for all services within the same category
+    const provider = providers[categoryIndex % providers.length];
     
-    // Generate predictable listing IDs: LISTING_SERV_001, LISTING_SERV_002, etc.
-    const globalServiceIndex = serviceCategories.slice(0, categoryIndex).reduce((sum, cat) => sum + cat.services.length, 0) + serviceIndex + 1;
-    const listingId = `LISTING_SERV_${globalServiceIndex.toString().padStart(3, '0')}`;
+    // Use the default/standard tier for the main service properties
+    const defaultTier = service.tiers.find(tier => tier.name === 'Standard') || service.tiers[0];
+    
+    // Generate sequential IDs for each service: career-guidance-001, garden-design-001, etc.
+    const serviceNumber = (serviceIndex + 1).toString().padStart(3, '0');
+    const serviceNameSlug = service.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const listingId = `${serviceNameSlug}-${serviceNumber}`;
     
     // Define service delivery modes based on service type
-    const getServiceDeliveryModes = (categoryName: string, serviceName: string): ('at_buyer' | 'at_seller' | 'remote')[] => {
-      if (serviceName.includes('Website') || serviceName.includes('Coding') || serviceName.includes('Language')) {
-        return ['remote', 'at_seller']; // Can be done remotely or at provider's location
-      } else if (serviceName.includes('Moving') || serviceName.includes('Cleaning') || serviceName.includes('Painting')) {
-        return ['at_buyer']; // Must be done at customer's location
-      } else if (serviceName.includes('Haircut') || serviceName.includes('Massage') || serviceName.includes('Makeup')) {
-        return ['at_seller', 'at_buyer']; // Salon or home visits
-      } else if (categoryName === 'Education' && !serviceName.includes('Language')) {
-        return ['at_seller', 'remote']; // Workshop can be in-person or online
-      } else if (categoryName === 'Tech Support') {
-        return ['at_buyer', 'remote']; // Computer repair at customer's or remote support
-      } else if (categoryName === 'Transportation') {
-        return ['at_buyer']; // Always pick up customer
+    const getServiceDeliveryModes = (serviceType: string, serviceName: string): ('at_buyer' | 'at_seller' | 'remote')[] => {
+      if (serviceType === 'consultation' || serviceName.includes('Consultation')) {
+        return ['at_seller', 'remote']; // Office or online
+      } else if (serviceType === 'beauty' || serviceName.includes('Hair') || serviceName.includes('Styling')) {
+        return ['at_seller']; // Beauty services typically at salon/location
+      } else if (serviceType === 'home_services' || serviceName.includes('Garden') || serviceName.includes('Cleaning')) {
+        return ['at_buyer']; // Home services at customer location
+      } else if (serviceType === 'creative' || serviceName.includes('Photography') || serviceName.includes('Video')) {
+        return ['at_seller', 'at_buyer']; // Studio or on-location
+      } else if (serviceType === 'fitness' || serviceName.includes('Training') || serviceName.includes('Fitness')) {
+        return ['at_seller', 'at_buyer']; // Gym or home visits
+      } else if (serviceType === 'education' || serviceName.includes('Tutoring') || serviceName.includes('Learning')) {
+        return ['at_seller', 'at_buyer', 'remote']; // In-person or online
+      } else if (serviceType === 'tech_support' || serviceName.includes('Computer') || serviceName.includes('Tech')) {
+        return ['at_seller', 'at_buyer', 'remote']; // Shop, home visits, or remote
+      } else if (serviceType === 'event_planning' || serviceName.includes('Event') || serviceName.includes('Planning')) {
+        return ['at_seller', 'at_buyer']; // Office or venue planning
       }
       return ['at_seller', 'at_buyer']; // Default: flexible location
     };
 
     // Define service coverage based on service type and provider location
-    const getServiceCoverage = (categoryName: string, serviceName: string): 'local' | 'citywide' | 'regional' | 'nationwide' | 'global' => {
-      if (serviceName.includes('Website') || serviceName.includes('Coding') || serviceName.includes('Language')) {
+    const getServiceCoverage = (serviceType: string, serviceName: string): 'local' | 'citywide' | 'regional' | 'nationwide' | 'global' => {
+      if (serviceType === 'consultation' || serviceName.includes('Consultation')) {
         return 'global'; // Digital services can be delivered globally
-      } else if (serviceName.includes('Moving') || serviceName.includes('Transportation')) {
-        return 'regional'; // Moving/transport services cover wider area
-      } else if (categoryName === 'Education' && serviceName.includes('remote')) {
-        return 'nationwide'; // Online education can reach nationwide
+      } else if (serviceType === 'education' || serviceName.includes('Tutoring') || serviceName.includes('Learning')) {
+        return 'nationwide'; // Online tutoring can reach nationwide
+      } else if (serviceType === 'tech_support' && serviceName.includes('Computer')) {
+        return 'citywide'; // Tech support is typically citywide
+      } else if (serviceType === 'creative' || serviceName.includes('Photography') || serviceName.includes('Video')) {
+        return 'regional'; // Creative services can be regional
+      } else if (serviceType === 'fitness' || serviceName.includes('Training') || serviceName.includes('Fitness')) {
+        return 'citywide'; // Fitness services are typically citywide
+      } else if (serviceType === 'home_services' || serviceName.includes('Garden') || serviceName.includes('Cleaning')) {
+        return 'citywide'; // Home services are citywide
+      } else if (serviceType === 'event_planning' || serviceName.includes('Event') || serviceName.includes('Planning')) {
+        return 'regional'; // Event planning can be regional
       }
       return 'citywide'; // Most physical services are citywide
     };
 
-    const serviceDeliveryModes = getServiceDeliveryModes(category.category, service.name);
-    const serviceCoverage = getServiceCoverage(category.category, service.name);
+    const serviceDeliveryModes = getServiceDeliveryModes(category.serviceType, service.name);
+    const serviceCoverage = getServiceCoverage(category.serviceType, service.name);
     
     return {
       id: listingId,
       type: 'service' as const,
       name: service.name,
-      duration,
-      price,
-      description: (service as any).description || `Professional ${service.name.toLowerCase()} service tailored to your needs`,
+      duration: defaultTier.duration,
+      price: defaultTier.price,
+      description: defaultTier.description,
       shortDescription: `Expert ${service.name.toLowerCase()} service in ${provider.location.city}`,
       longDescription: `Experience premium ${service.name.toLowerCase()} service from one of ${provider.location.city}'s top-rated providers. Our service includes comprehensive consultation, professional execution, and satisfaction guarantee. Available for ${serviceDeliveryModes.map(mode => 
         mode === 'at_buyer' ? 'home visits' : 
@@ -1165,7 +1718,7 @@ const mockServices: Service[] = serviceCategories.flatMap((category, categoryInd
       createdAt: new Date(Date.now() - Math.random() * 10000000000),
       trending: Math.random() > 0.7,
       recommended: Math.random() > 0.7,
-      serviceType: category.category,
+      serviceType: category.serviceType, // Use the serviceType field
       serviceArea: serviceCoverage === 'global' ? 'Global' : 
                   serviceCoverage === 'nationwide' ? 'Nationwide' :
                   serviceCoverage === 'regional' ? `${provider.location.city} Region` :
@@ -1178,8 +1731,11 @@ const mockServices: Service[] = serviceCategories.flatMap((category, categoryInd
       serviceCoverage, // New field
       paymentOptions: {
         payAtService: true,
-        onlinePayment: 'onlinePayment' in service ? service.onlinePayment : false
-      }
+        onlinePayment: defaultTier.onlinePayment
+      },
+      // Add tier support
+      tiers: service.tiers,
+      defaultTier: defaultTier.id
     };
   })
 );
@@ -1187,659 +1743,275 @@ const mockServices: Service[] = serviceCategories.flatMap((category, categoryInd
 export const mockListings: ListingItem[] = [...mockProducts, ...mockServices];
 export { mockServices, mockProducts };
 
-// Mock Orders Data - Removed createMockOrders function to avoid circular dependency
-/* const createMockOrders = (): Order[] => [
+// Helper function to get all services for landing page display
+export const getAllServices = (): Service[] => {
+  return mockServices;
+};
+
+// Function to get all tiers for a specific service
+export const getServiceTiers = (serviceId: string): Service['tiers'] => {
+  const service = mockServices.find(s => s.id === serviceId);
+  return service?.tiers || [];
+};
+
+// Helper function to get all listings (products + all services)
+export const getAllListings = (): ListingItem[] => {
+  return [...mockProducts, ...mockServices];
+};
+
+// Function to get a specific tier details for a service
+export const getServiceTierDetails = (serviceId: string, tierId: string) => {
+  const service = mockServices.find(s => s.id === serviceId);
+  return service?.tiers?.find(tier => tier.id === tierId);
+};
+
+// Function to get service with a specific tier applied
+export const getServiceWithTier = (serviceId: string, tierId: string): Service | null => {
+  const service = mockServices.find(s => s.id === serviceId);
+  if (!service) return null;
+  
+  const tier = service.tiers?.find(t => t.id === tierId);
+  if (!tier) return service; // Return original service if tier not found
+  
+  // Return service with tier details applied
+  return {
+    ...service,
+    price: tier.price,
+    duration: tier.duration,
+    description: tier.description,
+    paymentOptions: {
+      ...service.paymentOptions,
+      onlinePayment: tier.onlinePayment
+    }
+  };
+};
+
+// Legacy function for backward compatibility (returns grouped services)
+export const getGroupedServices = (): Service[] => {
+  const serviceGroups = new Map<string, Service[]>();
+  
+  // Group services by serviceType
+  mockServices.forEach(service => {
+    if (!serviceGroups.has(service.serviceType)) {
+      serviceGroups.set(service.serviceType, []);
+    }
+    serviceGroups.get(service.serviceType)!.push(service);
+  });
+  
+  // Return one service from each group as the representative
+  const representativeServices: Service[] = [];
+  serviceGroups.forEach((services, serviceType) => {
+    // Return the first service from each group
+    representativeServices.push(services[0]);
+  });
+  
+  return representativeServices;
+};
+
+// Legacy function for backward compatibility
+export const getGroupedListings = (): ListingItem[] => {
+  const groupedServices = getGroupedServices();
+  return [...mockProducts, ...groupedServices];
+};
+
+// Create comprehensive mock orders array with buyer-side service bookings
+export const mockOrders: Order[] = [
+  // === Buyer's Service Bookings from Different Providers ===
   {
-    id: 'BKG001',
-    listingId: mockServices[0]?.id || 'LISTING_SERV_001', // Reference to the parent service listing
-    userId: 'USER001',
+    id: 'BKG-BUY-001',
+    listingId: 'web-design-002', // Standard Web Design
+    userId: 'current-user',
     items: [],
     type: 'service',
-    service: {
-      id: 'LISTING_SERV_001',
-      name: 'Basic Consultation',
-      duration: 30,
-      price: 45,
-      provider: providers[0],
-      category: 'Professional Consultation',
-      description: 'Essential consultation session'
-    } as any, // Assign to first provider
-    appointmentDate: new Date('2024-01-20'),
-    status: 'completed', // Changed to completed since it's a past date
-    paymentStatus: 'paid' as PaymentStatus,
-    orderDate: new Date('2024-01-10'),
-    totalAmount: 120.00,
-    location: 'Tech Hub Downtown, 123 Main Street, Suite 400', // Backward compatibility
-    serviceLocation: {
-      address: 'Tech Hub Downtown, 123 Main Street, Suite 400',
-      city: 'New York',
-      state: 'NY',
-      country: 'United States',
-      zipCode: '10001',
-      coordinates: { lat: 40.7128, lng: -74.0060 }
-    },
-    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Beauty & Wellness'),
-    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
-    actions: [
-      { label: 'Cancel', handler: () => console.log('Cancel booking BKG001'), type: 'cancel' },
-      { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG001'), type: 'reschedule' },
-      { label: 'Message Provider', handler: () => console.log('Message provider for booking BKG001'), type: 'message' },
-      { label: 'View Details', handler: () => console.log('View details of booking BKG001'), type: 'reorder' }
-    ] as unknown as OrderActionType[]
-  },
-  {
-    id: 'ORD002',
-    listingId: mockProducts[0].id, // Reference to the parent product listing
-    userId: 'USER001',
-    items: [{ id: 'ITEM002', product: mockProducts[0], quantity: 1, price: 45.99 }],
-    type: 'product',
-    status: 'shipped',
-    paymentStatus: 'completed' as PaymentStatus,
-    orderDate: new Date(new Date().setDate(new Date().getDate() - 5)),
-    totalAmount: 45.99,
-    trackingInfo: { 
-      carrier: 'DHL', 
-      trackingNumber: 'DHL54321', 
-      estimatedDelivery: new Date(new Date().setDate(new Date().getDate() + 2))
-    },
-    actions: [
-      { label: 'Track', handler: () => console.log('Track order ORD002'), type: 'track' },
-      { label: 'View Details', handler: () => console.log('View details of order ORD002'), type: 'reorder' }
-    ] as unknown as OrderActionType[]
-  },
-  // Additional product orders for SELLER001
-  {
-    id: 'ORD015',
-    listingId: mockProducts[0].id, // Reference to the parent product listing
-    userId: 'USER002',
-    items: [{ id: 'ITEM015', product: {...mockProducts[0], seller: productSellers[0]}, quantity: 2, price: 299.99 }],
-    type: 'product',
-    status: 'pending',
-    paymentStatus: 'paid' as PaymentStatus,
-    orderDate: new Date(new Date().setDate(new Date().getDate() - 1)),
-    totalAmount: 599.98,
-    shippingAddress: {
-      name: 'John Smith',
-      street: '123 Main Street',
-      city: 'New York',
-      state: 'NY',
-      zipCode: '10001',
-      country: 'USA'
-    },
-    actions: [
-      { label: 'Accept', handler: () => console.log('Accept order ORD015'), type: 'accept' },
-      { label: 'Decline', handler: () => console.log('Decline order ORD015'), type: 'decline' }
-    ] as unknown as OrderActionType[]
-  },
-  {
-    id: 'ORD016',
-    listingId: mockProducts[1].id, // Reference to the parent product listing
-    userId: 'USER003',
-    items: [{ id: 'ITEM016', product: {...mockProducts[1], seller: productSellers[0]}, quantity: 1, price: 89.99 }],
-    type: 'product',
-    status: 'processing',
-    paymentStatus: 'paid' as PaymentStatus,
-    orderDate: new Date(new Date().setDate(new Date().getDate() - 3)),
-    totalAmount: 89.99,
-    shippingAddress: {
-      name: 'Sarah Johnson',
-      street: '456 Oak Avenue',
-      city: 'San Francisco',
-      state: 'CA',
-      zipCode: '94102',
-      country: 'USA'
-    },
-    actions: [
-      { label: 'Add Tracking', handler: () => console.log('Add tracking for order ORD016'), type: 'add_tracking' },
-      { label: 'Mark Shipped', handler: () => console.log('Mark shipped order ORD016'), type: 'mark_shipped' }
-    ] as unknown as OrderActionType[]
-  },
-  {
-    id: 'ORD017',
-    listingId: mockProducts[2].id, // Reference to the parent product listing
-    userId: 'USER004',
-    items: [{ id: 'ITEM017', product: {...mockProducts[2], seller: productSellers[0]}, quantity: 1, price: 149.99 }],
-    type: 'product',
-    status: 'shipped',
-    paymentStatus: 'paid' as PaymentStatus,
-    orderDate: new Date(new Date().setDate(new Date().getDate() - 7)),
-    totalAmount: 149.99,
-    trackingInfo: {
-      carrier: 'FedEx',
-      trackingNumber: 'FDX789012345',
-      estimatedDelivery: new Date(new Date().setDate(new Date().getDate() + 1))
-    },
-    shippingAddress: {
-      name: 'Michael Brown',
-      street: '789 Pine Street',
-      city: 'Chicago',
-      state: 'IL',
-      zipCode: '60601',
-      country: 'USA'
-    },
-    actions: [
-      { label: 'Mark Delivered', handler: () => console.log('Mark delivered order ORD017'), type: 'mark_delivered' },
-      { label: 'View Tracking', handler: () => console.log('View tracking for order ORD017'), type: 'view_tracking' }
-    ] as unknown as OrderActionType[]
-  },
-  {
-    id: 'ORD018',
-    listingId: mockProducts[3].id, // Reference to the parent product listing
-    userId: 'USER005',
-    items: [{ id: 'ITEM018', product: {...mockProducts[3], seller: productSellers[0]}, quantity: 3, price: 25.99 }],
-    type: 'product',
-    status: 'delivered',
-    paymentStatus: 'paid' as PaymentStatus,
-    orderDate: new Date(new Date().setDate(new Date().getDate() - 14)),
-    totalAmount: 77.97,
-    trackingInfo: {
-      carrier: 'UPS',
-      trackingNumber: 'UPS123456789',
-      estimatedDelivery: new Date(new Date().setDate(new Date().getDate() - 2))
-    },
-    shippingAddress: {
-      name: 'Emma Davis',
-      street: '321 Elm Drive',
-      city: 'Austin',
-      state: 'TX',
-      zipCode: '78701',
-      country: 'USA'
-    },
-    actions: [
-      { label: 'Contact Customer', handler: () => console.log('Contact customer for order ORD018'), type: 'contact_customer' }
-    ] as unknown as OrderActionType[]
-  },
-  {
-    id: 'ORD019',
-    listingId: mockProducts[4].id, // Reference to the parent product listing
-    userId: 'USER006',
-    items: [{ id: 'ITEM019', product: {...mockProducts[4], seller: productSellers[0]}, quantity: 1, price: 199.99 }],
-    type: 'product',
-    status: 'returned',
-    paymentStatus: 'refunded' as PaymentStatus,
-    orderDate: new Date(new Date().setDate(new Date().getDate() - 21)),
-    totalAmount: 199.99,
-    shippingAddress: {
-      name: 'Robert Wilson',
-      street: '654 Maple Lane',
-      city: 'Denver',
-      state: 'CO',
-      zipCode: '80202',
-      country: 'USA'
-    },
-    actions: [
-      { label: 'Process Return', handler: () => console.log('Process return for order ORD019'), type: 'process_return' }
-    ] as unknown as OrderActionType[]
-  },
-  {
-    id: 'ORD020',
-    listingId: mockProducts[5].id, // Reference to the parent product listing
-    userId: 'USER007',
-    items: [{ id: 'ITEM020', product: {...mockProducts[5], seller: productSellers[0]}, quantity: 2, price: 59.99 }],
-    type: 'product',
-    status: 'cancelled',
-    paymentStatus: 'refunded' as PaymentStatus,
-    orderDate: new Date(new Date().setDate(new Date().getDate() - 2)),
-    totalAmount: 119.98,
-    shippingAddress: {
-      name: 'Lisa Anderson',
-      street: '987 Cedar Court',
-      city: 'Seattle',
-      state: 'WA',
-      zipCode: '98101',
-      country: 'USA'
-    },
-    actions: [
-      { label: 'View Cancellation', handler: () => console.log('View cancellation for order ORD020'), type: 'view_cancellation' }
-    ] as unknown as OrderActionType[]
-  },
-  {
-    id: 'BKG003',
-    listingId: mockServices[1].id, // Reference to the parent service listing
-    userId: 'USER001',
-    items: [],
-    type: 'service',
-    service: mockServices[1],
-    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 3)),
-    status: 'scheduled',
-    paymentStatus: 'paid' as PaymentStatus,
-    orderDate: new Date(new Date().setDate(new Date().getDate() - 2)),
-    totalAmount: 80.00,
-    location: 'Client\'s Home - 456 Elm Street, Apartment 2B', // Backward compatibility
-    serviceLocation: {
-      address: '456 Elm Street, Apartment 2B',
-      city: 'San Francisco',
-      state: 'CA',
-      country: 'United States',
-      zipCode: '94102',
-      coordinates: { lat: 37.7749, lng: -122.4194 }
-    },
-    serviceAddress: generateServiceAddress('at_buyer', 'San Francisco'),
-    selectedServiceMode: 'at_buyer' as 'at_seller' | 'at_buyer' | 'remote',
-    actions: [
-      { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG003'), type: 'reschedule' },
-      { label: 'Message Provider', handler: () => console.log('Message provider for booking BKG003'), type: 'message' },
-      { label: 'View Details', handler: () => console.log('View details of booking BKG003'), type: 'reorder' }
-    ] as unknown as OrderActionType[]
-  },
-  {
-    id: 'ORD004',
-    listingId: mockProducts[1].id, // Reference to the parent product listing
-    userId: 'USER002',
-    items: [{ id: 'ITEM004', product: mockProducts[1], quantity: 1, price: 25.50 }],
-    type: 'product',
-    status: 'processing',
-    paymentStatus: 'completed' as PaymentStatus,
-    orderDate: new Date(new Date().setDate(new Date().getDate() - 1)),
-    totalAmount: 25.50,
-    actions: [
-      { label: 'View Details', handler: () => console.log('View details of order ORD004'), type: 'reorder' }
-    ] as unknown as OrderActionType[]
-  },
-  {
-    id: 'BKG005',
-    listingId: mockServices[2].id, // Reference to the parent service listing
-    userId: 'USER003',
-    items: [],
-    type: 'service',
-    service: mockServices[2],
-    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 7)),
+    service: mockServices.find(s => s.id === 'web-design-002') || mockServices[0],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 3)), // 3 days from now
     status: 'confirmed',
     paymentStatus: 'paid' as PaymentStatus,
-    orderDate: new Date(new Date().setDate(new Date().getDate() - 3)),
-    totalAmount: 150.00,
-    location: 'Business Center - 789 Corporate Plaza, Conference Room A',
-    serviceLocation: {
-      address: 'Business Center - 789 Corporate Plaza, Conference Room A',
-      city: 'Chicago',
-      state: 'IL',
-      country: 'United States',
-      zipCode: '60601',
-      coordinates: { lat: 41.8781, lng: -87.6298 }
-    },
-    serviceAddress: generateServiceAddress('at_seller', 'Chicago', 'Home Services'),
-    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
-    actions: [
-      { label: 'Cancel', handler: () => console.log('Cancel booking BKG005'), type: 'cancel' },
-      { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG005'), type: 'reschedule' },
-      { label: 'View Details', handler: () => console.log('View details of booking BKG005'), type: 'reorder' }
-    ] as unknown as OrderActionType[]
-  },
-  {
-    id: 'ORD006',
-    listingId: mockProducts[2].id, // Reference to the parent product listing
-    userId: 'USER004',
-    items: [{ id: 'ITEM006', product: mockProducts[2], quantity: 2, price: 99.99 }],
-    type: 'product',
-    status: 'pending',
-    paymentStatus: 'pending' as PaymentStatus,
-    orderDate: new Date('2023-11-01'),
-    totalAmount: 199.98,
-    actions: [
-      { label: 'Cancel', handler: () => console.log('Cancel order ORD006'), type: 'cancel' },
-      { label: 'View Details', handler: () => console.log('View details of order ORD006'), type: 'reorder' }
-    ] as unknown as OrderActionType[]
-  },
-  {
-    id: 'ORD007',
-    listingId: mockProducts[3].id, // Reference to the parent product listing
-    userId: 'USER005',
-    items: [{ id: 'ITEM007', product: mockProducts[3], quantity: 1, price: 149.99 }],
-    type: 'product',
-    status: 'processing',
-    paymentStatus: 'completed' as PaymentStatus,
-    orderDate: new Date('2023-10-25'),
-    totalAmount: 149.99,
-    actions: [
-      { label: 'View Details', handler: () => console.log('View details of order ORD007'), type: 'reorder' }
-    ] as unknown as OrderActionType[]
-  },
-  {
-    id: 'ORD008',
-    listingId: mockProducts[4].id, // Reference to the parent product listing
-    userId: 'USER006',
-    items: [{ id: 'ITEM008', product: mockProducts[4], quantity: 1, price: 79.99 }],
-    type: 'product',
-    status: 'shipped',
-    paymentStatus: 'completed' as PaymentStatus,
-    orderDate: new Date('2023-10-15'),
-    totalAmount: 79.99,
-    trackingInfo: {
-      carrier: 'UPS',
-      trackingNumber: 'UPS987654321',
-      estimatedDelivery: new Date('2024-01-18')
-    },
-    actions: [
-      { label: 'Track', handler: () => console.log('Track order ORD008'), type: 'track' },
-      { label: 'View Details', handler: () => console.log('View details of order ORD008'), type: 'reorder' }
-    ] as unknown as OrderActionType[]
-  },
-  {
-    id: 'ORD009',
-    listingId: mockProducts[5].id, // Reference to the parent product listing
-    userId: 'USER007',
-    items: [{ id: 'ITEM009', product: mockProducts[5], quantity: 3, price: 29.99 }],
-    type: 'product',
-    status: 'delivered',
-    paymentStatus: 'completed' as PaymentStatus,
-    orderDate: new Date('2023-09-10'),
-    totalAmount: 89.97,
-    actions: [
-      { label: 'Review', handler: () => console.log('Review order ORD009'), type: 'review' },
-      { label: 'Buy Again', handler: () => console.log('Buy again order ORD009'), type: 'reorder' },
-      { label: 'View Details', handler: () => console.log('View details of order ORD009'), type: 'reorder' }
-    ] as unknown as OrderActionType[]
-  },
-  {
-    id: 'ORD010',
-    listingId: mockProducts[6].id, // Reference to the parent product listing
-    userId: 'USER008',
-    items: [{ id: 'ITEM010', product: mockProducts[6], quantity: 1, price: 199.99 }],
-    type: 'product',
-    status: 'delivered',
-    paymentStatus: 'completed' as PaymentStatus,
-    orderDate: new Date('2023-08-20'),
-    totalAmount: 199.99,
-    actions: [
-      { label: 'Buy Again', handler: () => console.log('Buy again order ORD010'), type: 'reorder' },
-      { label: 'View Details', handler: () => console.log('View details of order ORD010'), type: 'reorder' }
-    ] as unknown as OrderActionType[]
-  },
-  // Additional service orders with diverse statuses
-  {
-    id: 'BKG011',
-    listingId: mockServices[3].id, // Reference to the parent service listing
-    userId: 'USER009',
-    items: [],
-    type: 'service',
-    service: mockServices[3],
-    appointmentDate: new Date(new Date().setHours(new Date().getHours() - 1)), // Started 1 hour ago (currently in progress)
-    status: 'in_progress',
-    paymentStatus: 'paid' as PaymentStatus,
-    orderDate: new Date(new Date().setDate(new Date().getDate() - 1)),
-    totalAmount: 90.00,
-    location: 'Online via Zoom - Meeting ID will be shared',
-    serviceAddress: generateServiceAddress('remote', ''),
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 2)),
+    totalAmount: 1500.00,
+    serviceAddress: generateServiceAddress('remote', 'New York'),
     selectedServiceMode: 'remote' as 'at_seller' | 'at_buyer' | 'remote',
     actions: [
-      { label: 'View Progress', handler: () => console.log('View progress for booking BKG011'), type: 'view' },
-      { label: 'Message Provider', handler: () => console.log('Message provider for booking BKG011'), type: 'message' }
+      { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG-BUY-001'), type: 'reschedule' },
+      { label: 'Message Provider', handler: () => console.log('Message provider for booking BKG-BUY-001'), type: 'message' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-BUY-001'), type: 'reorder' }
     ] as unknown as OrderActionType[]
   },
   {
-    id: 'BKG012',
-    listingId: mockServices[4].id, // Reference to the parent service listing
-    userId: 'USER010',
+    id: 'BKG-BUY-002',
+    listingId: 'photography-003', // Premium Photography
+    userId: 'current-user',
     items: [],
     type: 'service',
-    service: mockServices[4],
-    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 3)),
-    status: 'completed',
-    paymentStatus: 'paid' as PaymentStatus,
-    orderDate: new Date(new Date().setDate(new Date().getDate() - 7)),
-    totalAmount: 180.00,
-    serviceLocation: {
-      address: 'Luxury Spa Center - 321 Wellness Boulevard',
-      city: 'Miami',
-      state: 'FL',
-      country: 'United States',
-      zipCode: '33101',
-      coordinates: { lat: 25.7617, lng: -80.1918 }
-    },
-    serviceAddress: generateServiceAddress('at_seller', 'Miami', 'Beauty & Wellness'),
+    service: mockServices.find(s => s.id === 'photography-003') || mockServices[1],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 7)), // 1 week from now
+    status: 'pending',
+    paymentStatus: 'unpaid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 1)),
+    totalAmount: 650.00,
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Photography'),
     selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
     actions: [
-      { label: 'Review Service', handler: () => console.log('Review service for booking BKG012'), type: 'review' },
-      { label: 'Book Again', handler: () => console.log('Book again booking BKG012'), type: 'reorder' },
-      { label: 'View Details', handler: () => console.log('View details of booking BKG012'), type: 'reorder' }
+      { label: 'Cancel Request', handler: () => console.log('Cancel booking BKG-BUY-002'), type: 'cancel' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-BUY-002'), type: 'reorder' }
     ] as unknown as OrderActionType[]
   },
   {
-    id: 'BKG013',
-    listingId: mockServices[5].id, // Reference to the parent service listing
-    userId: 'USER011',
+    id: 'BKG-BUY-003',
+    listingId: 'tutoring-002', // Standard Tutoring
+    userId: 'current-user',
     items: [],
     type: 'service',
-    service: mockServices[5],
-    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 5)),
-    status: 'requested',
-    paymentStatus: 'pending' as PaymentStatus,
-    orderDate: new Date(),
-    totalAmount: 120.00,
-    serviceLocation: {
-      address: '987 Pine Street, Unit 12B',
-      city: 'Austin',
-      state: 'TX',
-      country: 'United States',
-      zipCode: '78701',
-      coordinates: { lat: 30.2672, lng: -97.7431 }
-    },
-    serviceAddress: generateServiceAddress('at_buyer', 'Austin'),
-    selectedServiceMode: 'at_buyer' as 'at_seller' | 'at_buyer' | 'remote',
-    actions: [
-      { label: 'Cancel Request', handler: () => console.log('Cancel request for booking BKG013'), type: 'cancel' },
-      { label: 'View Details', handler: () => console.log('View details of booking BKG013'), type: 'reorder' }
-    ] as unknown as OrderActionType[]
-  },
-  {
-    id: 'BKG014',
-    listingId: mockServices[6].id, // Reference to the parent service listing
-    userId: 'USER012',
-    items: [],
-    type: 'service',
-    service: mockServices[6],
-    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 1)),
-    status: 'no_show',
-    paymentStatus: 'paid' as PaymentStatus,
-    orderDate: new Date(new Date().setDate(new Date().getDate() - 5)),
-    totalAmount: 80.00,
-    serviceLocation: {
-      address: '654 Maple Avenue, Apartment 3A',
-      city: 'Denver',
-      state: 'CO',
-      country: 'United States',
-      zipCode: '80202',
-      coordinates: { lat: 39.7392, lng: -104.9903 }
-    },
-    serviceAddress: generateServiceAddress('at_buyer', 'Denver'),
-    selectedServiceMode: 'at_buyer' as 'at_seller' | 'at_buyer' | 'remote',
-    actions: [
-      { label: 'Reschedule', handler: () => console.log('Reschedule after no-show booking BKG014'), type: 'reschedule' },
-      { label: 'Request Refund', handler: () => console.log('Request refund for booking BKG014'), type: 'refund' },
-      { label: 'View Details', handler: () => console.log('View details of booking BKG014'), type: 'reorder' }
-    ] as unknown as OrderActionType[]
-  },
-  {
-    id: 'BKG015',
-    listingId: mockServices[7].id, // Reference to the parent service listing
-    userId: 'USER013',
-    items: [],
-    type: 'service',
-    service: mockServices[7],
-    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 10)),
-    status: 'rescheduled',
+    service: mockServices.find(s => s.id === 'tutoring-002') || mockServices[2],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 2)), // 2 days from now
+    status: 'confirmed',
     paymentStatus: 'paid' as PaymentStatus,
     orderDate: new Date(new Date().setDate(new Date().getDate() - 4)),
-    totalAmount: 150.00,
-    serviceAddress: generateServiceAddress('remote', ''),
-    selectedServiceMode: 'remote' as 'at_seller' | 'at_buyer' | 'remote',
-    actions: [
-      { label: 'View New Schedule', handler: () => console.log('View new schedule for booking BKG015'), type: 'view' },
-      { label: 'Message Provider', handler: () => console.log('Message provider for booking BKG015'), type: 'message' },
-      { label: 'View Details', handler: () => console.log('View details of booking BKG015'), type: 'reorder' }
-    ] as unknown as OrderActionType[]
-  },
-  {
-    id: 'BKG016',
-    listingId: mockServices[8].id, // Reference to the parent service listing
-    userId: 'USER014',
-    items: [],
-    type: 'service',
-    service: mockServices[8],
-    appointmentDate: new Date(new Date().setHours(new Date().getHours() + 3)), // 3 hours from now - should show "Soon"
-    status: 'confirmed',
-    paymentStatus: 'paid' as PaymentStatus,
-    orderDate: new Date(new Date().setDate(new Date().getDate() - 2)),
-    totalAmount: 85.00,
-    location: 'Downtown Salon - 456 Style Street',
-    serviceLocation: {
-      address: 'Downtown Salon - 456 Style Street',
-      city: 'Seattle',
-      state: 'WA',
-      country: 'United States',
-      zipCode: '98101',
-      coordinates: { lat: 47.6062, lng: -122.3321 }
-    },
-    serviceAddress: generateServiceAddress('at_seller', 'Seattle', 'Beauty & Wellness'),
+    totalAmount: 75.00,
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Tutoring'),
     selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
     actions: [
-      { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG016'), type: 'reschedule' },
-      { label: 'Message Provider', handler: () => console.log('Message provider for booking BKG016'), type: 'message' },
-      { label: 'View Details', handler: () => console.log('View details of booking BKG016'), type: 'reorder' }
+      { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG-BUY-003'), type: 'reschedule' },
+      { label: 'Message Provider', handler: () => console.log('Message provider for booking BKG-BUY-003'), type: 'message' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-BUY-003'), type: 'reorder' }
     ] as unknown as OrderActionType[]
   },
-  // Additional bookings for the first provider (current seller)
   {
-    id: 'BKG-SELLER-001',
-    listingId: mockServices[0].id,
-    userId: 'USER-SELLER-001',
+    id: 'BKG-BUY-004',
+    listingId: 'fitness-training-001', // Basic Fitness Training
+    userId: 'current-user',
     items: [],
     type: 'service',
-    service: { ...mockServices[0], provider: providers[0] },
+    service: mockServices.find(s => s.id === 'fitness-training-001') || mockServices[3],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 2)), // 2 days ago
+    status: 'completed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 9)),
+    totalAmount: 60.00,
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Fitness Training'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    actions: [
+      { label: 'Leave Review', handler: () => console.log('Leave review for booking BKG-BUY-004'), type: 'review' },
+      { label: 'Book Again', handler: () => console.log('Book again for booking BKG-BUY-004'), type: 'reorder' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-BUY-004'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG-BUY-005',
+    listingId: 'professional-consultation-002', // Standard Consultation
+    userId: 'current-user',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'professional-consultation-002') || mockServices[4],
     appointmentDate: new Date(new Date().setDate(new Date().getDate() + 1)), // Tomorrow
     status: 'confirmed',
     paymentStatus: 'paid' as PaymentStatus,
-    orderDate: new Date(new Date().setDate(new Date().getDate() - 2)),
-    totalAmount: 120.00,
-    serviceLocation: {
-      address: '123 First Avenue',
-      city: 'New York',
-      state: 'NY',
-      country: 'United States',
-      zipCode: '10001',
-      coordinates: { lat: 40.7831, lng: -73.9712 }
-    },
-    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Beauty & Wellness'),
-    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 3)),
+    totalAmount: 125.00,
+    serviceAddress: generateServiceAddress('remote', 'New York'),
+    selectedServiceMode: 'remote' as 'at_seller' | 'at_buyer' | 'remote',
     actions: [
-      { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG-SELLER-001'), type: 'reschedule' },
-      { label: 'Message Customer', handler: () => console.log('Message customer for booking BKG-SELLER-001'), type: 'message' },
-      { label: 'View Details', handler: () => console.log('View details of booking BKG-SELLER-001'), type: 'reorder' }
+      { label: 'Join Video Call', handler: () => console.log('Join video call for booking BKG-BUY-005'), type: 'reorder' },
+      { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG-BUY-005'), type: 'reschedule' },
+      { label: 'Message Provider', handler: () => console.log('Message provider for booking BKG-BUY-005'), type: 'message' }
     ] as unknown as OrderActionType[]
   },
   {
-    id: 'BKG-SELLER-002',
-    listingId: mockServices[0].id,
-    userId: 'USER-SELLER-002',
+    id: 'BKG-BUY-006',
+    listingId: 'photography-001', // Quick Photography
+    userId: 'current-user',
     items: [],
     type: 'service',
-    service: { ...mockServices[0], provider: providers[0] },
-    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 3)), // 3 days from now
-    status: 'pending',
-    paymentStatus: 'unpaid' as PaymentStatus,
-    orderDate: new Date(),
-    totalAmount: 120.00,
-    serviceLocation: {
-      address: '456 Second Street, Apt 3B',
-      city: 'New York',
-      state: 'NY',
-      country: 'United States',
-      zipCode: '10002',
-      coordinates: { lat: 40.7489, lng: -73.9680 }
-    },
+    service: mockServices.find(s => s.id === 'photography-001') || mockServices[5],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 5)), // 5 days ago
+    status: 'completed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 12)),
+    totalAmount: 200.00,
     serviceAddress: generateServiceAddress('at_buyer', 'New York'),
     selectedServiceMode: 'at_buyer' as 'at_seller' | 'at_buyer' | 'remote',
     actions: [
-      { label: 'Confirm Booking', handler: () => console.log('Confirm booking BKG-SELLER-002'), type: 'confirm' },
-      { label: 'Decline', handler: () => console.log('Decline booking BKG-SELLER-002'), type: 'cancel' },
-      { label: 'View Details', handler: () => console.log('View details of booking BKG-SELLER-002'), type: 'reorder' }
+      { label: 'Download Photos', handler: () => console.log('Download photos for booking BKG-BUY-006'), type: 'reorder' },
+      { label: 'Leave Review', handler: () => console.log('Leave review for booking BKG-BUY-006'), type: 'review' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-BUY-006'), type: 'reorder' }
     ] as unknown as OrderActionType[]
   },
   {
-    id: 'BKG-SELLER-003',
-    listingId: mockServices[0].id,
-    userId: 'USER-SELLER-003',
+    id: 'BKG-BUY-007',
+    listingId: 'web-design-004', // Enterprise Web Design
+    userId: 'current-user',
     items: [],
     type: 'service',
-    service: { ...mockServices[0], provider: providers[0] },
+    service: mockServices.find(s => s.id === 'web-design-004') || mockServices[6],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 14)), // 2 weeks from now
+    status: 'pending',
+    paymentStatus: 'unpaid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 1)),
+    totalAmount: 4500.00,
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Web Design'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    actions: [
+      { label: 'Cancel Request', handler: () => console.log('Cancel booking BKG-BUY-007'), type: 'cancel' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-BUY-007'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG-BUY-008',
+    listingId: 'fitness-training-003', // Premium Fitness Training
+    userId: 'current-user',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'fitness-training-003') || mockServices[7],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 4)), // 4 days from now
+    status: 'confirmed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 2)),
+    totalAmount: 120.00,
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Fitness Training'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    actions: [
+      { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG-BUY-008'), type: 'reschedule' },
+      { label: 'Message Provider', handler: () => console.log('Message provider for booking BKG-BUY-008'), type: 'message' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-BUY-008'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG-BUY-009',
+    listingId: 'tutoring-003', // Advanced Tutoring
+    userId: 'current-user',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'tutoring-003') || mockServices[8],
     appointmentDate: new Date(new Date().setDate(new Date().getDate() - 1)), // Yesterday
     status: 'completed',
     paymentStatus: 'paid' as PaymentStatus,
-    orderDate: new Date(new Date().setDate(new Date().getDate() - 5)),
-    totalAmount: 120.00,
-    serviceLocation: {
-      address: '789 Third Plaza',
-      city: 'New York',
-      state: 'NY',
-      country: 'United States',
-      zipCode: '10003',
-      coordinates: { lat: 40.7282, lng: -73.9942 }
-    },
-    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Beauty & Wellness'),
-    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 8)),
+    totalAmount: 100.00,
+    serviceAddress: generateServiceAddress('remote', 'New York'),
+    selectedServiceMode: 'remote' as 'at_seller' | 'at_buyer' | 'remote',
     actions: [
-      { label: 'Request Review', handler: () => console.log('Request review for booking BKG-SELLER-003'), type: 'review' },
-      { label: 'View Details', handler: () => console.log('View details of booking BKG-SELLER-003'), type: 'reorder' }
+      { label: 'Leave Review', handler: () => console.log('Leave review for booking BKG-BUY-009'), type: 'review' },
+      { label: 'Book Again', handler: () => console.log('Book again for booking BKG-BUY-009'), type: 'reorder' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-BUY-009'), type: 'reorder' }
     ] as unknown as OrderActionType[]
   },
   {
-    id: 'ORD001',
-    listingId: mockServices[0].id, // Reference to the parent service listing
-    userId: 'USER001',
+    id: 'BKG-BUY-010',
+    listingId: 'professional-consultation-001', // Basic Consultation
+    userId: 'current-user',
     items: [],
     type: 'service',
-    service: { ...mockServices[0], provider: providers[0] }, // Assign to first provider
-    appointmentDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago (recent completed)
-    status: 'completed', // Changed to completed since it's a past date
-    paymentStatus: 'paid' as PaymentStatus,
-    orderDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
-    totalAmount: 120.00,
-    location: 'Tech Hub Downtown, 123 Main Street, Suite 400', // Backward compatibility
-    serviceLocation: {
-      address: 'Tech Hub Downtown, 123 Main Street, Suite 400',
-      city: 'New York',
-      state: 'NY',
-      country: 'United States',
-      zipCode: '10001',
-      coordinates: { lat: 40.7128, lng: -74.0060 }
-    },
-    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Beauty & Wellness'),
-    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
-    actions: [
-      { label: 'Cancel', handler: () => console.log('Cancel booking BKG001'), type: 'cancel' },
-      { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG001'), type: 'reschedule' },
-      { label: 'Message Provider', handler: () => console.log('Message provider for booking BKG001'), type: 'message' },
-      { label: 'View Details', handler: () => console.log('View details of booking BKG001'), type: 'reorder' }
-    ] as unknown as OrderActionType[]
-  }
-]; */
-
-// Create a simple mock orders array without circular dependencies
-export const mockOrders: Order[] = [
-  {
-    id: 'BKG001',
-    listingId: 'LISTING_SERV_001',
-    userId: 'USER001',
-    items: [],
-    type: 'service',
-    service: {
-      id: 'LISTING_SERV_001',
-      name: 'Basic Consultation',
-      duration: 30,
-      price: 45,
-      provider: providers[0],
-      category: 'Professional Consultation',
-      description: 'Essential consultation session'
-    } as any,
-    appointmentDate: new Date('2024-01-20'),
-    status: 'completed',
-    paymentStatus: 'paid' as PaymentStatus,
-    orderDate: new Date('2024-01-10'),
-    totalAmount: 45.00,
+    service: mockServices.find(s => s.id === 'professional-consultation-001') || mockServices[9],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 7)), // 1 week ago
+    status: 'cancelled',
+    paymentStatus: 'refunded' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 14)),
+    totalAmount: 75.00,
     serviceAddress: generateServiceAddress('at_seller', 'New York', 'Professional Consultation'),
     selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
     actions: [
-      { label: 'View Details', handler: () => console.log('View details of booking BKG001'), type: 'reorder' }
+      { label: 'Book Again', handler: () => console.log('Book again for booking BKG-BUY-010'), type: 'reorder' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-BUY-010'), type: 'reorder' }
     ] as unknown as OrderActionType[]
   }
 ];
@@ -1865,19 +2037,21 @@ export const mockServiceOrders = [
 export const CURRENT_SELLER_ID = providers[0].id; // Using the first provider as the current seller
 
 // Additional mock service orders for the current seller
+// Enhanced mock bookings for current seller with variety in services, dates, and statuses
 const currentSellerMockOrders = [
+  // === Professional Consultation Bookings ===
   {
     id: 'BKG-CS-001',
-    listingId: mockServices.find(s => s.provider.id === CURRENT_SELLER_ID)?.id || mockServices[0].id,
+    listingId: 'professional-consultation-001', // Basic Consultation
     userId: 'USER-CS-001',
     items: [],
     type: 'service',
-    service: mockServices.find(s => s.provider.id === CURRENT_SELLER_ID) || mockServices[0],
+    service: mockServices.find(s => s.id === 'professional-consultation-001') || mockServices[0],
     appointmentDate: new Date(new Date().setDate(new Date().getDate() + 2)), // 2 days from now
     status: 'confirmed',
     paymentStatus: 'paid' as PaymentStatus,
     orderDate: new Date(new Date().setDate(new Date().getDate() - 1)),
-    totalAmount: 150.00,
+    totalAmount: 75.00,
     serviceLocation: {
       address: '123 Main Street, Suite 100',
       city: 'New York',
@@ -1886,7 +2060,7 @@ const currentSellerMockOrders = [
       zipCode: '10001',
       coordinates: { lat: 40.7831, lng: -73.9712 }
     },
-    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Beauty & Wellness'),
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Professional Consultation'),
     selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
     customer: {
       id: 'cust-cs-001',
@@ -1903,16 +2077,16 @@ const currentSellerMockOrders = [
   },
   {
     id: 'BKG-CS-002',
-    listingId: mockServices.find(s => s.provider.id === CURRENT_SELLER_ID)?.id || mockServices[0].id,
+    listingId: 'professional-consultation-003', // Premium Consultation
     userId: 'USER-CS-002',
     items: [],
     type: 'service',
-    service: mockServices.find(s => s.provider.id === CURRENT_SELLER_ID) || mockServices[0],
+    service: mockServices.find(s => s.id === 'professional-consultation-003') || mockServices[1],
     appointmentDate: new Date(new Date().setDate(new Date().getDate() + 5)), // 5 days from now
     status: 'pending',
     paymentStatus: 'unpaid' as PaymentStatus,
     orderDate: new Date(),
-    totalAmount: 150.00,
+    totalAmount: 200.00,
     serviceLocation: {
       address: '456 Oak Avenue, Apartment 2B',
       city: 'New York',
@@ -1921,8 +2095,8 @@ const currentSellerMockOrders = [
       zipCode: '10002',
       coordinates: { lat: 40.7489, lng: -73.9680 }
     },
-    serviceAddress: generateServiceAddress('at_buyer', 'New York'),
-    selectedServiceMode: 'at_buyer' as 'at_seller' | 'at_buyer' | 'remote',
+    serviceAddress: generateServiceAddress('remote', 'New York'),
+    selectedServiceMode: 'remote' as 'at_seller' | 'at_buyer' | 'remote',
     customer: {
       id: 'cust-cs-002',
       name: 'Michael Chen',
@@ -1938,16 +2112,16 @@ const currentSellerMockOrders = [
   },
   {
     id: 'BKG-CS-003',
-    listingId: mockServices.find(s => s.provider.id === CURRENT_SELLER_ID)?.id || mockServices[0].id,
+    listingId: 'professional-consultation-002', // Standard Consultation
     userId: 'USER-CS-003',
     items: [],
     type: 'service',
-    service: mockServices.find(s => s.provider.id === CURRENT_SELLER_ID) || mockServices[0],
+    service: mockServices.find(s => s.id === 'professional-consultation-002') || mockServices[2],
     appointmentDate: new Date(new Date().setDate(new Date().getDate() + 1)), // Tomorrow
     status: 'confirmed',
     paymentStatus: 'paid' as PaymentStatus,
     orderDate: new Date(new Date().setDate(new Date().getDate() - 3)),
-    totalAmount: 150.00,
+    totalAmount: 125.00,
     serviceLocation: {
       address: '789 Pine Street',
       city: 'New York',
@@ -1956,7 +2130,7 @@ const currentSellerMockOrders = [
       zipCode: '10003',
       coordinates: { lat: 40.7282, lng: -73.9942 }
     },
-    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Beauty & Wellness'),
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Professional Consultation'),
     selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
     customer: {
       id: 'cust-cs-003',
@@ -1973,16 +2147,16 @@ const currentSellerMockOrders = [
   },
   {
     id: 'BKG-CS-004',
-    listingId: mockServices.find(s => s.provider.id === CURRENT_SELLER_ID)?.id || mockServices[0].id,
+    listingId: 'professional-consultation-004', // Executive Consultation
     userId: 'USER-CS-004',
     items: [],
     type: 'service',
-    service: mockServices.find(s => s.provider.id === CURRENT_SELLER_ID) || mockServices[0],
+    service: mockServices.find(s => s.id === 'professional-consultation-004') || mockServices[3],
     appointmentDate: new Date(new Date().setDate(new Date().getDate() - 1)), // Yesterday
     status: 'completed',
     paymentStatus: 'paid' as PaymentStatus,
     orderDate: new Date(new Date().setDate(new Date().getDate() - 7)),
-    totalAmount: 150.00,
+    totalAmount: 350.00,
     serviceLocation: {
       address: '321 Elm Street, Suite 5',
       city: 'New York',
@@ -1991,7 +2165,7 @@ const currentSellerMockOrders = [
       zipCode: '10004',
       coordinates: { lat: 40.7074, lng: -74.0113 }
     },
-    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Beauty & Wellness'),
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Professional Consultation'),
     selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
     customer: {
       id: 'cust-cs-004',
@@ -2003,6 +2177,253 @@ const currentSellerMockOrders = [
     actions: [
       { label: 'Request Review', handler: () => console.log('Request review for booking BKG-CS-004'), type: 'review' },
       { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-004'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  // === Web Design Bookings ===
+  {
+    id: 'BKG-CS-005',
+    listingId: 'web-design-001', // Basic Web Design
+    userId: 'USER-CS-005',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'web-design-001') || mockServices[4],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 3)), // 3 days from now
+    status: 'confirmed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 2)),
+    totalAmount: 800.00,
+    serviceLocation: {
+      address: '456 Broadway, Floor 12',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10013',
+      coordinates: { lat: 40.7209, lng: -74.0007 }
+    },
+    serviceAddress: generateServiceAddress('remote', 'New York'),
+    selectedServiceMode: 'remote' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-005',
+      name: 'Jessica Martinez',
+      email: 'jessica.martinez@email.com',
+      phone: '(555) 345-6789',
+      avatar: 'https://randomuser.me/api/portraits/women/24.jpg'
+    },
+    actions: [
+      { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG-CS-005'), type: 'reschedule' },
+      { label: 'Message Customer', handler: () => console.log('Message customer for booking BKG-CS-005'), type: 'message' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-005'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG-CS-006',
+    listingId: 'web-design-003', // Premium Web Design
+    userId: 'USER-CS-006',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'web-design-003') || mockServices[5],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 7)), // 1 week from now
+    status: 'pending',
+    paymentStatus: 'unpaid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 1)),
+    totalAmount: 2200.00,
+    serviceLocation: {
+      address: '123 Technology Drive, Suite 300',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10016',
+      coordinates: { lat: 40.7505, lng: -73.9934 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Web Design'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-006',
+      name: 'Robert Thompson',
+      email: 'robert.thompson@email.com',
+      phone: '(555) 678-9012',
+      avatar: 'https://randomuser.me/api/portraits/men/67.jpg'
+    },
+    actions: [
+      { label: 'Confirm Booking', handler: () => console.log('Confirm booking BKG-CS-006'), type: 'confirm' },
+      { label: 'Decline', handler: () => console.log('Decline booking BKG-CS-006'), type: 'cancel' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-006'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  // === Photography Bookings ===
+  {
+    id: 'BKG-CS-007',
+    listingId: 'photography-002', // Standard Photography
+    userId: 'USER-CS-007',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'photography-002') || mockServices[6],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 3)), // 3 days ago
+    status: 'completed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 10)),
+    totalAmount: 400.00,
+    serviceLocation: {
+      address: '789 Studio Lane, Unit 5',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10011',
+      coordinates: { lat: 40.7414, lng: -74.0055 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Photography'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-007',
+      name: 'Amanda Davis',
+      email: 'amanda.davis@email.com',
+      phone: '(555) 789-0123',
+      avatar: 'https://randomuser.me/api/portraits/women/91.jpg'
+    },
+    actions: [
+      { label: 'Request Review', handler: () => console.log('Request review for booking BKG-CS-007'), type: 'review' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-007'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG-CS-008',
+    listingId: 'photography-004', // Event Photography
+    userId: 'USER-CS-008',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'photography-004') || mockServices[7],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 14)), // 2 weeks from now
+    status: 'confirmed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 5)),
+    totalAmount: 800.00,
+    serviceLocation: {
+      address: '555 Event Plaza, Ballroom A',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10019',
+      coordinates: { lat: 40.7614, lng: -73.9776 }
+    },
+    serviceAddress: generateServiceAddress('at_buyer', 'New York'),
+    selectedServiceMode: 'at_buyer' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-008',
+      name: 'James Wilson',
+      email: 'james.wilson@email.com',
+      phone: '(555) 890-1234',
+      avatar: 'https://randomuser.me/api/portraits/men/33.jpg'
+    },
+    actions: [
+      { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG-CS-008'), type: 'reschedule' },
+      { label: 'Message Customer', handler: () => console.log('Message customer for booking BKG-CS-008'), type: 'message' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-008'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  // === Tutoring Bookings ===
+  {
+    id: 'BKG-CS-009',
+    listingId: 'tutoring-001', // Basic Tutoring
+    userId: 'USER-CS-009',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'tutoring-001') || mockServices[8],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 1)), // Tomorrow
+    status: 'confirmed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 2)),
+    totalAmount: 50.00,
+    serviceLocation: {
+      address: '123 Learning Center, Room 201',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10025',
+      coordinates: { lat: 40.7969, lng: -73.9707 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Tutoring'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-009',
+      name: 'Lisa Anderson',
+      email: 'lisa.anderson@email.com',
+      phone: '(555) 901-2345',
+      avatar: 'https://randomuser.me/api/portraits/women/55.jpg'
+    },
+    actions: [
+      { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG-CS-009'), type: 'reschedule' },
+      { label: 'Message Customer', handler: () => console.log('Message customer for booking BKG-CS-009'), type: 'message' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-009'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  // === Fitness Training Bookings ===
+  {
+    id: 'BKG-CS-010',
+    listingId: 'fitness-training-002', // Personal Fitness Training
+    userId: 'USER-CS-010',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'fitness-training-002') || mockServices[9],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 4)), // 4 days from now
+    status: 'confirmed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 1)),
+    totalAmount: 90.00,
+    serviceLocation: {
+      address: '987 Fitness Avenue, Studio 3',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10014',
+      coordinates: { lat: 40.7359, lng: -74.0014 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Fitness Training'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-010',
+      name: 'Mark Johnson',
+      email: 'mark.johnson@email.com',
+      phone: '(555) 012-3456',
+      avatar: 'https://randomuser.me/api/portraits/men/88.jpg'
+    },
+    actions: [
+      { label: 'Reschedule', handler: () => console.log('Reschedule booking BKG-CS-010'), type: 'reschedule' },
+      { label: 'Message Customer', handler: () => console.log('Message customer for booking BKG-CS-010'), type: 'message' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-010'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  // === Cancelled Booking ===
+  {
+    id: 'BKG-CS-011',
+    listingId: 'professional-consultation-001', // Basic Consultation
+    userId: 'USER-CS-011',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'professional-consultation-001') || mockServices[0],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 5)), // 5 days ago
+    status: 'cancelled',
+    paymentStatus: 'refunded' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 12)),
+    totalAmount: 75.00,
+    serviceLocation: {
+      address: '456 Business Park, Suite 200',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10017',
+      coordinates: { lat: 40.7545, lng: -73.9756 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Professional Consultation'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-011',
+      name: 'Karen White',
+      email: 'karen.white@email.com',
+      phone: '(555) 123-4567',
+      avatar: 'https://randomuser.me/api/portraits/women/77.jpg'
+    },
+    actions: [
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-011'), type: 'reorder' }
     ] as unknown as OrderActionType[]
   }
 ];
@@ -2026,8 +2447,23 @@ export function createBooking(data: {
   selectedSlot: any;
   paymentData?: any;
   notes?: string;
+  selectedTier?: string;
 }): any {
   const bookingId = generateBookingId();
+  
+  // Get the selected tier details if tier is specified
+  let servicePrice = data.service.price;
+  let serviceDuration = data.service.duration;
+  let serviceDescription = data.service.description;
+  
+  if (data.selectedTier) {
+    const tierDetails = getServiceTierDetails(data.service.id, data.selectedTier);
+    if (tierDetails) {
+      servicePrice = tierDetails.price;
+      serviceDuration = tierDetails.duration;
+      serviceDescription = tierDetails.description;
+    }
+  }
   
   const newBooking = {
     id: bookingId,
@@ -2044,7 +2480,10 @@ export function createBooking(data: {
     end: data.selectedSlot.end.toISOString(),
     status: 'requested' as 'pending' | 'requested' | 'confirmed' | 'completed' | 'canceled',
     paymentStatus: 'authorized' as 'paid' | 'unpaid' | 'authorized' | 'refunded',
-    price: data.service.price,
+    price: servicePrice,
+    duration: serviceDuration,
+    description: serviceDescription,
+    selectedTier: data.selectedTier,
     notes: data.notes || '',
     location: data.service.location?.city || 'Service location to be confirmed',
     createdAt: new Date().toISOString(),

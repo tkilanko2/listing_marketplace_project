@@ -20,7 +20,7 @@ export function ProviderProfile({ provider, otherListings, onProviderSelect, onL
           <div className="relative">
             <img
               src={provider.avatar}
-              alt={provider.username}
+              alt={provider.name || provider.username}
               className="w-12 h-12 rounded-full object-cover"
             />
             <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white ${
@@ -29,7 +29,7 @@ export function ProviderProfile({ provider, otherListings, onProviderSelect, onL
           </div>
           <div className="ml-3">
             <div className="flex items-center">
-              <h3 className="font-medium hover:text-blue-600">{provider.username}</h3>
+              <h3 className="font-medium hover:text-blue-600">{provider.name || provider.username}</h3>
               <span className={`ml-2 text-xs ${
                 provider.isOnline ? 'text-green-500' : 'text-gray-500'
               }`}>

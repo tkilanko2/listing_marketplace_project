@@ -1,6 +1,7 @@
 import React from 'react';
-import { Bookmark, Clock, DollarSign, Star, MapPin, Eye, Package2, Wrench, CreditCard } from 'lucide-react';
+import { Bookmark, Clock, DollarSign, Star, MapPin, Eye, Package2, Wrench, CreditCard, Layers } from 'lucide-react';
 import { Service, Product, ListingItem } from '../types';
+import { getServiceTiers } from '../mockData';
 
 interface ListingCardProps {
   item: ListingItem;
@@ -20,8 +21,19 @@ export function ListingCard({ item, onClick }: ListingCardProps) {
           className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"
         />
         {item.type === 'service' && (
-          <div className="absolute top-2 right-2 px-2 py-1 bg-blue-600 text-white text-xs font-medium rounded-full">
-            Service
+          <div className="absolute top-2 right-2 flex items-center space-x-2">
+            <div className="px-2 py-1 bg-blue-600 text-white text-xs font-medium rounded-full">
+              Service
+            </div>
+            {(() => {
+              const tiers = getServiceTiers(item.serviceType);
+              return tiers.length > 1 ? (
+                <div className="flex items-center px-2 py-1 bg-purple-600 text-white text-xs font-medium rounded-full">
+                  <Layers className="w-3 h-3 mr-1" />
+                  {tiers.length} tiers
+                </div>
+              ) : null;
+            })()}
           </div>
         )}
         <div className="absolute bottom-3 left-3 right-3">
@@ -40,7 +52,14 @@ export function ListingCard({ item, onClick }: ListingCardProps) {
         <div className="flex items-center justify-between mt-2 relative">
           <div className="flex items-center space-x-2">
             <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
-              ${item.price.toLocaleString()}
+              {item.type === 'service' ? (() => {
+                const tiers = getServiceTiers(item.serviceType);
+                if (tiers.length > 1) {
+                  const prices = tiers.map(t => t.price).sort((a, b) => a - b);
+                  return `$${prices[0]} - $${prices[prices.length - 1]}`;
+                }
+                return `$${item.price.toLocaleString()}`;
+              })() : `$${item.price.toLocaleString()}`}
             </span>
             {item.trending && (
               <span className="px-2 py-0.5 text-xs font-medium bg-red-50 text-red-600 rounded-full border border-red-100">

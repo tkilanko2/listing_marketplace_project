@@ -27,7 +27,7 @@ export function SellerProfilePage({ provider, listings, onListingSelect, onBack 
           <div className="relative">
             <img
               src={provider.avatar}
-              alt={provider.username}
+              alt={provider.name || provider.username}
               className="w-20 h-20 rounded-full object-cover"
             />
             <div className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-[#FFFFFF] ${
@@ -36,7 +36,7 @@ export function SellerProfilePage({ provider, listings, onListingSelect, onBack 
           </div>
           <div className="ml-6">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-[#1B1C20]">{provider.username}</h1>
+              <h1 className="text-2xl font-bold text-[#1B1C20]">{provider.name || provider.username}</h1>
               <span className={`ml-3 text-sm ${
                 provider.isOnline ? 'text-[#3D1560]' : 'text-[#70727F]'
               }`}>

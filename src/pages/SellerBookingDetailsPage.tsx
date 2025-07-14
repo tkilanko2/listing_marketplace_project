@@ -229,7 +229,7 @@ const BookingConfirmationModal: React.FC<BookingConfirmationModalProps> = ({
                 <span className="text-[#383A47] font-medium">{booking.service?.duration} minutes</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#70727F]">Total Amount:</span>
+                <span className="text-[#70727F]">Amount:</span>
                 <span className="text-[#3D1560] font-bold">${booking.totalAmount.toFixed(2)}</span>
               </div>
             </div>

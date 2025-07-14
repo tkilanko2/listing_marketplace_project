@@ -77,7 +77,7 @@ export function BookingSubmissionConfirmationPage({
             </h1>
             
             <p className="text-lg text-[#383A47] mb-2">
-              Your booking request has been sent to <span className="font-semibold">{service.provider.username}</span>
+              Your booking request has been sent to <span className="font-semibold">{service.provider.name || service.provider.username}</span>
             </p>
             
             <p className="text-[#70727F] mb-6">
@@ -149,11 +149,11 @@ export function BookingSubmissionConfirmationPage({
                 <div className="flex items-center space-x-3">
                   <img
                     src={service.provider.avatar}
-                    alt={service.provider.username}
+                    alt={service.provider.name || service.provider.username}
                     className="w-10 h-10 rounded-full object-cover border border-[#CDCED8]"
                   />
                   <div>
-                    <p className="font-semibold text-[#1B1C20]">{service.provider.username}</p>
+                    <p className="font-semibold text-[#1B1C20]">{service.provider.name || service.provider.username}</p>
                     <p className="text-sm text-[#70727F]">⭐ {service.provider.rating.toFixed(1)} rating</p>
                   </div>
                 </div>
@@ -171,7 +171,7 @@ export function BookingSubmissionConfirmationPage({
               <div className="flex items-start space-x-3">
                 <div className="bg-[#3D1560] text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-semibold">1</div>
                 <p className="text-[#383A47]">
-                  <strong>{service.provider.username}</strong> will review your booking request (usually within a few hours)
+                  <strong>{service.provider.name || service.provider.username}</strong> will review your booking request (usually within a few hours)
                 </p>
               </div>
               <div className="flex items-start space-x-3">

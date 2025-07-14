@@ -1,6 +1,7 @@
 export interface ServiceProvider {
   id: string;
   username: string;
+  name?: string; // Display name with first name and initial (e.g., "Michael J.")
   avatar: string;
   rating: number;
   totalBookings: number;
@@ -53,6 +54,15 @@ export interface BaseItem {
   reviewCount?: number;
 }
 
+export interface ServiceTier {
+  id: string;
+  name: string; // e.g., "Basic", "Standard", "Premium"
+  price: number;
+  duration: number;
+  description: string;
+  onlinePayment: boolean;
+}
+
 export interface Service extends BaseItem {
   type: 'service';
   duration: number;
@@ -73,6 +83,9 @@ export interface Service extends BaseItem {
     payAtService: boolean;
   };
   status?: 'pending' | 'active' | 'draft' | 'inactive';
+  // New tier support
+  tiers?: ServiceTier[];
+  defaultTier?: string; // ID of the default tier
 }
 
 export interface Product extends BaseItem {

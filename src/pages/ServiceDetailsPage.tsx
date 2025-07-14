@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { ServiceGallery } from '../components/ServiceGallery';
 import { ProviderProfile } from '../components/ProviderProfile';
-import { mockServices } from '../mockData';
+import { mockServices, getServiceTiers } from '../mockData';
 import { TrustElements } from '../components/TrustElements';
 import { EnhancedReviews } from '../components/EnhancedReviews';
 import { DetailedReview } from '../types/Review';
@@ -46,9 +46,12 @@ interface ServiceDetailsPageProps {
 
 export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelect, onListingSelect, isItemSaved, toggleSaveItem }: ServiceDetailsPageProps) {
   const [provider, setProvider] = useState(service.provider);
-  const otherServices = mockServices.filter(s => 
-    s.provider.id === provider.id && s.id !== service.id
+  // Show other tiers of the same service type, plus other services from the same provider
+  const serviceTiers = getServiceTiers(service.serviceType).filter(s => s.id !== service.id);
+  const otherProviderServices = mockServices.filter(s => 
+    s.provider.id === provider.id && s.id !== service.id && s.serviceType !== service.serviceType
   );
+  const otherServices = [...serviceTiers, ...otherProviderServices];
 
   const trustData = {
     monthlyPurchases: 124,
@@ -375,6 +378,30 @@ export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelec
         <div className="lg:col-span-1">
           <FadeInOnScroll delay={0.4}>
             <div className="space-y-6">
+              {/* Service Tier Selector */}
+              {serviceTiers.length > 0 && (
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-[#CDCED8]">
+                  <h3 className="text-lg font-semibold mb-4 text-[#1B1C20]">Other {service.serviceType} Tiers</h3>
+                  <div className="space-y-3">
+                    {serviceTiers.map((tier) => (
+                      <div
+                        key={tier.id}
+                        className="flex items-center justify-between p-3 border border-[#CDCED8] rounded-lg hover:border-[#6D26AB] cursor-pointer transition-colors"
+                        onClick={() => onListingSelect(tier)}
+                      >
+                        <div className="flex-1">
+                          <h4 className="font-medium text-[#1B1C20] text-sm">{tier.name}</h4>
+                          <p className="text-xs text-[#70727F] mt-1">{tier.duration} min</p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-semibold text-[#3D1560]">${tier.price}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Core Booking Section */}
               <div className="bg-white pt-8 px-8 pb-6 rounded-xl shadow-sm border border-[#CDCED8]">
                 {/* Price and Booking Section */}
