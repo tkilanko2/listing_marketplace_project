@@ -114,14 +114,6 @@ function generateReviews(listingId: string, listingTitle: string, providerId: st
     'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&h=300&fit=crop'
   ];
 
-  const criteriaOptions = [
-    { name: 'Communication', rating: 4 + Math.random() },
-    { name: 'Quality', rating: 4 + Math.random() },
-    { name: 'Punctuality', rating: 4 + Math.random() },
-    { name: 'Professionalism', rating: 4 + Math.random() },
-    { name: 'Value for Money', rating: 4 + Math.random() }
-  ];
-
   return Array.from({ length: Math.floor(Math.random() * 5) + 3 }, (_, index) => ({
     id: Math.random().toString(36).substr(2, 9),
     listingId,
@@ -133,10 +125,7 @@ function generateReviews(listingId: string, listingTitle: string, providerId: st
     reviewTitle: reviewTitles[Math.floor(Math.random() * reviewTitles.length)],
     comment: reviewComments[Math.floor(Math.random() * reviewComments.length)],
     rating: Math.floor(Math.random() * 2) + 4, // 4 or 5 stars
-    criterias: criteriaOptions.slice(0, Math.floor(Math.random() * 3) + 2).map(c => ({
-      name: c.name,
-      rating: Number((c.rating).toFixed(1))
-    })),
+    criterias: [], // Remove sub-ratings to match what the review form collects
     date: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
     helpfulCount: Math.floor(Math.random() * 15),
     notHelpfulCount: Math.floor(Math.random() * 3),

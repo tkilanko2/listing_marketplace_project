@@ -1769,7 +1769,7 @@ function App() {
               { (true) && ( // Assuming there are always reviews or a link to see more
                 <div className="mt-6 text-right">
                   <button 
-                    onClick={() => alert('Navigate to All My Reviews page')}
+                    onClick={() => handleNavigate('myReviews')}
                     className="text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center ml-auto text-sm"
                   >
                     View All My Reviews
@@ -2224,7 +2224,10 @@ function App() {
             
             <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-200">
               <span className="text-sm text-gray-500">Recent review: 2 days ago</span>
-              <button className="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center">
+              <button 
+                onClick={() => handleNavigate('myReviews')}
+                className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center"
+              >
                 View all
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
