@@ -2425,6 +2425,415 @@ const currentSellerMockOrders = [
     actions: [
       { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-011'), type: 'reorder' }
     ] as unknown as OrderActionType[]
+  },
+  // === MORE COMPLETED APPOINTMENTS FOR SELLER RATINGS TESTING ===
+  {
+    id: 'BKG-CS-012',
+    listingId: 'career-guidance-professional-development-consultation-001',
+    userId: 'USER-CS-012',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'career-guidance-professional-development-consultation-001') || mockServices[0],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 3)), // 3 days ago
+    status: 'completed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 10)),
+    totalAmount: 85.00,
+    serviceLocation: {
+      address: '123 Beauty Avenue, Suite 4',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10005',
+      coordinates: { lat: 40.7074, lng: -74.0113 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Professional Consultation'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-012',
+      name: 'Jennifer Smith',
+      email: 'jennifer.smith@email.com',
+      phone: '(555) 678-9012',
+      avatar: 'https://randomuser.me/api/portraits/women/44.jpg'
+    },
+    actions: [
+      { label: 'Request Review', handler: () => console.log('Request review for booking BKG-CS-012'), type: 'review' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-012'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG-CS-013',
+    listingId: 'business-strategy-market-analysis-consultation-001',
+    userId: 'USER-CS-013',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'business-strategy-market-analysis-consultation-001') || mockServices[0],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 5)), // 5 days ago
+    status: 'completed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 12)),
+    totalAmount: 125.00,
+    serviceLocation: {
+      address: '456 Barber Street, Unit 2',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10006',
+      coordinates: { lat: 40.7128, lng: -74.0060 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Professional Consultation'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-013',
+      name: 'Marcus Johnson',
+      email: 'marcus.johnson@email.com',
+      phone: '(555) 789-0123',
+      avatar: 'https://randomuser.me/api/portraits/men/35.jpg'
+    },
+    actions: [
+      { label: 'Request Review', handler: () => console.log('Request review for booking BKG-CS-013'), type: 'review' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-013'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG-CS-014',
+    listingId: 'career-guidance-professional-development-consultation-001',
+    userId: 'USER-CS-014',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'career-guidance-professional-development-consultation-001') || mockServices[0],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 7)), // 1 week ago
+    status: 'completed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 14)),
+    totalAmount: 85.00,
+    serviceLocation: {
+      address: '789 Fitness Plaza, Gym Floor 3',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10007',
+      coordinates: { lat: 40.7282, lng: -73.9942 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Fitness Training'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-014',
+      name: 'Rachel Williams',
+      email: 'rachel.williams@email.com',
+      phone: '(555) 890-1234',
+      avatar: 'https://randomuser.me/api/portraits/women/78.jpg'
+    },
+    actions: [
+      { label: 'Request Review', handler: () => console.log('Request review for booking BKG-CS-014'), type: 'review' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-014'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG-CS-015',
+    listingId: 'business-strategy-market-analysis-consultation-001',
+    userId: 'USER-CS-015',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'business-strategy-market-analysis-consultation-001') || mockServices[0],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 2)), // 2 days ago
+    status: 'completed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 9)),
+    totalAmount: 125.00,
+    serviceLocation: {
+      address: '321 Education Center, Room 102',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10008',
+      coordinates: { lat: 40.7505, lng: -73.9934 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Tutoring'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-015',
+      name: 'Alex Chen',
+      email: 'alex.chen@email.com',
+      phone: '(555) 901-2345',
+      avatar: 'https://randomuser.me/api/portraits/men/52.jpg'
+    },
+    actions: [
+      { label: 'Request Review', handler: () => console.log('Request review for booking BKG-CS-015'), type: 'review' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-015'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG-CS-016',
+    listingId: 'career-guidance-professional-development-consultation-001',
+    userId: 'USER-CS-016',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'career-guidance-professional-development-consultation-001') || mockServices[0],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 6)), // 6 days ago
+    status: 'completed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 13)),
+    totalAmount: 85.00,
+    serviceLocation: {
+      address: '654 Language Institute, Floor 2',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10009',
+      coordinates: { lat: 40.7614, lng: -73.9776 }
+    },
+    serviceAddress: generateServiceAddress('remote', 'New York'),
+    selectedServiceMode: 'remote' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-016',
+      name: 'Sofia Rodriguez',
+      email: 'sofia.rodriguez@email.com',
+      phone: '(555) 012-3456',
+      avatar: 'https://randomuser.me/api/portraits/women/63.jpg'
+    },
+    actions: [
+      { label: 'Request Review', handler: () => console.log('Request review for booking BKG-CS-016'), type: 'review' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-016'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG-CS-017',
+    listingId: 'business-strategy-market-analysis-consultation-001',
+    userId: 'USER-CS-017',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'business-strategy-market-analysis-consultation-001') || mockServices[0],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 4)), // 4 days ago
+    status: 'completed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 11)),
+    totalAmount: 125.00,
+    serviceLocation: {
+      address: '987 Residential Street, Apartment 3A',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10010',
+      coordinates: { lat: 40.7359, lng: -74.0014 }
+    },
+    serviceAddress: generateServiceAddress('at_buyer', 'New York'),
+    selectedServiceMode: 'at_buyer' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-017',
+      name: 'Maria Gonzalez',
+      email: 'maria.gonzalez@email.com',
+      phone: '(555) 123-4567',
+      avatar: 'https://randomuser.me/api/portraits/women/29.jpg'
+    },
+    actions: [
+      { label: 'Request Review', handler: () => console.log('Request review for booking BKG-CS-017'), type: 'review' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-017'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG-CS-018',
+    listingId: 'career-guidance-professional-development-consultation-001',
+    userId: 'USER-CS-018',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'career-guidance-professional-development-consultation-001') || mockServices[0],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 8)), // 8 days ago
+    status: 'completed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 15)),
+    totalAmount: 85.00,
+    serviceLocation: {
+      address: '123 Tech Support Center, Unit 5',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10011',
+      coordinates: { lat: 40.7414, lng: -74.0055 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Tech Support'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-018',
+      name: 'Kevin Brown',
+      email: 'kevin.brown@email.com',
+      phone: '(555) 234-5678',
+      avatar: 'https://randomuser.me/api/portraits/men/41.jpg'
+    },
+    actions: [
+      { label: 'Request Review', handler: () => console.log('Request review for booking BKG-CS-018'), type: 'review' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-018'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG-CS-019',
+    listingId: 'event-planning-coordination-services-001',
+    userId: 'USER-CS-019',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'event-planning-coordination-services-001') || mockServices[7],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 10)), // 10 days ago
+    status: 'completed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 21)),
+    totalAmount: 185.00,
+    serviceLocation: {
+      address: '456 Event Plaza, Conference Room A',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10012',
+      coordinates: { lat: 40.7282, lng: -73.9942 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Event Planning'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-019',
+      name: 'Lauren Davis',
+      email: 'lauren.davis@email.com',
+      phone: '(555) 345-6789',
+      avatar: 'https://randomuser.me/api/portraits/women/83.jpg'
+    },
+    actions: [
+      { label: 'Request Review', handler: () => console.log('Request review for booking BKG-CS-019'), type: 'review' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-019'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG-CS-020',
+    listingId: 'professional-photography-services-001',
+    userId: 'USER-CS-020',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'professional-photography-services-001') || mockServices[8],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 1)), // Yesterday
+    status: 'completed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 8)),
+    totalAmount: 145.00,
+    serviceLocation: {
+      address: '789 Photography Studio, Floor 4',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10013',
+      coordinates: { lat: 40.7209, lng: -74.0007 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Photography'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-020',
+      name: 'Thomas Wilson',
+      email: 'thomas.wilson@email.com',
+      phone: '(555) 456-7890',
+      avatar: 'https://randomuser.me/api/portraits/men/67.jpg'
+    },
+    actions: [
+      { label: 'Request Review', handler: () => console.log('Request review for booking BKG-CS-020'), type: 'review' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-020'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG-CS-021',
+    listingId: 'video-production-editing-services-001',
+    userId: 'USER-CS-021',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'video-production-editing-services-001') || mockServices[9],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 9)), // 9 days ago
+    status: 'completed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 16)),
+    totalAmount: 185.00,
+    serviceLocation: {
+      address: '321 Media Center, Studio B',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10014',
+      coordinates: { lat: 40.7359, lng: -74.0014 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Video Production'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-021',
+      name: 'Patricia Miller',
+      email: 'patricia.miller@email.com',
+      phone: '(555) 567-8901',
+      avatar: 'https://randomuser.me/api/portraits/women/95.jpg'
+    },
+    actions: [
+      { label: 'Request Review', handler: () => console.log('Request review for booking BKG-CS-021'), type: 'review' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-021'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG-CS-022',
+    listingId: 'garden-design-landscaping-services-001',
+    userId: 'USER-CS-022',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'garden-design-landscaping-services-001') || mockServices[10],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 12)), // 12 days ago
+    status: 'completed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 19)),
+    totalAmount: 145.00,
+    serviceLocation: {
+      address: '654 Garden Avenue, Backyard',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10015',
+      coordinates: { lat: 40.7505, lng: -73.9934 }
+    },
+    serviceAddress: generateServiceAddress('at_buyer', 'New York'),
+    selectedServiceMode: 'at_buyer' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-022',
+      name: 'Daniel Lee',
+      email: 'daniel.lee@email.com',
+      phone: '(555) 678-9012',
+      avatar: 'https://randomuser.me/api/portraits/men/19.jpg'
+    },
+    actions: [
+      { label: 'Request Review', handler: () => console.log('Request review for booking BKG-CS-022'), type: 'review' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-022'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
+  },
+  {
+    id: 'BKG-CS-023',
+    listingId: 'landscape-architecture-planning-services-001',
+    userId: 'USER-CS-023',
+    items: [],
+    type: 'service',
+    service: mockServices.find(s => s.id === 'landscape-architecture-planning-services-001') || mockServices[11],
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 14)), // 14 days ago
+    status: 'completed',
+    paymentStatus: 'paid' as PaymentStatus,
+    orderDate: new Date(new Date().setDate(new Date().getDate() - 21)),
+    totalAmount: 175.00,
+    serviceLocation: {
+      address: '987 Architecture Office, Suite 300',
+      city: 'New York',
+      state: 'NY',
+      country: 'United States',
+      zipCode: '10016',
+      coordinates: { lat: 40.7614, lng: -73.9776 }
+    },
+    serviceAddress: generateServiceAddress('at_seller', 'New York', 'Landscape Architecture'),
+    selectedServiceMode: 'at_seller' as 'at_seller' | 'at_buyer' | 'remote',
+    customer: {
+      id: 'cust-cs-023',
+      name: 'Catherine Taylor',
+      email: 'catherine.taylor@email.com',
+      phone: '(555) 789-0123',
+      avatar: 'https://randomuser.me/api/portraits/women/48.jpg'
+    },
+    actions: [
+      { label: 'Request Review', handler: () => console.log('Request review for booking BKG-CS-023'), type: 'review' },
+      { label: 'View Details', handler: () => console.log('View details of booking BKG-CS-023'), type: 'reorder' }
+    ] as unknown as OrderActionType[]
   }
 ];
 
@@ -2536,8 +2945,9 @@ export function getAllOrdersWithBookings(): any[] {
   // Convert bookings to order format
   const convertedBookings = mockBookings.map(convertBookingToOrder);
   
-  // Combine with existing mock orders and sort by orderDate (newest first)
-  const allOrders = [...mockOrders, ...convertedBookings];
+  // Combine with existing mock orders, current seller mock orders, and converted bookings
+  // Sort by orderDate (newest first)
+  const allOrders = [...mockOrders, ...currentSellerMockOrders, ...convertedBookings];
   
   return allOrders.sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
 }
