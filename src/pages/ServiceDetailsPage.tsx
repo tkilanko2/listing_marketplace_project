@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Service, Review, ServiceProvider, ListingItem } from '../types';
+import { Service, ServiceProvider, ListingItem } from '../types';
 import { 
   ArrowLeft, 
   Clock, 
@@ -28,7 +28,7 @@ import { ProviderProfile } from '../components/ProviderProfile';
 import { mockServices, getServiceTiers } from '../mockData';
 import { TrustElements } from '../components/TrustElements';
 import { EnhancedReviews } from '../components/EnhancedReviews';
-import { DetailedReview } from '../types/Review';
+import { Review } from '../types/Review';
 import { FadeInOnScroll } from '../components/animations/FadeInOnScroll';
 import { ParallaxSection } from '../components/animations/ParallaxSection';
 import { HeartAnimation } from '../components/animations/HeartAnimation';
@@ -60,59 +60,23 @@ export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelec
     verifiedBusiness: true,
   };
 
-  const [reviews, setReviews] = useState<DetailedReview[]>([
-    {
-      id: '1',
-      author: 'Emily W.',
-      rating: 5,
-      date: new Date('2023-03-15'),
-      title: 'Exceptional Service',
-      content: 'The attention to detail was remarkable. The service provider was professional, punctual, and went above and beyond my expectations. I particularly appreciated their clear communication throughout the process.',
-      isVerified: true,
-      helpfulCount: 32,
-      notHelpfulCount: 1,
-      images: ['/images/service-review1.jpg', '/images/service-review2.jpg'],
-      userVote: 'helpful',
-    },
-    {
-      id: '2',
-      author: 'David K.',
-      rating: 4,
-      date: new Date('2023-03-10'),
-      content: 'Great service overall. The provider was knowledgeable and efficient. The only minor issue was scheduling flexibility, but the quality of work made up for it.',
-      isVerified: true,
-      helpfulCount: 18,
-      notHelpfulCount: 2,
-      images: ['/images/service-review3.jpg'],
-    },
-    {
-      id: '3',
-      author: 'Rachel M.',
-      rating: 5,
-      date: new Date('2023-03-05'),
-      title: 'Highly Recommended',
-      content: 'This is my second time using this service, and they maintain consistently high standards. The provider is skilled, professional, and a pleasure to work with.',
-      isVerified: true,
-      helpfulCount: 24,
-      notHelpfulCount: 0,
-    },
-  ]);
+  // Load all reviews for the provider (across all their services)
+  const [reviews, setReviews] = useState<Review[]>(() => {
+    if (!service?.provider?.id) return [];
+    const providerServices = mockServices.filter(s => s.provider.id === service.provider.id);
+    return providerServices.flatMap(s => s.reviews || []);
+  });
 
   // Update provider rating when reviews change
   useEffect(() => {
-    const total = reviews.length;
-    const averageRating = reviews.reduce((acc, review) => acc + review.rating, 0) / total;
-    setProvider(prev => ({
-      ...prev,
-      rating: Number(averageRating.toFixed(1)),
-      reviews: reviews.map(review => ({
-        id: review.id,
-        rating: review.rating,
-        comment: review.content,
-        createdAt: review.date,
-        customerName: review.author
-      }))
-    }));
+    if (reviews.length > 0) {
+      const total = reviews.length;
+      const averageRating = reviews.reduce((acc, review) => acc + review.rating, 0) / total;
+      setProvider(prev => ({
+        ...prev,
+        rating: Number(averageRating.toFixed(1))
+      }));
+    }
   }, [reviews]);
 
   const handleReviewVote = (reviewId: string, isHelpful: boolean) => {
@@ -368,6 +332,7 @@ export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelec
                 <EnhancedReviews
                   reviews={reviews}
                   onVoteHelpful={handleReviewVote}
+                  currentListingId={service?.id}
                 />
               </div>
             </FadeInOnScroll>

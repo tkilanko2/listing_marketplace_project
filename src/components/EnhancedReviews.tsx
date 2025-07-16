@@ -1,22 +1,23 @@
 import React, { useMemo, useState } from 'react';
 import { Star, ThumbsUp, ThumbsDown, Camera, Filter, Calendar, CheckCircle } from 'lucide-react';
-import { DetailedReview } from '../types/Review';
+import { Review } from '../types/Review';
 
 interface EnhancedReviewsProps {
-  reviews: DetailedReview[];
+  reviews: Review[];
   onVoteHelpful: (reviewId: string, isHelpful: boolean) => void;
+  currentListingId?: string;
 }
 
-export function EnhancedReviews({ reviews, onVoteHelpful }: EnhancedReviewsProps) {
+export function EnhancedReviews({ reviews, onVoteHelpful, currentListingId }: EnhancedReviewsProps) {
   const [activeFilters, setActiveFilters] = useState<{
     rating: number | null;
     hasPhotos: boolean;
-    isVerified: boolean;
+    filterForListing: boolean;
     sortBy: 'recent' | 'helpful';
   }>({
     rating: null,
     hasPhotos: false,
-    isVerified: false,
+    filterForListing: false,
     sortBy: 'recent',
   });
 
@@ -29,16 +30,16 @@ export function EnhancedReviews({ reviews, onVoteHelpful }: EnhancedReviewsProps
       percentage: (reviews.filter(review => review.rating === 5 - i).length / total) * 100,
     }));
     const photosCount = reviews.filter(review => review.images && review.images.length > 0).length;
-    const verifiedCount = reviews.filter(review => review.isVerified).length;
+    const listingSpecificCount = currentListingId ? reviews.filter(review => review.listingId === currentListingId).length : 0;
 
     return {
       total,
       averageRating,
       ratingDistribution,
       photosCount,
-      verifiedCount,
+      listingSpecificCount,
     };
-  }, [reviews]);
+  }, [reviews, currentListingId]);
 
   const filteredReviews = useMemo(() => {
     let filtered = [...reviews];
@@ -51,17 +52,17 @@ export function EnhancedReviews({ reviews, onVoteHelpful }: EnhancedReviewsProps
       filtered = filtered.filter(review => review.images && review.images.length > 0);
     }
 
-    if (activeFilters.isVerified) {
-      filtered = filtered.filter(review => review.isVerified);
+    if (activeFilters.filterForListing && currentListingId) {
+      filtered = filtered.filter(review => review.listingId === currentListingId);
     }
-
+    
     return filtered.sort((a, b) => {
       if (activeFilters.sortBy === 'recent') {
-        return b.date.getTime() - a.date.getTime();
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
       }
       return (b.helpfulCount - b.notHelpfulCount) - (a.helpfulCount - a.notHelpfulCount);
     });
-  }, [reviews, activeFilters]);
+  }, [reviews, activeFilters, currentListingId]);
 
   return (
     <div className="bg-white rounded-xl shadow-sm">
@@ -93,10 +94,12 @@ export function EnhancedReviews({ reviews, onVoteHelpful }: EnhancedReviewsProps
               <div className="text-lg font-semibold text-gray-900">{reviewStats.photosCount}</div>
               <div className="text-sm text-gray-500">With photos</div>
             </div>
-            <div className="text-center">
-              <div className="text-lg font-semibold text-gray-900">{reviewStats.verifiedCount}</div>
-              <div className="text-sm text-gray-500">Verified purchases</div>
-            </div>
+            {currentListingId && (
+              <div className="text-center">
+                <div className="text-lg font-semibold text-gray-900">{reviewStats.listingSpecificCount}</div>
+                <div className="text-sm text-gray-500">For this listing</div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -142,17 +145,19 @@ export function EnhancedReviews({ reviews, onVoteHelpful }: EnhancedReviewsProps
           <Camera className="w-4 h-4" />
           <span>With photos</span>
         </button>
-        <button
-          onClick={() => setActiveFilters(prev => ({ ...prev, isVerified: !prev.isVerified }))}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full border ${
-            activeFilters.isVerified
-              ? 'border-[#3D1560] bg-[#EDD9FF] text-[#3D1560]'
-              : 'border-[#CDCED8] hover:border-[#6D26AB]'
-          }`}
-        >
-          <CheckCircle className="w-4 h-4" />
-          <span>Verified purchases</span>
-        </button>
+        {currentListingId && (
+          <button
+            onClick={() => setActiveFilters(prev => ({ ...prev, filterForListing: !prev.filterForListing }))}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full border ${
+              activeFilters.filterForListing
+                ? 'border-[#3D1560] bg-[#EDD9FF] text-[#3D1560]'
+                : 'border-[#CDCED8] hover:border-[#6D26AB]'
+            }`}
+          >
+            <Filter className="w-4 h-4" />
+            <span>Filter for this listing</span>
+          </button>
+        )}
         <button
           onClick={() => setActiveFilters(prev => ({
             ...prev,
@@ -181,13 +186,7 @@ export function EnhancedReviews({ reviews, onVoteHelpful }: EnhancedReviewsProps
             <div className="flex items-start justify-between mb-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-gray-900">{review.author}</span>
-                  {review.isVerified && (
-                    <span className="inline-flex items-center gap-1 text-sm text-green-600">
-                      <CheckCircle className="w-4 h-4" />
-                      Verified purchase
-                    </span>
-                  )}
+                  <span className="font-semibold text-gray-900">{review.reviewerName}</span>
                 </div>
                 <div className="flex items-center gap-2 mt-1">
                   <div className="flex">
@@ -201,16 +200,16 @@ export function EnhancedReviews({ reviews, onVoteHelpful }: EnhancedReviewsProps
                     ))}
                   </div>
                   <span className="text-sm text-gray-500">
-                    {review.date.toLocaleDateString()}
+                    {new Date(review.date).toLocaleDateString()}
                   </span>
                 </div>
               </div>
             </div>
 
-            {review.title && (
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">{review.title}</h3>
+            {review.reviewTitle && (
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{review.reviewTitle}</h3>
             )}
-            <p className="text-gray-600 mb-4">{review.content}</p>
+            <p className="text-gray-600 mb-4">{review.comment}</p>
 
             {review.images && review.images.length > 0 && (
               <div className="flex gap-2 mb-4">
@@ -226,7 +225,7 @@ export function EnhancedReviews({ reviews, onVoteHelpful }: EnhancedReviewsProps
             )}
 
             <div className="flex items-center gap-4 mt-4 text-sm text-gray-500">
-              <span>{review.date.toLocaleDateString()}</span>
+              <span>{new Date(review.date).toLocaleDateString()}</span>
               <div className="flex items-center gap-2">
                 <span>Was this review helpful?</span>
                 <button

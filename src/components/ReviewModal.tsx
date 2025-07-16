@@ -6,6 +6,7 @@ export interface ReviewModalProps {
   onClose: () => void;
   onSubmit: (reviewData: {
     rating: number;
+    reviewTitle: string;
     review: string;
     images: File[];
   }) => void;
@@ -26,6 +27,7 @@ export function ReviewModal({
 }: ReviewModalProps) {
   const [rating, setRating] = useState<number>(0);
   const [hoveredRating, setHoveredRating] = useState<number>(0);
+  const [reviewTitle, setReviewTitle] = useState<string>('');
   const [review, setReview] = useState<string>('');
   const [images, setImages] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -76,12 +78,14 @@ export function ReviewModal({
     try {
       await onSubmit({
         rating,
+        reviewTitle: reviewTitle.trim(),
         review: review.trim(),
         images
       });
       
       // Reset form
       setRating(0);
+      setReviewTitle('');
       setReview('');
       setImages([]);
       onClose();
@@ -95,6 +99,7 @@ export function ReviewModal({
   const handleClose = () => {
     setRating(0);
     setHoveredRating(0);
+    setReviewTitle('');
     setReview('');
     setImages([]);
     onClose();
@@ -214,6 +219,24 @@ export function ReviewModal({
                  </p>
                )}
              </div>
+          </div>
+
+          {/* Review Title Section */}
+          <div>
+            <label className="block text-sm font-semibold text-[#1B1C20] mb-2">
+              Review Title
+            </label>
+            <input
+              type="text"
+              value={reviewTitle}
+              onChange={(e) => setReviewTitle(e.target.value)}
+              placeholder="Summarize your experience in a few words..."
+              maxLength={100}
+              className="w-full border border-[#CDCED8] rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] text-sm"
+            />
+            <p className="text-xs text-[#70727F] mt-1">
+              {reviewTitle.length}/100
+            </p>
           </div>
 
           {/* Written Review Section */}

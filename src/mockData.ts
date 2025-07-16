@@ -67,7 +67,7 @@ function generateServiceAddress(serviceMode: 'at_seller' | 'at_buyer' | 'remote'
 }
 
 // Helper function to generate reviews
-function generateReviews() {
+function generateReviews(listingId: string, listingTitle: string, providerId: string) {
   const reviewComments = [
     'Excellent service! Very professional and punctual.',
     'Great experience, would definitely recommend!',
@@ -79,21 +79,68 @@ function generateReviews() {
     'Very satisfied with the quality of work.'
   ];
 
-  const customerNames = [
-    'John D.', 'Sarah M.', 'Michael R.', 'Emma W.',
-    'David L.', 'Lisa K.', 'Robert P.', 'Anna S.'
+  const reviewTitles = [
+    'Outstanding professional service!',
+    'Highly recommend this provider',
+    'Exceeded my expectations',
+    'Very skilled and reliable',
+    'Good value for money',
+    'Excellent attention to detail',
+    'Quick and efficient work',
+    'Professional and courteous'
+  ];
+
+  const usernames = [
+    'HappyBuyer23', 'ServiceSeeker88', 'QualityFirst', 'ReviewerPro',
+    'CustomerABC', 'BookingMaster', 'ServiceUser99', 'ProfessionalBuyer'
+  ];
+
+  const avatarUrls = [
+    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+    'https://images.unsplash.com/photo-1494790108755-2616b68b51c2?w=150&h=150&fit=crop&crop=face',
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+    'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
+    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face',
+    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop&crop=face',
+    'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face'
+  ];
+
+  const reviewImages = [
+    'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&h=300&fit=crop'
+  ];
+
+  const criteriaOptions = [
+    { name: 'Communication', rating: 4 + Math.random() },
+    { name: 'Quality', rating: 4 + Math.random() },
+    { name: 'Punctuality', rating: 4 + Math.random() },
+    { name: 'Professionalism', rating: 4 + Math.random() },
+    { name: 'Value for Money', rating: 4 + Math.random() }
   ];
 
   return Array.from({ length: Math.floor(Math.random() * 5) + 3 }, (_, index) => ({
     id: Math.random().toString(36).substr(2, 9),
-    rating: Math.floor(Math.random() * 2) + 4, // 4 or 5 stars
-    comment: reviewComments[Math.floor(Math.random() * reviewComments.length)],
-    createdAt: new Date(Date.now() - Math.random() * 10000000000),
-    customerName: customerNames[Math.floor(Math.random() * customerNames.length)],
-    // Add new required fields
+    listingId,
+    listingTitle,
+    providerId,
     reviewerId: `customer-${index}-${Math.random().toString(36).substr(2, 6)}`,
-    revieweeId: `provider-${Math.random().toString(36).substr(2, 6)}`, 
-    reviewType: 'service_provider' as 'service_provider' | 'customer'
+    reviewerName: usernames[Math.floor(Math.random() * usernames.length)],
+    reviewerAvatar: avatarUrls[Math.floor(Math.random() * avatarUrls.length)],
+    reviewTitle: reviewTitles[Math.floor(Math.random() * reviewTitles.length)],
+    comment: reviewComments[Math.floor(Math.random() * reviewComments.length)],
+    rating: Math.floor(Math.random() * 2) + 4, // 4 or 5 stars
+    criterias: criteriaOptions.slice(0, Math.floor(Math.random() * 3) + 2).map(c => ({
+      name: c.name,
+      rating: Number((c.rating).toFixed(1))
+    })),
+    date: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
+    helpfulCount: Math.floor(Math.random() * 15),
+    notHelpfulCount: Math.floor(Math.random() * 3),
+    images: Math.random() > 0.7 ? [reviewImages[Math.floor(Math.random() * reviewImages.length)]] : []
   }));
 }
 
@@ -126,7 +173,7 @@ export const providers = Array.from({ length: 15 }, (_, index) => {
     city: ['New York', 'London', 'Paris', 'Tokyo', 'Sydney'][Math.floor(Math.random() * 5)],
     country: ['USA', 'UK', 'France', 'Japan', 'Australia'][Math.floor(Math.random() * 5)]
   },
-  reviews: generateReviews(),
+  reviews: [], // Provider-level reviews will be generated separately
   responseTime: 'Within 2h',
   responseRate: '98%',
   importantNotes: Math.random() > 0.5 ? [
@@ -1531,8 +1578,9 @@ const productSellers: ProductSeller[] = [
     isOnline: true,
     location: 'San Francisco, CA',
     reviews: [
-      { id: '1', rating: 5, comment: 'Excellent products and fast shipping!', createdAt: new Date(), customerName: 'John Doe', reviewerId: 'customer-001', revieweeId: 'seller-001', reviewType: 'service_provider' as 'service_provider' | 'customer' },
-      { id: '2', rating: 4, comment: 'Good quality electronics', createdAt: new Date(), customerName: 'Jane Smith', reviewerId: 'customer-002', revieweeId: 'seller-001', reviewType: 'service_provider' as 'service_provider' | 'customer' }
+      // Product reviews temporarily disabled - will be updated in future phase
+      // { id: '1', rating: 5, comment: 'Excellent products and fast shipping!', date: new Date().toISOString(), reviewerName: 'TechBuyer1', reviewerId: 'customer-001', providerId: 'seller-001' },
+      // { id: '2', rating: 4, comment: 'Good quality electronics', date: new Date().toISOString(), reviewerName: 'ElectronicsFan', reviewerId: 'customer-002', providerId: 'seller-001' }
     ],
     responseTime: '2 hours',
     responseRate: '98%'
@@ -1547,7 +1595,7 @@ const productSellers: ProductSeller[] = [
     isOnline: false,
     location: 'Austin, TX',
     reviews: [
-      { id: '3', rating: 5, comment: 'Beautiful furniture, exactly as described', createdAt: new Date(), customerName: 'Mike Johnson', reviewerId: 'customer-003', revieweeId: 'seller-002', reviewType: 'service_provider' as 'service_provider' | 'customer' }
+      // Product reviews temporarily disabled - will be updated in future phase
     ],
     responseTime: '4 hours',
     responseRate: '95%'
@@ -1562,7 +1610,7 @@ const productSellers: ProductSeller[] = [
     isOnline: true,
     location: 'Los Angeles, CA',
     reviews: [
-      { id: '4', rating: 5, comment: 'Top-notch audio equipment!', createdAt: new Date(), customerName: 'Sarah Wilson', reviewerId: 'customer-004', revieweeId: 'seller-003', reviewType: 'service_provider' as 'service_provider' | 'customer' }
+      // Product reviews temporarily disabled - will be updated in future phase
     ],
     responseTime: '1 hour',
     responseRate: '99%'
@@ -1577,7 +1625,7 @@ const productSellers: ProductSeller[] = [
     isOnline: true,
     location: 'New York, NY',
     reviews: [
-      { id: '5', rating: 4, comment: 'Stylish and high-quality fashion items', createdAt: new Date(), customerName: 'Emily Davis', reviewerId: 'customer-005', revieweeId: 'seller-004', reviewType: 'service_provider' as 'service_provider' | 'customer' }
+      // Product reviews temporarily disabled - will be updated in future phase
     ],
     responseTime: '3 hours',
     responseRate: '96%'
@@ -1592,7 +1640,7 @@ const productSellers: ProductSeller[] = [
     isOnline: true,
     location: 'Denver, CO',
     reviews: [
-      { id: '6', rating: 5, comment: 'Great fitness equipment, fast delivery', createdAt: new Date(), customerName: 'Alex Thompson', reviewerId: 'customer-006', revieweeId: 'seller-005', reviewType: 'service_provider' as 'service_provider' | 'customer' }
+      // Product reviews temporarily disabled - will be updated in future phase
     ],
     responseTime: '2 hours',
     responseRate: '97%'
@@ -1735,7 +1783,9 @@ const mockServices: Service[] = serviceCategories.flatMap((category, categoryInd
       },
       // Add tier support
       tiers: service.tiers,
-      defaultTier: defaultTier.id
+      defaultTier: defaultTier.id,
+      // Add reviews for each service
+      reviews: generateReviews(listingId, service.name, provider.id)
     };
   })
 );

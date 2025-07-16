@@ -370,6 +370,16 @@ export function Navbar({
                 </button>
                 <button 
                   onClick={() => {
+                    onNavigateTo('myReviews');
+                    setShowMobileMenu(false);
+                  }}
+                  className="w-full flex items-center px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md"
+                >
+                  <User className="w-5 h-5 mr-3 text-gray-400" />
+                  My Reviews
+                </button>
+                <button 
+                  onClick={() => {
                     onNavigateTo('settings');
                     setShowMobileMenu(false);
                   }}

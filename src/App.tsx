@@ -25,6 +25,7 @@ import { ShippingInfoPage } from './pages/ShippingInfoPage';
 import { OrderConfirmation } from './pages/OrderConfirmation';
 import { BookingSubmissionConfirmationPage } from './pages/BookingSubmissionConfirmationPage';
 import { MyBookingsPage } from './pages/MyBookingsPage';
+import { MyReviewsPage } from './pages/MyReviewsPage';
 import { MessagingPage } from './pages/MessagingPage';
 import { SellerFinancePage } from './pages/SellerFinancePage';
 import { 
@@ -5078,6 +5079,12 @@ function App() {
             }}
             onReviewProvider={handleReviewProvider}
             initialFilter={bookingsInitialFilter}
+          />
+        )}
+
+        {currentPage === 'myReviews' && (
+          <MyReviewsPage
+            onBack={() => setCurrentPage('profile')}
           />
         )}
 

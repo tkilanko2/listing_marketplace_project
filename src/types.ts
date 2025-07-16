@@ -86,6 +86,8 @@ export interface Service extends BaseItem {
   // New tier support
   tiers?: ServiceTier[];
   defaultTier?: string; // ID of the default tier
+  // Service-specific reviews
+  reviews: Review[];
 }
 
 export interface Product extends BaseItem {
@@ -146,15 +148,21 @@ export interface Appointment {
 
 export interface Review {
   id: string;
-  rating: number;
+  listingId: string; // To link review to a specific service
+  listingTitle: string; // e.g., "Professional Hair Cutting"
+  providerId: string;
+  reviewerId: string;
+  reviewerName: string; // Will be a username like "HappyBuyer23", not a full name
+  reviewerAvatar: string; // URL
+  reviewTitle: string; // Review title from the form
   comment: string;
-  createdAt: Date;
-  customerName: string;
-  // Add fields for tracking review relationships
-  reviewerId: string; // ID of the person who wrote the review
-  revieweeId: string; // ID of the person being reviewed
-  bookingId?: string; // Optional: link review to specific booking
-  reviewType: 'service_provider' | 'customer'; // Type of review
+  rating: number; // Overall score
+  criterias: { name: string; rating: number; }[]; // e.g., [{ name: 'Communication', rating: 5 }]
+  date: string;
+  helpfulCount: number;
+  notHelpfulCount: number;
+  images: string[]; // Array of placeholder image URLs
+  userVote?: 'helpful' | 'not-helpful'; // For tracking user interactions
 }
 
 export interface CategoryFilters {
