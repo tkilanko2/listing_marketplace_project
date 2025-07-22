@@ -18,6 +18,7 @@ import { SellerOrderDetailsPage } from './pages/SellerOrderDetailsPage';
 import { SellerBookingDetailsPage } from './pages/SellerBookingDetailsPage';
 import { Sidebar } from './components/Sidebar';
 import { Navbar } from './components/Navbar';
+import { OptionalAuthModal } from './components/OptionalAuthModal';
 import { Service, Product, ListingItem, ServiceProvider, Order, OrderActionType, Appointment, OrderItem } from './types';
 import { CartItem } from './context/CartContext';
 import { CartPage } from './pages/CartPage';
@@ -81,6 +82,9 @@ function App() {
   
   // State for My Shop modal (moved to App level to persist across navigation)
   const [showMyShopModal, setShowMyShopModal] = useState(false);
+  
+  // State for optional auth modal on booking
+  const [showOptionalAuthModal, setShowOptionalAuthModal] = useState(false);
   const [selectedMyShopListing, setSelectedMyShopListing] = useState<any>(null);
   const [checkoutStep, setCheckoutStep] = useState<'auth' | 'shipping' | 'payment' | 'review'>('auth');
   const [bookingsInitialFilter, setBookingsInitialFilter] = useState<'all' | 'pending' | 'confirmed'>('all');
@@ -198,6 +202,17 @@ function App() {
   };
 
   const handleBookNow = () => {
+    // If user is already authenticated, go directly to booking
+    if (isAuthenticated) {
+      setCurrentPage('booking');
+    } else {
+      // Show optional auth modal for unauthenticated users
+      setShowOptionalAuthModal(true);
+    }
+  };
+
+  const handleProceedAsGuest = () => {
+    setShowOptionalAuthModal(false);
     setCurrentPage('booking');
   };
 
@@ -222,8 +237,11 @@ function App() {
 
     console.log('Authentication successful, redirecting...');
     
-    // If user was in checkout flow, return them to checkout
-    if (isCheckingOut) {
+    // If user was in optional auth modal during booking, close modal and proceed to booking
+    if (showOptionalAuthModal) {
+      setShowOptionalAuthModal(false);
+      setCurrentPage('booking');
+    } else if (isCheckingOut) {
       console.log('Returning to checkout flow, advancing to shipping step');
       // First reset the checkout flag
       setIsCheckingOut(false);
@@ -249,8 +267,11 @@ function App() {
       status: 'online'
     });
 
-    // If user was in checkout flow, return them to checkout
-    if (isCheckingOut) {
+    // If user was in optional auth modal during booking, close modal and proceed to booking
+    if (showOptionalAuthModal) {
+      setShowOptionalAuthModal(false);
+      setCurrentPage('booking');
+    } else if (isCheckingOut) {
       setIsCheckingOut(false);
       setCurrentPage('checkout');
       // Skip the auth step since they're now registered
@@ -5268,6 +5289,16 @@ function App() {
           </div>
         )}
       </div>
+      
+      {/* Optional Auth Modal */}
+      <OptionalAuthModal
+        isOpen={showOptionalAuthModal}
+        onClose={() => setShowOptionalAuthModal(false)}
+        onLogin={handleLogin}
+        onSignup={handleSignup}
+        onProceedAsGuest={handleProceedAsGuest}
+        serviceName={selectedListing?.name || 'service'}
+      />
     </div>
   );
 }

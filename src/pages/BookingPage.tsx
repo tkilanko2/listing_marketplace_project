@@ -43,6 +43,7 @@ interface BookingPageProps {
 
 export function BookingPage({ selectedService, allServices, onBack, onProceedToPayment }: BookingPageProps) {
   const [currentService, setCurrentService] = useState<Service>(selectedService);
+  const [selectedTier, setSelectedTier] = useState<string>(selectedService.defaultTier || selectedService.tiers?.[0]?.id || '');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [isBookingConfirmed, setIsBookingConfirmed] = useState(false);
@@ -55,6 +56,13 @@ export function BookingPage({ selectedService, allServices, onBack, onProceedToP
   } | null>(null);
   
   const availableSlots = generateTimeSlots();
+
+  // Get current tier details
+  const getCurrentTier = () => {
+    return currentService.tiers?.find(tier => tier.id === selectedTier) || currentService.tiers?.[0];
+  };
+
+  const currentTierDetails = getCurrentTier();
 
   const handleBookingSubmit = (data: { 
     customerName: string; 
@@ -228,11 +236,11 @@ export function BookingPage({ selectedService, allServices, onBack, onProceedToP
                     {currentService.tiers?.map((tier) => (
                       <div
                         key={tier.id}
-                        onClick={() => setCurrentService({...currentService, defaultTier: tier.id})}
+                        onClick={() => setSelectedTier(tier.id)}
                         className={`
                           cursor-pointer p-4 rounded-lg border transition-all
                           min-w-[250px] max-w-[300px]
-                          ${currentService.defaultTier === tier.id 
+                          ${selectedTier === tier.id 
                             ? 'border-[#3D1560] bg-[#EDD9FF]' 
                             : 'border-[#CDCED8] hover:border-[#6D26AB] bg-white'
                           }
@@ -316,43 +324,108 @@ export function BookingPage({ selectedService, allServices, onBack, onProceedToP
 
             <div className="lg:col-span-1">
               <div className="bg-white rounded-lg shadow-sm p-6 sticky top-4 border border-[#CDCED8]">
-                {currentService && selectedSlot ? (
+                {selectedSlot ? (
                   <BookingForm
-                    selectedService={currentService}
+                    selectedService={{
+                      ...currentService,
+                      price: currentTierDetails?.price || currentService.price,
+                      duration: currentTierDetails?.duration || currentService.duration,
+                      description: currentTierDetails?.description || currentService.description
+                    }}
                     selectedSlot={selectedSlot}
                     onSubmit={handleBookingSubmit}
                   />
                 ) : (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-[#1B1C20]">Booking Steps</h3>
+                  <div className="space-y-6">
+                    {/* Service & Tier Information */}
+                    {currentTierDetails && (
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-[#1B1C20]">Booking Details</h3>
+                        
+                        {/* Service Name */}
+                        <div>
+                          <h4 className="font-medium text-[#383A47] mb-1">{currentService.name}</h4>
+                          <p className="text-sm text-[#70727F]">{currentTierDetails.description}</p>
+                        </div>
+
+                        {/* Tier Details */}
+                        <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#CDCED8]">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="font-medium text-[#383A47]">{currentTierDetails.name} Tier</span>
+                            <span className="text-lg font-semibold text-[#3D1560]">${currentTierDetails.price}</span>
+                          </div>
+                          <div className="flex items-center text-sm text-[#70727F] mb-2">
+                            <Clock className="w-4 h-4 mr-2 text-[#3D1560]" />
+                            <span>{currentTierDetails.duration} minutes</span>
+                          </div>
+                          <div className="flex items-center text-sm text-[#70727F]">
+                            <CreditCard className="w-4 h-4 mr-2 text-[#3D1560]" />
+                            <span>{currentTierDetails.onlinePayment ? 'Online payment available' : 'Pay at service'}</span>
+                          </div>
+                        </div>
+
+                        {/* Provider Info */}
+                        <div className="flex items-center space-x-3 p-3 bg-[#F8F8FA] rounded-lg border border-[#CDCED8]">
+                          <img
+                            src={currentService.provider.avatar}
+                            alt={currentService.provider.username}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                          <div className="flex-1">
+                            <p className="font-medium text-[#383A47] text-sm">{currentService.provider.username}</p>
+                            <div className="flex items-center">
+                              <div className="flex items-center mr-3">
+                                {[...Array(5)].map((_, i) => (
+                                  <Check
+                                    key={i}
+                                    className={`w-3 h-3 ${
+                                      i < Math.floor(currentService.provider.rating)
+                                        ? 'text-yellow-400'
+                                        : 'text-[#CDCED8]'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                              <span className="text-xs text-[#70727F]">{currentService.provider.rating.toFixed(1)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Progress Steps */}
                     <div className="space-y-3">
+                      <h4 className="font-medium text-[#383A47]">Next Steps</h4>
+                      
                       <div className="flex items-start">
                         <div className="flex-shrink-0">
-                          <Users className="h-6 w-6 text-[#3D1560]" />
+                          <div className={`h-6 w-6 rounded-full flex items-center justify-center ${selectedTier ? 'bg-[#3D1560]' : 'bg-[#CDCED8]'}`}>
+                            {selectedTier ? (
+                              <Check className="h-4 w-4 text-white" />
+                            ) : (
+                              <Users className="h-4 w-4 text-white" />
+                            )}
+                          </div>
                         </div>
                         <div className="ml-3">
                           <p className="text-sm font-medium text-[#383A47]">Select a Service Tier</p>
-                          <p className="text-sm text-[#70727F]">Choose from available service tiers</p>
+                          <p className="text-sm text-[#70727F]">
+                            {selectedTier ? `${currentTierDetails?.name} tier selected` : 'Choose from available service tiers'}
+                          </p>
                         </div>
                       </div>
-                      <div className="flex items-start">
-                        <div className="flex-shrink-0">
-                          <CalendarIcon className="h-6 w-6 text-[#3D1560]" />
+                      
+                                              <div className="flex items-start">
+                          <div className="flex-shrink-0">
+                            <CalendarIcon className={`h-6 w-6 ${selectedSlot ? 'text-[#3D1560]' : 'text-[#CDCED8]'}`} />
+                          </div>
+                          <div className="ml-3">
+                            <p className="text-sm font-medium text-[#383A47]">Pick a Date & Time</p>
+                            <p className="text-sm text-[#70727F]">
+                              {selectedSlot ? 'Date and time selected' : 'Select your preferred date and time'}
+                            </p>
+                          </div>
                         </div>
-                        <div className="ml-3">
-                          <p className="text-sm font-medium text-[#383A47]">Pick a Date</p>
-                          <p className="text-sm text-[#70727F]">Select your preferred date</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start">
-                        <div className="flex-shrink-0">
-                          <Clock className="h-6 w-6 text-[#3D1560]" />
-                        </div>
-                        <div className="ml-3">
-                          <p className="text-sm font-medium text-[#383A47]">Choose a Time</p>
-                          <p className="text-sm text-[#70727F]">Pick an available time slot</p>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 )}
