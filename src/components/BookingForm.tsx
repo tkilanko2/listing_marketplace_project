@@ -170,11 +170,10 @@ export function BookingForm({ selectedService, selectedSlot, onSubmit }: Booking
             <label className="block text-sm font-medium text-[#383A47] mb-1">
               Payment Method
             </label>
-            <div className={`flex gap-2 ${(displayOnlinePayment && selectedService.paymentOptions.payAtService) ? 'flex-row' : 'flex-col'}`}>
+            <div className="flex gap-2 flex-row">
               {displayOnlinePayment && (
                 <label className={`
-                  border p-2 rounded-md flex items-center cursor-pointer transition-colors
-                  ${(displayOnlinePayment && selectedService.paymentOptions.payAtService) ? 'flex-1 min-w-0' : 'w-64'}
+                  border p-2 rounded-md flex items-center cursor-pointer transition-colors flex-1 min-w-0
                   ${formData.paymentMethod === 'online' ? 'border-[#3D1560] bg-[#EDD9FF]' : 'border-[#CDCED8] hover:bg-[#E8E9ED]'}
                 `}>
                   <input
@@ -195,8 +194,7 @@ export function BookingForm({ selectedService, selectedSlot, onSubmit }: Booking
               
               {selectedService.paymentOptions.payAtService && (
                 <label className={`
-                  border p-2 rounded-md flex items-center cursor-pointer transition-colors
-                  ${(displayOnlinePayment && selectedService.paymentOptions.payAtService) ? 'flex-1 min-w-0' : 'w-64'}
+                  border p-2 rounded-md flex items-center cursor-pointer transition-colors flex-1 min-w-0
                   ${formData.paymentMethod === 'inPerson' ? 'border-[#3D1560] bg-[#EDD9FF]' : 'border-[#CDCED8] hover:bg-[#E8E9ED]'}
                 `}>
                   <input
@@ -207,12 +205,25 @@ export function BookingForm({ selectedService, selectedSlot, onSubmit }: Booking
                     checked={formData.paymentMethod === 'inPerson'}
                     onChange={() => setFormData({ ...formData, paymentMethod: 'inPerson' })}
                   />
-                  <DollarSign className="w-4 h-4 mr-2 text-[#3D1560]" />
+                  <DollarSign className="w-4 h-4 mr-2 text-[#70727F]" />
                   <div>
                     <p className="font-medium text-[#383A47] text-sm">Pay at Service</p>
                     <p className="text-xs text-[#70727F]">Pay when service is provided</p>
                   </div>
                 </label>
+              )}
+
+              {/* Dummy card when only one payment option is available */}
+              {!((displayOnlinePayment && selectedService.paymentOptions.payAtService)) && (
+                <div className="flex-1 min-w-0 invisible">
+                  <div className="border p-2 rounded-md flex items-center">
+                    <div className="w-4 h-4 mr-2" />
+                    <div>
+                      <p className="font-medium text-sm">Dummy</p>
+                      <p className="text-xs">Dummy text</p>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
