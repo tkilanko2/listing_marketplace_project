@@ -432,44 +432,6 @@ export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelec
                 </div>
               </div>
 
-              {/* Trust & Verification Section - Normal Flow */}
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-[#CDCED8]">
-                <div className="p-4 bg-[#F8F8FA] rounded-lg border border-[#E8E9ED]">
-                  <h3 className="text-sm font-semibold text-[#1B1C20] mb-4 flex items-center">
-                    <Shield className="w-4 h-4 text-[#3D1560] mr-2" />
-                    Trust & Verification
-                  </h3>
-                  
-                  <div className="space-y-3">
-                    {/* Monthly Purchases */}
-                    <div className="p-3 bg-[#FFFFFF] rounded-lg border border-[#CDCED8]">
-                      <p className="text-xs text-[#70727F]">
-                        <span className="font-medium text-[#383A47]">{trustData.monthlyPurchases}</span> purchases in the last month
-                      </p>
-                      <div className="mt-2 h-1.5 bg-[#CDCED8] rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-[#3D1560] rounded-full transition-all duration-300"
-                          style={{ width: `${Math.min((trustData.monthlyPurchases / 100) * 100, 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Report Button */}
-                  <div className="mt-3 pt-3 border-t border-[#E8E9ED]">
-                    <button
-                      onClick={() => {
-                        console.log('Report listing');
-                      }}
-                      className="flex items-center text-[#70727F] hover:text-[#DF678C] text-xs transition-colors duration-200"
-                    >
-                      <Flag className="w-3 h-3 mr-1" />
-                      <span>Report this listing</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
               {/* Terms & Protection Section - Normal Flow */}
               <div className="bg-white p-6 rounded-xl shadow-sm border border-[#CDCED8]">
                 <div className="p-4 bg-[#F8F8FA] rounded-lg border border-[#E8E9ED]">
@@ -517,6 +479,44 @@ export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelec
                   <div className="mt-3 pt-3 border-t border-[#E8E9ED]">
                     <button className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium transition-colors">
                       View full terms and conditions
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Trust & Verification Section - Normal Flow */}
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-[#CDCED8]">
+                <div className="p-4 bg-[#F8F8FA] rounded-lg border border-[#E8E9ED]">
+                  <h3 className="text-sm font-semibold text-[#1B1C20] mb-4 flex items-center">
+                    <Shield className="w-4 h-4 text-[#3D1560] mr-2" />
+                    Trust & Verification
+                  </h3>
+                  
+                  <div className="space-y-3">
+                    {/* Monthly Purchases */}
+                    <div className="p-3 bg-[#FFFFFF] rounded-lg border border-[#CDCED8]">
+                      <p className="text-xs text-[#70727F]">
+                        <span className="font-medium text-[#383A47]">{trustData.monthlyPurchases}</span> purchases in the last month
+                      </p>
+                      <div className="mt-2 h-1.5 bg-[#CDCED8] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[#3D1560] rounded-full transition-all duration-300"
+                          style={{ width: `${Math.min((trustData.monthlyPurchases / 100) * 100, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Report Button */}
+                  <div className="mt-3 pt-3 border-t border-[#E8E9ED]">
+                    <button
+                      onClick={() => {
+                        console.log('Report listing');
+                      }}
+                      className="flex items-center text-[#70727F] hover:text-[#DF678C] text-xs transition-colors duration-200"
+                    >
+                      <Flag className="w-3 h-3 mr-1" />
+                      <span>Report this listing</span>
                     </button>
                   </div>
                 </div>
