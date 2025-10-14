@@ -14,9 +14,10 @@ interface BookingFormProps {
     acceptTerms: boolean;
     acceptDataProcessing: boolean;
   }) => void;
+  onNavigate?: (page: string) => void;
 }
 
-export function BookingForm({ selectedService, selectedSlot, onSubmit }: BookingFormProps) {
+export function BookingForm({ selectedService, selectedSlot, onSubmit, onNavigate }: BookingFormProps) {
   const [selectedTier, setSelectedTier] = useState<string>(selectedService.defaultTier || '');
   
   // Get the current tier details
@@ -161,7 +162,7 @@ export function BookingForm({ selectedService, selectedSlot, onSubmit }: Booking
                 onChange={(e) => setFormData({ ...formData, acceptTerms: e.target.checked })}
               />
               <label htmlFor="acceptTerms" className="text-xs text-[#383A47] leading-tight">
-                I accept the <a href="#" className="text-[#3D1560] hover:text-[#6D26AB] underline">Terms of Service</a> and <a href="#" className="text-[#3D1560] hover:text-[#6D26AB] underline">Booking Conditions</a>
+                I accept the <button type="button" onClick={() => onNavigate?.('termsOfService')} className="text-[#3D1560] hover:text-[#6D26AB] underline">Terms of Service</button> and <a href="#" className="text-[#3D1560] hover:text-[#6D26AB] underline">Booking Conditions</a>
               </label>
             </div>
           </div>

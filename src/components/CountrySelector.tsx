@@ -4,9 +4,10 @@ import countries from './countryList';
 
 interface CountrySelectorProps {
   onCountryChange: (country: string) => void;
+  variant?: 'button' | 'input';
 }
 
-export function CountrySelector({ onCountryChange }: CountrySelectorProps) {
+export function CountrySelector({ onCountryChange, variant = 'button' }: CountrySelectorProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCountry, setSelectedCountry] = useState<string>('global');
@@ -98,36 +99,59 @@ export function CountrySelector({ onCountryChange }: CountrySelectorProps) {
     await detectCountry();
   };
 
-  return (
-    <div className="relative flex flex-col items-center">
-      <div className="flex items-center space-x-3">
-        <span className="text-sm font-medium text-gray-700">Your Current Country:</span>
-        <button 
-          className="flex items-center space-x-2 px-3 py-2 rounded-md text-[#383A47] hover:bg-[#E8E9ED] border border-[#CDCED8] focus:outline-none focus:ring-1 focus:ring-opacity-50 focus:ring-[#3D1560]"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          {isLoading ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
+  const trigger = (
+    <button
+      className={
+        variant === 'input'
+          ? 'w-full text-left px-3 py-2 rounded-md border border-[#CDCED8] bg-white text-[#383A47] focus:outline-none focus:ring-2 focus:ring-[#6D26AB]'
+          : 'flex items-center space-x-2 px-3 py-2 rounded-md text-[#383A47] hover:bg-[#E8E9ED] border border-[#CDCED8] focus:outline-none focus:ring-1 focus:ring-opacity-50 focus:ring-[#3D1560]'
+      }
+      onClick={() => setIsOpen(!isOpen)}
+    >
+      {isLoading ? (
+        <Loader2 className="w-5 h-5 animate-spin" />
+      ) : (
+        <>
+          {selectedCountry === 'global' ? (
+            <>
+              <Globe className="w-5 h-5 inline-block mr-2" />
+              <span className="text-sm">{variant === 'input' ? 'Enter your Country' : 'Global'}</span>
+            </>
           ) : (
             <>
-              {selectedCountry === 'global' ? (
-                <>
-                  <Globe className="w-5 h-5" />
-                  <span className="text-sm">Global</span>
-                </>
-              ) : (
-                <>
-                  {selectedCountryData?.flag && <span className="mr-2">{selectedCountryData.flag}</span>}
-                  <span className="text-sm">{selectedCountryData?.name}</span>
-                </>
-              )}
+              {selectedCountryData?.flag && <span className="mr-2">{selectedCountryData.flag}</span>}
+              <span className="text-sm">{selectedCountryData?.name}</span>
             </>
           )}
-        </button>
-      </div>
-      
+        </>
+      )}
+    </button>
+  );
+
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Close when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={containerRef} className={variant === 'input' ? 'relative w-full' : 'relative flex flex-col items-center'}>
+      {variant === 'input' ? trigger : (
+        <div className="flex items-center space-x-3">
+          <span className="text-sm font-medium text-gray-700">Your Current Country:</span>
+          {trigger}
+        </div>
+      )}
+
       {isOpen && (
-        <div className="absolute mt-1 w-64 bg-white rounded-lg shadow-lg py-2 z-50 border border-gray-100">
+        <div className={`absolute mt-1 ${variant === 'input' ? 'w-full' : 'w-64'} bg-white rounded-lg shadow-lg py-2 z-50 border border-gray-100`}>
           {/* Search input */}
           <div className="px-3 pb-2">
             <div className="relative">

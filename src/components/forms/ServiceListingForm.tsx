@@ -235,15 +235,15 @@ const categorySpecificFields: Record<string, FieldConfig[]> = {
 
 const FormContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
-  gap: theme.spacing(4),
+  gap: theme.spacing(3),
   maxWidth: '1400px',
   margin: '0 auto',
-  padding: theme.spacing(3),
+  padding: theme.spacing(1),
 }));
 
 const FormSection = styled(Paper)(({ theme }) => ({
   flex: '1 1 60%',
-  padding: theme.spacing(3),
+  padding: theme.spacing(2),
   borderRadius: theme.shape.borderRadius,
   boxShadow: theme.shadows[1],
 }));
@@ -254,10 +254,10 @@ const PreviewSection = styled(Box)(({ theme }) => ({
 }));
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
-  marginBottom: theme.spacing(2),
+  marginBottom: theme.spacing(1),
   '& .MuiOutlinedInput-root': {
     transition: 'all 0.2s ease-in-out',
-    height: '56px', // Standardizing input height
+    height: '44px', // Compact control height without reducing font size
     '&:hover fieldset': {
       borderColor: '#6D26AB',
     },
@@ -274,7 +274,7 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
   },
   '& .MuiInputLabel-root': {
     fontSize: '0.9rem', // Standardize label size
-    transform: 'translate(14px, 16px) scale(1)',
+    transform: 'translate(14px, 10px) scale(1)',
   },
   '& .MuiInputLabel-shrink': {
     transform: 'translate(14px, -6px) scale(0.75)',
@@ -282,10 +282,10 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
 }));
 
 const StyledFormControl = styled(FormControl)(({ theme }) => ({
-  marginBottom: theme.spacing(2),
+  marginBottom: theme.spacing(1),
   '& .MuiOutlinedInput-root': {
     transition: 'all 0.2s ease-in-out',
-    height: '56px', // Standardizing select height
+    height: '44px', // Compact select height
     '&:hover fieldset': {
       borderColor: '#6D26AB',
     },
@@ -299,7 +299,7 @@ const StyledFormControl = styled(FormControl)(({ theme }) => ({
   },
   '& .MuiInputLabel-root': {
     fontSize: '0.9rem', // Standardize label size
-    transform: 'translate(14px, 16px) scale(1)',
+    transform: 'translate(14px, 10px) scale(1)',
   },
   '& .MuiInputLabel-shrink': {
     transform: 'translate(14px, -6px) scale(0.75)',
@@ -348,7 +348,7 @@ const StyledUploadButton = styled('label')(({ theme }) => ({
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
-  padding: theme.spacing(3),
+  padding: theme.spacing(2),
   borderRadius: theme.shape.borderRadius,
   border: `2px dashed ${theme.palette.divider}`,
   backgroundColor: theme.palette.background.paper,
@@ -877,7 +877,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
     const serviceCoverageOptions = ['Entire City', 'Remote Service', 'Nationwide', 'Global'];
 
     return (
-      <Box sx={{ mt: 2 }}>
+      <Box sx={{ mt: 1.5 }}>
         {/* Service Location Section */}
           <Card sx={{ 
             mb: 2, 
@@ -886,8 +886,8 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
             boxShadow: 'none',
             borderRadius: '8px' 
           }}>
-          <CardContent sx={{ p: 3 }}>
-            <Grid container spacing={3}>
+          <CardContent sx={{ p: 1.5 }}>
+            <Grid container spacing={1.5}>
               <Grid item xs={12} sm={4}>
                 <Autocomplete
                   id="country-select"
@@ -908,13 +908,13 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                   fullWidth
                   InputProps={{
                         ...params.InputProps,
-                        sx: { height: '56px' },
+                        sx: { height: '44px' },
                   }}
                     />
                   )}
                   sx={{
                     '& .MuiAutocomplete-inputRoot': {
-                      height: '56px',
+                      height: '44px',
                     }
                   }}
                 />
@@ -945,13 +945,13 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                     fullWidth
                     InputProps={{
                         ...params.InputProps,
-                        sx: { height: '56px' },
+                        sx: { height: '44px' },
                     }}
                     />
                   )}
                     sx={{
                     '& .MuiAutocomplete-inputRoot': {
-                      height: '56px',
+                      height: '44px',
                     }
                   }}
                   />
@@ -975,18 +975,18 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                         fullWidth
                         InputProps={{
                           ...params.InputProps,
-                          sx: { height: '56px' },
+                          sx: { height: '44px' },
                         }}
                       />
                     )}
                     sx={{
                       '& .MuiAutocomplete-inputRoot': {
-                        height: '56px',
+                        height: '44px',
                       }
                     }}
                   />
                   {/* Adjusted layout to prevent text overlap */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.25 }}>
                     <Tooltip
                       title="Specify how far you're willing to provide your service from your selected location"
                       arrow
@@ -1153,7 +1153,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
           );
           
           return (
-            <Box key={day.value} sx={{ mb: 3 }}>
+            <Box key={day.value} sx={{ mb: 2 }}>
               <Typography variant="subtitle2" fontWeight="bold">
                 {day.label.charAt(0) + day.label.slice(1).toLowerCase()}
               </Typography>
@@ -1164,7 +1164,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                 );
                 
                 return (
-                  <Grid container spacing={2} key={index} sx={{ mb: 1 }}>
+                  <Grid container spacing={2} key={index} sx={{ mb: 0.5 }}>
                     <Grid item xs={5}>
                       <StyledTextField
                         label="From"
@@ -1226,7 +1226,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
     
     const renderDateRangeSchedule = () => (
       <>
-        <Box sx={{ mb: 3 }}>
+        <Box sx={{ mb: 2 }}>
           <Typography variant="subtitle1" gutterBottom>
             Add specific date ranges when you're available
           </Typography>
@@ -1395,13 +1395,13 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
           
           {availabilityTab === 0 ? renderWeeklySchedule() : renderDateRangeSchedule()}
           
-          <Divider sx={{ my: 3 }} />
+          <Divider sx={{ my: 1.5 }} />
           
           <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', color: '#3D1560' }}>
             <MonetizationOnIcon sx={{ mr: 1 }} /> Payment Options
           </Typography>
           
-          <Box sx={{ mt: 2 }}>
+          <Box sx={{ mt: 1.5 }}>
             <FormControlLabel
               control={
                 <Switch 
@@ -1541,11 +1541,11 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
     
     return (
       <Box>
-        <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
+        <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
           Set Your Pricing Options
           </Typography>
           
-        <FormControl component="fieldset" sx={{ mb: 4 }}>
+        <FormControl component="fieldset" sx={{ mb: 3 }}>
           <FormLabel component="legend" sx={{ color: '#383A47', mb: 1 }}>Pricing Model</FormLabel>
             <RadioGroup
               name="pricingModel"
@@ -1565,14 +1565,14 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
               />
             </RadioGroup>
           {hasError('pricingModel') && (
-            <Typography color="error" variant="caption" sx={{ mt: 0.5 }}>
+            <Typography color="error" variant="caption" sx={{ mt: 0.25 }}>
               {getErrorMessage('pricingModel')}
             </Typography>
           )}
           </FormControl>
           
           {formik.values.pricingModel === 'flat' ? (
-          <Box sx={{ mb: 4 }}>
+          <Box sx={{ mb: 3 }}>
               <Typography variant="subtitle1" gutterBottom>
               Flat Rate Price
               </Typography>
@@ -1593,8 +1593,8 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
               />
             </Box>
           ) : (
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="subtitle1" gutterBottom sx={{ mb: 2 }}>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle1" gutterBottom sx={{ mb: 1.5 }}>
               Pricing Tiers
               </Typography>
               
@@ -1660,7 +1660,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                   </Grid>
                 </Grid>
                 
-                <Box sx={{ mt: 3 }}>
+                <Box sx={{ mt: 2 }}>
                   <Typography variant="subtitle2" gutterBottom>
                     Key Features
                         </Typography>
@@ -1725,23 +1725,41 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
         return (
           <Stack spacing={3}> {/* Increased spacing for consistency */}
             <Accordion defaultExpanded sx={{ border: '1px solid #CDCED8', borderRadius: 1, boxShadow: 'none', '&:not(:last-child)': { mb: 0 } }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: '#F8F8FA', minHeight: 56 }}> {/* Consistent height */}
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                sx={{
+                  backgroundColor: '#F8F8FA',
+                  minHeight: 30,
+                  maxHeight: 32,
+                  '& .MuiAccordionSummary-content': { my: 0, py: 0, margin: 0 },
+                  '& .MuiAccordionSummary-content.Mui-expanded': { margin: 0 }
+                }}
+              >
                 <Typography variant="subtitle1" sx={{ display: 'flex', alignItems: 'center', color: '#3D1560' }}>
                   <InventoryIcon sx={{ mr: 1, color: '#3D1560' }} /> Images
                 </Typography>
               </AccordionSummary>
-              <AccordionDetails sx={{ p: 3 }}> {/* Increased padding for consistency */}
+              <AccordionDetails sx={{ p: 1.5 }}>
                 {renderImageUpload()}
               </AccordionDetails>
             </Accordion>
             <Accordion defaultExpanded sx={{ border: '1px solid #CDCED8', borderRadius: 1, boxShadow: 'none', '&:not(:last-child)': { mb: 0 } }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: '#F8F8FA', minHeight: 56 }}> {/* Consistent height */}
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                sx={{
+                  backgroundColor: '#F8F8FA',
+                  minHeight: 30,
+                  maxHeight: 32,
+                  '& .MuiAccordionSummary-content': { my: 0, py: 0, margin: 0 },
+                  '& .MuiAccordionSummary-content.Mui-expanded': { margin: 0 }
+                }}
+              >
                 <Typography variant="subtitle1" sx={{ display: 'flex', alignItems: 'center', color: '#3D1560' }}>
                   <DescriptionIcon sx={{ mr: 1, color: '#3D1560' }} /> Basic Details
                 </Typography>
               </AccordionSummary>
-              <AccordionDetails sx={{ p: 3 }}> {/* Increased padding for consistency */}
-                <Stack spacing={3}> {/* Increased spacing for consistency */}
+              <AccordionDetails sx={{ p: 1.5 }}>
+                <Stack spacing={1.5}>
                   <StyledTextField
                     fullWidth
                     name="title"
@@ -1777,12 +1795,21 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
               </AccordionDetails>
             </Accordion>
             <Accordion defaultExpanded sx={{ border: '1px solid #CDCED8', borderRadius: 1, boxShadow: 'none', '&:not(:last-child)': { mb: 0 } }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ backgroundColor: '#F8F8FA', minHeight: 56 }}> {/* Consistent height */}
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                sx={{
+                  backgroundColor: '#F8F8FA',
+                  minHeight: 30,
+                  maxHeight: 32,
+                  '& .MuiAccordionSummary-content': { my: 0, py: 0, margin: 0 },
+                  '& .MuiAccordionSummary-content.Mui-expanded': { margin: 0 }
+                }}
+              >
                 <Typography variant="subtitle1" sx={{ display: 'flex', alignItems: 'center', color: '#3D1560' }}>
                   <LocationOnIcon sx={{ mr: 1, color: '#3D1560' }} /> Service Location
                 </Typography>
               </AccordionSummary>
-              <AccordionDetails sx={{ p: 3 }}> {/* Increased padding for consistency */}
+              <AccordionDetails sx={{ p: 1.5 }}>
                 {renderServiceAreaFields()}
               </AccordionDetails>
             </Accordion>
@@ -2110,7 +2137,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
 
       {/* Processing Dialog */}
       <Dialog open={isProcessing} aria-labelledby="processing-dialog-title">
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 4, minWidth: '300px' }}>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 2, minWidth: '300px' }}>
           <CircularProgress sx={{ color: '#3D1560', mb: 2 }} />
           <Typography variant="body1">Creating your listing...</Typography>
         </DialogContent>
@@ -2159,7 +2186,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                 value={sellerInfo.shopPolicies}
                 onChange={handleSellerInfoChange}
                 fullWidth
-                sx={{ mb: 2 }}
+                sx={{ mb: 1.5 }}
               />
             </Grid>
             
@@ -2285,7 +2312,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
             <Typography variant="h6" align="center" color="#3D1560">
               Your service listing has been submitted!
             </Typography>
-            <Typography variant="body1" align="center" paragraph sx={{ mb: 3 }}>
+            <Typography variant="body1" align="center" paragraph sx={{ mb: 2 }}>
               Your listing is now pending approval and will appear in your listings soon. 
               The approval process usually takes 24-48 hours.
             </Typography>

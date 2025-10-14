@@ -51,6 +51,7 @@ interface BookingDetailsPageProps {
     sellerName: string;
     sellerId: string;
   }) => void; // Navigate to messaging
+  onNavigate?: (page: string) => void; // General navigation
 }
 
 interface PaymentBreakdown {
@@ -70,7 +71,7 @@ function mapServiceStatus(status: string, userRole: 'buyer' | 'seller'): string 
   return status;
 }
 
-export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selectedServiceMode = 'at_seller', onNavigateToMyBookings, onNavigateToMessages }: BookingDetailsPageProps) {
+export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selectedServiceMode = 'at_seller', onNavigateToMyBookings, onNavigateToMessages, onNavigate }: BookingDetailsPageProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'payment' | 'activity'>('details');
   const [appointmentDetailsOpen, setAppointmentDetailsOpen] = useState(false);
   const [serviceTermsOpen, setServiceTermsOpen] = useState(false);
@@ -1263,6 +1264,7 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
           serviceName={booking.service.name}
           providerName={booking.service.provider.name || formatProviderName(booking.service.provider.username)}
           serviceType="service" // Explicitly set for bookings
+          onNavigate={onNavigate}
         />
       )}
       {booking.service && (

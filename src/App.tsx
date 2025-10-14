@@ -27,8 +27,13 @@ import { OrderConfirmation } from './pages/OrderConfirmation';
 import { BookingSubmissionConfirmationPage } from './pages/BookingSubmissionConfirmationPage';
 import { MyBookingsPage } from './pages/MyBookingsPage';
 import { MyReviewsPage } from './pages/MyReviewsPage';
+import SignInPage from './pages/SignInPage';
+import SignUpPage from './pages/SignUpPage';
 import { MessagingPage } from './pages/MessagingPage';
 import { SellerFinancePage } from './pages/SellerFinancePage';
+import SellerPolicyPage from './pages/SellerPolicyPage';
+import TermsOfServicePage from './pages/TermsOfServicePage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import { 
   BarChart, Calendar, DollarSign, ShoppingCart, Package, TrendingUp, 
   ArrowUp, Wallet, ChevronDown, ChevronLeft, ChevronRight, Search, 
@@ -91,6 +96,12 @@ function App() {
 
   // Effect to handle highlighted product and show modal (moved to App level)
   useEffect(() => {
+    // Support opening ToS/Privacy in a new tab from consent modal
+    const params = new URLSearchParams(window.location.search);
+    const open = params.get('open');
+    if (open === 'termsOfService' || open === 'privacyPolicy') {
+      setCurrentPage(open);
+    }
     if (highlightedProductId && currentPage === 'sellerDashboard_myShop') {
       console.log('🔍 App level: Looking for highlighted product:', highlightedProductId);
       // Find the listing in combined products and services
@@ -3546,12 +3557,20 @@ function App() {
               <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED] md:col-span-2">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-md font-medium text-[#383A47]">Global Seller Policy</h3>
-                  <button 
-                    onClick={() => alert('Configure Global Seller Policy (Coming Soon)')}
-                    className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium"
-                  >
-                    Configure
-                  </button>
+                  <div className="flex items-center space-x-3">
+                    <button 
+                      onClick={() => handleNavigate('sellerPolicy')}
+                      className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                    >
+                      View
+                    </button>
+                    <button 
+                      onClick={() => handleNavigate('sellerPolicy')}
+                      className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                    >
+                      Configure
+                    </button>
+                  </div>
                 </div>
                 <p className="text-sm text-[#70727F]">Set default cancellation, refund, and service policies for all listings</p>
               </div>
@@ -4489,6 +4508,14 @@ function App() {
             onLanguageChange={setSelectedLanguage}
           />
         )}
+
+        {currentPage === 'signin' && (
+          <SignInPage onNavigateTo={handleNavigate} />
+        )}
+
+        {currentPage === 'signup' && (
+          <SignUpPage onNavigateTo={handleNavigate} />
+        )}
         
         {currentPage === 'serviceDetails' && selectedListing?.type === 'service' && (
           <ServiceDetailsPage 
@@ -4521,6 +4548,7 @@ function App() {
             allServices={getServiceTiers(selectedListing.serviceType)}
             onBack={handleBackToLanding}
             onProceedToPayment={handleProceedToPayment}
+            onNavigate={handleNavigate}
           />
         )}
 
@@ -4605,6 +4633,7 @@ function App() {
                   selectedServiceMode={order.selectedServiceMode || 'at_seller'}
                   onNavigateToMyBookings={() => setCurrentPage('myBookings')}
                   onNavigateToMessages={handleNavigateToMessages}
+                  onNavigate={handleNavigate}
                 />
               );
             } else {
@@ -4622,6 +4651,7 @@ function App() {
                       setCurrentPage('productDetails');
                     }
                   }}
+                  onNavigate={handleNavigate}
                 />
               );
             }
@@ -4710,6 +4740,18 @@ function App() {
 
         {currentPage === 'sellerDashboard_settings' && (
           <SellerDashboardSettings />
+        )}
+
+        {currentPage === 'sellerPolicy' && (
+          <SellerPolicyPage onBack={() => handleNavigate('sellerDashboard_settings')} onNavigate={handleNavigate} />
+        )}
+
+        {currentPage === 'termsOfService' && (
+          <TermsOfServicePage onBack={() => handleNavigate('sellerPolicy')} />
+        )}
+
+        {currentPage === 'privacyPolicy' && (
+          <PrivacyPolicyPage onBack={() => handleNavigate('signup')} />
         )}
 
         {currentPage === 'settings' && (
@@ -5046,6 +5088,7 @@ function App() {
                   handleNavigate('signup');
                 }}
                 onOrderComplete={() => handleNavigate('order-confirmation')}
+                onNavigate={handleNavigate}
               />
             )}
             {checkoutStep === 'shipping' && (

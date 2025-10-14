@@ -31,6 +31,7 @@ interface SellerTermsModalProps {
   serviceName?: string;
   providerName?: string;
   serviceType?: 'product' | 'service';
+  onNavigate?: (page: string) => void;
 }
 
 const SellerTermsModal: React.FC<SellerTermsModalProps> = ({
@@ -38,7 +39,8 @@ const SellerTermsModal: React.FC<SellerTermsModalProps> = ({
   onClose,
   serviceName = 'Service',
   providerName = 'Service Provider',
-  serviceType = 'service'
+  serviceType = 'service',
+  onNavigate
 }) => {
   return (
     <Dialog 
@@ -275,6 +277,7 @@ const SellerTermsModal: React.FC<SellerTermsModalProps> = ({
               <Chip 
                 label="Terms of Service" 
                 size="small" 
+                onClick={() => onNavigate?.('termsOfService')}
                 sx={{ 
                   bgcolor: '#3D1560', 
                   color: 'white',

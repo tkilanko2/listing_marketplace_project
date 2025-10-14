@@ -42,6 +42,7 @@ interface ProductOrderDetailsPageProps {
   onBack: () => void;
   userRegion?: 'US' | 'EU' | 'UK'; // For tax calculation display
   onNavigateToProduct?: (productId: string) => void; // For buyer navigation to product details
+  onNavigate?: (page: string) => void; // General navigation
 }
 
 interface PaymentBreakdown {
@@ -53,7 +54,7 @@ interface PaymentBreakdown {
   total: number;
 }
 
-export function ProductOrderDetailsPage({ order, onBack, userRegion = 'US', onNavigateToProduct }: ProductOrderDetailsPageProps) {
+export function ProductOrderDetailsPage({ order, onBack, userRegion = 'US', onNavigateToProduct, onNavigate }: ProductOrderDetailsPageProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'payment' | 'activity'>('details');
   const [trackingDetailsOpen, setTrackingDetailsOpen] = useState(false);
   const [productTermsOpen, setProductTermsOpen] = useState(false);
@@ -930,6 +931,7 @@ export function ProductOrderDetailsPage({ order, onBack, userRegion = 'US', onNa
         serviceName={order.items?.[0]?.product.name || 'Product'}
         providerName={order.items?.[0]?.product.seller?.name || 'Seller'}
         serviceType="product"
+        onNavigate={onNavigate}
       />
     </div>
   );

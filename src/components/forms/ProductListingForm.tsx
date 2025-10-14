@@ -145,15 +145,15 @@ interface FormValues extends Record<string, any> {
 
 const FormContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
-  gap: theme.spacing(4),
+  gap: theme.spacing(3),
   maxWidth: '1400px',
   margin: '0 auto',
-  padding: theme.spacing(3),
+  padding: theme.spacing(2),
 }));
 
 const FormSection = styled(Paper)(({ theme }) => ({
   flex: '1 1 60%',
-  padding: theme.spacing(3),
+  padding: theme.spacing(2),
   borderRadius: theme.shape.borderRadius,
   boxShadow: theme.shadows[1],
 }));
@@ -167,9 +167,10 @@ const PreviewSection = styled(Box)(({ theme }) => ({
 }));
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
-  marginBottom: theme.spacing(2),
+  marginBottom: theme.spacing(1),
   '& .MuiOutlinedInput-root': {
     transition: 'all 0.2s ease-in-out',
+    height: '44px',
     '&:hover': {
       borderColor: theme.palette.primary.main,
     },
@@ -180,9 +181,10 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
 }));
 
 const StyledFormControl = styled(FormControl)(({ theme }) => ({
-  marginBottom: theme.spacing(2),
+  marginBottom: theme.spacing(1),
   '& .MuiOutlinedInput-root': {
     transition: 'all 0.2s ease-in-out',
+    height: '44px',
     '&:hover': {
       borderColor: theme.palette.primary.main,
     },

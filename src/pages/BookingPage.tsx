@@ -39,9 +39,10 @@ interface BookingPageProps {
     notes: string;
     timeSlot: TimeSlot;
   }) => void;
+  onNavigate?: (page: string) => void;
 }
 
-export function BookingPage({ selectedService, allServices, onBack, onProceedToPayment }: BookingPageProps) {
+export function BookingPage({ selectedService, allServices, onBack, onProceedToPayment, onNavigate }: BookingPageProps) {
   const [currentService, setCurrentService] = useState<Service>(selectedService);
   const [selectedTier, setSelectedTier] = useState<string>(selectedService.defaultTier || selectedService.tiers?.[0]?.id || '');
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -334,6 +335,7 @@ export function BookingPage({ selectedService, allServices, onBack, onProceedToP
                     }}
                     selectedSlot={selectedSlot}
                     onSubmit={handleBookingSubmit}
+                    onNavigate={onNavigate}
                   />
                 ) : (
                   <div className="space-y-6">

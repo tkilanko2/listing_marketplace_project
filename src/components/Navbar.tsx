@@ -150,7 +150,7 @@ export function Navbar({
               onClick={onSellNowClick}
               className="px-4 py-2 bg-[#3D1560] hover:bg-[#6D26AB] text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
             >
-              Sell Now
+              List and Earn
             </button>
 
             <button className="relative p-2 hover:bg-gray-100 rounded-full transition-colors duration-200">
@@ -276,12 +276,21 @@ export function Navbar({
                 </div>
               </div>
             ) : (
-              <button 
-                onClick={() => setShowLoginModal(true)} 
-                className="text-sm text-gray-700 hover:text-gray-900"
-              >
-                Sign in
-              </button>
+              <div className="flex items-center space-x-2 text-sm">
+                <button 
+                  onClick={() => onNavigateTo('signin')} 
+                  className="text-gray-700 hover:text-[#3D1560]"
+                >
+                  Login
+                </button>
+                <span className="text-[#CDCED8]">|</span>
+                <button 
+                  onClick={() => onNavigateTo('signup')} 
+                  className="text-gray-700 hover:text-[#3D1560]"
+                >
+                  Signup
+                </button>
+              </div>
             )}
 
             <LanguageSelector onLanguageChange={onLanguageChange} />
@@ -293,21 +302,32 @@ export function Navbar({
         <div className="px-2 pt-2 pb-3 space-y-1 border-t">
           <button
             onClick={onSellNowClick}
-            className="w-full text-left px-3 py-2 text-base font-medium text-blue-600 hover:bg-blue-50 rounded-md"
+            className="w-full text-left px-3 py-2 text-base font-medium text-[#3D1560] hover:bg-[#EDD9FF] rounded-md"
           >
-            Sell Now
+            List and Earn
           </button>
 
           {!isAuthenticated && (
-            <button
-              onClick={() => {
-                setShowLoginModal(true);
-                setShowMobileMenu(false);
-              }}
-              className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md"
-            >
-              Sign in
-            </button>
+            <div className="space-y-2">
+              <button
+                onClick={() => {
+                  onNavigateTo('signin');
+                  setShowMobileMenu(false);
+                }}
+                className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md"
+              >
+                Login
+              </button>
+              <button
+                onClick={() => {
+                  onNavigateTo('signup');
+                  setShowMobileMenu(false);
+                }}
+                className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md"
+              >
+                Signup
+              </button>
+            </div>
           )}
 
           <div className="px-3 py-2 flex items-center justify-between">
@@ -404,19 +424,7 @@ export function Navbar({
         </div>
       </div>
 
-      <AuthModal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        title="Login"
-        onSubmit={handleLoginSubmit}
-      />
-
-      <AuthModal
-        isOpen={showSignupModal}
-        onClose={() => setShowSignupModal(false)}
-        title="Sign up"
-        onSubmit={handleSignupSubmit}
-      />
+      {/* Auth modals kept for future use but not shown via Navbar actions */}
     </nav>
   );
 }

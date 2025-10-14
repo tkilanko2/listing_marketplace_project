@@ -116,14 +116,14 @@ const CreateListingPage: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Container maxWidth="xl" sx={{ py: 2 }}>
       {!selectedType ? (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Box sx={{ textAlign: 'center', mb: 6 }}>
+          <Box sx={{ textAlign: 'center', mb: 4 }}>
             <Typography 
               variant="h3" 
               component="h1" 
@@ -142,7 +142,7 @@ const CreateListingPage: React.FC = () => {
             </Typography>
           </Box>
 
-          <Grid container spacing={4} sx={{ mt: 4, px: { xs: 1, md: 4 }, justifyContent: 'center' }}>
+          <Grid container spacing={3} sx={{ mt: 2, px: { xs: 1, md: 3 }, justifyContent: 'center' }}>
             <Grid item xs={12} sm={6} md={4} lg={3}>
               <OptionBox
                 type="product"

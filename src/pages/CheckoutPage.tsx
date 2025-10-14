@@ -8,6 +8,7 @@ interface CheckoutPageProps {
   onSignIn: () => void;
   onSignUp: () => void;
   onOrderComplete: () => void;
+  onNavigate?: (page: string) => void;
 }
 
 export function CheckoutPage({
@@ -15,7 +16,8 @@ export function CheckoutPage({
   onProceedAsGuest,
   onSignIn,
   onSignUp,
-  onOrderComplete
+  onOrderComplete,
+  onNavigate
 }: CheckoutPageProps) {
   const { getCartTotal } = useCart();
   const [processing, setProcessing] = useState(false);
@@ -100,7 +102,7 @@ export function CheckoutPage({
           </div>
 
           <p className="text-sm text-[#70727F] mt-8">
-            By proceeding, you agree to our Terms of Service and Privacy Policy.
+            By proceeding, you agree to our <button type="button" onClick={() => onNavigate?.('termsOfService')} className="text-[#3D1560] hover:text-[#6D26AB] underline">Terms of Service</button> and <a href="#" className="text-[#3D1560] hover:text-[#6D26AB] underline">Privacy Policy</a>.
             Your personal information will be used to process your order and support your experience.
           </p>
         </div>
