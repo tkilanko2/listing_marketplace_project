@@ -141,6 +141,7 @@ interface FormValues extends Record<string, any> {
     price: string;
     description: string;
     features: string[];
+    tierImage?: File | null;
   }>;
   acceptSellerPolicy: boolean;
   status: 'pending' | 'active' | 'draft' | 'inactive';
@@ -454,21 +455,24 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
           name: 'Basic',
           price: '',
           description: '',
-          features: []
+          features: [],
+          tierImage: null
         },
         {
           id: '2',
           name: 'Standard',
           price: '',
           description: '',
-          features: []
+          features: [],
+          tierImage: null
         },
         {
           id: '3',
           name: 'Premium',
           price: '',
           description: '',
-          features: []
+          features: [],
+          tierImage: null
         }
       ],
       acceptSellerPolicy: false,
@@ -1451,6 +1455,30 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
       }
     };
 
+    const addTier = () => {
+      const currentTiers = formik.values.pricingTiers;
+      if (currentTiers.length >= 10) return; // Max 10 tiers
+      
+      const newTier = {
+        id: `tier-${Date.now()}`,
+        name: `Tier ${currentTiers.length + 1}`,
+        price: '',
+        description: '',
+        features: [],
+        tierImage: null
+      };
+      
+      formik.setFieldValue('pricingTiers', [...currentTiers, newTier]);
+    };
+
+    const removeTier = (tierIndex: number) => {
+      const currentTiers = formik.values.pricingTiers;
+      if (currentTiers.length <= 2 || tierIndex < 2) return; // Keep minimum 2 tiers, first 2 can't be deleted
+      
+      const newTiers = currentTiers.filter((_, index) => index !== tierIndex);
+      formik.setFieldValue('pricingTiers', newTiers);
+    };
+
     // Helper to check if a field has an error
     const hasError = (field: string) => {
       return Boolean(
@@ -1499,12 +1527,12 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
     
     return (
       <Card sx={{ p: 1.5, border: '1px solid', borderColor: 'divider' }}>
-        <CardContent>
+        <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
           <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
             <PaymentIcon sx={{ mr: 1, color: '#3D1560' }} /> Pricing & Payment Options
           </Typography>
           
-        <FormControl component="fieldset" sx={{ mb: 2 }}>
+        <FormControl component="fieldset" sx={{ mb: 1.5 }}>
           <FormLabel component="legend" sx={{ color: '#383A47', mb: 1 }}>Pricing Model</FormLabel>
             <RadioGroup
               name="pricingModel"
@@ -1531,8 +1559,8 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
           </FormControl>
           
           {formik.values.pricingModel === 'flat' ? (
-          <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle1" gutterBottom>
+          <Box sx={{ mb: 1.5 }}>
+              <Typography variant="subtitle1" gutterBottom sx={{ mb: 1 }}>
               Flat Rate Price
               </Typography>
             <StyledTextField
@@ -1556,8 +1584,8 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
               />
             </Box>
           ) : (
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle1" gutterBottom sx={{ mb: 1 }}>
+          <Box sx={{ mb: 1.5 }}>
+            <Typography variant="subtitle1" gutterBottom sx={{ mb: 0.75 }}>
               Pricing Tiers
               </Typography>
               
@@ -1565,17 +1593,48 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
               <Paper 
                 key={tier.id} 
                       sx={{ 
-                  p: 2, 
-                  mb: 2, 
+                  p: 1.25, 
+                  mb: 1.25, 
                   border: '1px solid #CDCED8',
                   borderRadius: 2
                 }}
               >
-                <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
-                  {tier.name || `Tier ${tierIndex + 1}`}
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.25 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', fontSize: '1rem' }}>
+                      {tier.name || `Tier ${tierIndex + 1}`}
+                    </Typography>
+                    {tierIndex === 0 && (
+                      <Chip 
+                        label="Default" 
+                        size="small" 
+                        sx={{ 
+                          bgcolor: '#F0F0F0', 
+                          color: '#70727F', 
+                          fontSize: '0.7rem',
+                          height: '18px',
+                          fontWeight: 'normal'
+                        }} 
+                      />
+                    )}
+                  </Box>
+                  {tierIndex >= 2 && (
+                    <IconButton
+                      size="small"
+                      onClick={() => removeTier(tierIndex)}
+                      sx={{
+                        color: '#F44336',
+                        '&:hover': {
+                          bgcolor: '#FFEBEE'
+                        }
+                      }}
+                    >
+                      <CloseIcon sx={{ fontSize: '18px' }} />
+                    </IconButton>
+                  )}
+                </Box>
                 
-                <Grid container spacing={2}>
+                <Grid container spacing={1.25}>
                   <Grid item xs={12} sm={6}>
                     <StyledTextField
                       name={`pricingTiers.${tierIndex}.name`}
@@ -1633,10 +1692,98 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                       helperText={hasTierError(tierIndex, 'description') && tier.description !== '' ? getTierErrorMessage(tierIndex, 'description') : ''}
                     />
                   </Grid>
+                  
+                  {/* Tier Image Upload */}
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" gutterBottom sx={{ mb: 1 }}>
+                      Tier Image (Optional)
+                    </Typography>
+                    <Box
+                      sx={{
+                        position: 'relative',
+                        width: tier.tierImage ? '150px' : '100px',
+                        height: tier.tierImage ? '150px' : '80px',
+                        border: '2px dashed #CDCED8',
+                        borderRadius: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        bgcolor: '#F8F8FA',
+                        overflow: 'hidden',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          borderColor: '#3D1560',
+                          bgcolor: '#F0F0F0'
+                        }
+                      }}
+                      onClick={() => {
+                        const input = document.getElementById(`tier-image-${tierIndex}`);
+                        input?.click();
+                      }}
+                    >
+                      {tier.tierImage ? (
+                        <>
+                          <img
+                            src={URL.createObjectURL(tier.tierImage)}
+                            alt={`Tier ${tierIndex + 1}`}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover'
+                            }}
+                          />
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const newTiers = [...formik.values.pricingTiers];
+                              newTiers[tierIndex].tierImage = null;
+                              formik.setFieldValue('pricingTiers', newTiers);
+                            }}
+                            sx={{
+                              position: 'absolute',
+                              top: 4,
+                              right: 4,
+                              bgcolor: 'rgba(255, 255, 255, 0.9)',
+                              '&:hover': {
+                                bgcolor: 'rgba(255, 255, 255, 1)',
+                              },
+                              width: '28px',
+                              height: '28px'
+                            }}
+                          >
+                            <CloseIcon sx={{ fontSize: '16px' }} />
+                          </IconButton>
+                        </>
+                      ) : (
+                        <Box sx={{ textAlign: 'center', p: 1 }}>
+                          <AddIcon sx={{ fontSize: '24px', color: '#70727F', mb: 0.25 }} />
+                          <Typography variant="caption" sx={{ color: '#70727F', display: 'block', fontSize: '0.7rem' }}>
+                            Add image
+                          </Typography>
+                        </Box>
+                      )}
+                      <input
+                        id={`tier-image-${tierIndex}`}
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const newTiers = [...formik.values.pricingTiers];
+                            newTiers[tierIndex].tierImage = file;
+                            formik.setFieldValue('pricingTiers', newTiers);
+                          }
+                        }}
+                      />
+                    </Box>
+                  </Grid>
                 </Grid>
                 
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" gutterBottom>
+                <Box sx={{ mt: 1.25 }}>
+                  <Typography variant="subtitle2" gutterBottom sx={{ mb: 0.75 }}>
                     Key Features
                         </Typography>
                         
@@ -1646,7 +1793,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                       sx={{ 
                         display: 'flex', 
                         alignItems: 'center',
-                        mb: 1
+                        mb: 0.5
                       }}
                     >
                       <StyledTextField
@@ -1674,7 +1821,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                     startIcon={<AddIcon />}
                     onClick={() => addFeature(tierIndex)}
                           sx={{ 
-                            mt: 1,
+                            mt: 0.5,
                             color: '#3D1560',
                       borderColor: '#3D1560',
                             '&:hover': {
@@ -1688,14 +1835,37 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                 </Box>
               </Paper>
                 ))}
+                
+                {/* Add Another Tier Button */}
+                <Button
+                  variant="outlined"
+                  startIcon={<AddIcon />}
+                  onClick={addTier}
+                  disabled={formik.values.pricingTiers.length >= 10}
+                  sx={{
+                    mt: 0.75,
+                    color: '#3D1560',
+                    borderColor: '#3D1560',
+                    '&:hover': {
+                      borderColor: '#6D26AB',
+                      bgcolor: '#F8F8FA'
+                    },
+                    '&:disabled': {
+                      borderColor: '#CDCED8',
+                      color: '#70727F'
+                    }
+                  }}
+                >
+                  Add Another Tier ({formik.values.pricingTiers.length}/10)
+                </Button>
             </Box>
           )}
           
-          <Divider sx={{ my: 2 }} />
+          <Divider sx={{ my: 1.5 }} />
           
           {/* Payment Options Section */}
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'medium', mb: 1.5 }}>
+          <Box sx={{ mb: 1.5 }}>
+            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'medium', mb: 1.25 }}>
               Payment Options
             </Typography>
             <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
@@ -1740,7 +1910,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
             </Box>
           </Box>
           
-          <Divider sx={{ my: 2 }} />
+          <Divider sx={{ my: 1.5 }} />
           
           {/* Seller Policy Acceptance */}
           <Box>
