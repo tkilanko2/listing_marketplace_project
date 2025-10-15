@@ -62,6 +62,7 @@ import EventIcon from '@mui/icons-material/Event';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
+import PaymentIcon from '@mui/icons-material/Payment';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DescriptionIcon from '@mui/icons-material/Description';
 import CloseIcon from '@mui/icons-material/Close';
@@ -70,6 +71,7 @@ import InfoIcon from '@mui/icons-material/Info';
 import { mockServices } from '../../mockData';
 import SellerVerificationModal from '../SellerVerificationModal';
 import VerificationFlowModal from '../verification/VerificationFlowModal';
+import SellerTermsModal from '../SellerTermsModal';
 
 const serviceCategories = [
   'Professional Services',
@@ -140,6 +142,7 @@ interface FormValues extends Record<string, any> {
     description: string;
     features: string[];
   }>;
+  acceptSellerPolicy: boolean;
   status: 'pending' | 'active' | 'draft' | 'inactive';
 }
 
@@ -391,6 +394,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [showVerificationFlow, setShowVerificationFlow] = useState(false);
   const [verificationType, setVerificationType] = useState<'individual' | 'business'>('individual');
+  const [sellerPolicyModalOpen, setSellerPolicyModalOpen] = useState(false);
   const steps = ['Basic Information', 'Category & Availability', 'Pricing Options'];
 
   // Seller info form state
@@ -467,6 +471,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
           features: []
         }
       ],
+      acceptSellerPolicy: false,
       status: 'pending'
     },
     validationSchema: Yup.object({
@@ -482,7 +487,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
       flatRatePrice: Yup.string().when('pricingModel', {
         is: 'flat',
         then: () => Yup.string()
-          .required('Please enter the price')
+          .required('')
           .test('is-valid-price', 'Price must be a valid number greater than 0', 
             value => !isNaN(Number(value)) && Number(value) > 0)
       }),
@@ -490,15 +495,18 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
         is: 'tiered',
         then: () => Yup.array().of(
           Yup.object().shape({
-            name: Yup.string().required('Tier name is required'),
+            name: Yup.string().required(''),
             price: Yup.string()
-              .required('Tier price is required')
+              .required('')
               .test('is-valid-price', 'Price must be a valid number greater than 0', 
                 value => !isNaN(Number(value)) && Number(value) > 0),
-            description: Yup.string().required('Tier description is required')
+            description: Yup.string().required('')
           })
         ).min(1, 'At least one pricing tier is required')
-      })
+      }),
+      acceptSellerPolicy: Yup.boolean()
+        .oneOf([true], '')
+        .required('')
     }),
     onSubmit: (values) => {
       if (activeStep < 2) {
@@ -1107,7 +1115,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
           Select days you're available
         </Typography>
         
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 3 }}>
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
           {weekDays.map((day) => {
             const isSelected = isDaySelected(day.value);
             return (
@@ -1164,7 +1172,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                 );
                 
                 return (
-                  <Grid container spacing={2} key={index} sx={{ mb: 0.5 }}>
+                  <Grid container spacing={1.5} key={index} sx={{ mb: 0.5 }}>
                     <Grid item xs={5}>
                       <StyledTextField
                         label="From"
@@ -1232,7 +1240,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
           </Typography>
           
           {formik.values.availability.dateRanges.length === 0 && (
-            <Box sx={{ p: 3, textAlign: 'center', bgcolor: 'background.default', borderRadius: 1, mb: 2 }}>
+            <Box sx={{ p: 2, textAlign: 'center', bgcolor: 'background.default', borderRadius: 1, mb: 1.5 }}>
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 No date ranges added yet
               </Typography>
@@ -1243,7 +1251,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
           )}
           
           {formik.values.availability.dateRanges.map((dateRange, dateIndex) => (
-            <Card key={dateIndex} sx={{ mb: 3, p: 2, border: '1px solid', borderColor: 'divider' }}>
+            <Card key={dateIndex} sx={{ mb: 2, p: 1.5, border: '1px solid', borderColor: 'divider' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="subtitle2" fontWeight="bold">
                   Date Range {dateIndex + 1}
@@ -1253,7 +1261,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                 </IconButton>
               </Box>
               
-              <Grid container spacing={2} sx={{ mb: 2, alignItems: 'center' }}>
+              <Grid container spacing={1.5} sx={{ mb: 1.5, alignItems: 'center' }}>
                 <Grid item xs={12} sm={6}>
                   <StyledTextField
                     fullWidth
@@ -1291,7 +1299,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
               </Typography>
               
               {dateRange.timeSlots.map((timeSlot, timeIndex) => (
-                <Grid container spacing={2} key={timeIndex} sx={{ mb: 1, alignItems: 'center' }}>
+                <Grid container spacing={1.5} key={timeIndex} sx={{ mb: 1, alignItems: 'center' }}>
                   <Grid item xs={12} sm={5}>
                     <StyledTextField
                       label="From"
@@ -1369,7 +1377,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
     );
     
     return (
-      <Card sx={{ mt: 3, p: 3, border: '1px solid', borderColor: 'divider' }}>
+      <Card sx={{ mt: 2, p: 2, border: '1px solid', borderColor: 'divider' }}>
         <CardContent>
           <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', color: '#3D1560' }}>
             <CalendarMonthIcon sx={{ mr: 1 }} /> Availability
@@ -1395,52 +1403,6 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
           
           {availabilityTab === 0 ? renderWeeklySchedule() : renderDateRangeSchedule()}
           
-          <Divider sx={{ my: 1.5 }} />
-          
-          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', color: '#3D1560' }}>
-            <MonetizationOnIcon sx={{ mr: 1 }} /> Payment Options
-          </Typography>
-          
-          <Box sx={{ mt: 1.5 }}>
-            <FormControlLabel
-              control={
-                <Switch 
-                  checked={formik.values.paymentOptions.onlinePayment}
-                  onChange={(e) => {
-                    formik.setFieldValue('paymentOptions.onlinePayment', e.target.checked);
-                  }}
-                  sx={{
-                    '& .MuiSwitch-switchBase.Mui-checked': {
-                      color: '#3D1560',
-                    },
-                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                      backgroundColor: '#9B53D9',
-                    },
-                  }}
-                />
-              }
-              label="Accept Online Payments"
-            />
-            <FormControlLabel
-              control={
-                <Switch 
-                  checked={formik.values.paymentOptions.payAtService}
-                  onChange={(e) => {
-                    formik.setFieldValue('paymentOptions.payAtService', e.target.checked);
-                  }}
-                  sx={{
-                    '& .MuiSwitch-switchBase.Mui-checked': {
-                      color: '#3D1560',
-                    },
-                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                      backgroundColor: '#9B53D9',
-                    },
-                  }}
-                />
-              }
-              label="Accept Pay at Service"
-            />
-          </Box>
         </CardContent>
       </Card>
     );
@@ -1448,25 +1410,19 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
 
   const renderCategoryDetails = () => {
     if (!formik.values.category) {
-      return (
-        <Box sx={{ mt: 2, p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
-          <Typography variant="body2" color="text.secondary">
-            Please select a service category to see specific options.
-          </Typography>
-        </Box>
-      );
+      return null;
     }
     
     const categoryFields = categorySpecificFields[formik.values.category as keyof typeof categorySpecificFields] || [];
     
     return (
-      <Card sx={{ mt: 3, p: 2, border: '1px solid', borderColor: 'divider' }}>
+      <Card sx={{ mt: 2, p: 1.5, border: '1px solid', borderColor: 'divider' }}>
         <CardContent>
           <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
             <HandymanIcon sx={{ mr: 1 }} /> Category Details
           </Typography>
           
-          <Grid container spacing={2}>
+          <Grid container spacing={1.5}>
             {categoryFields.map((field) => (
               <Grid item xs={12} md={field.type === 'textarea' ? 12 : 6} key={field.name}>
                 {renderField(field)}
@@ -1520,7 +1476,9 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
         // @ts-ignore - ignoring type checking for accessing dynamic properties
         formik.touched.pricingTiers[tierIndex][field] && 
         formik.errors.pricingTiers && 
-        formik.errors.pricingTiers[tierIndex]
+        formik.errors.pricingTiers[tierIndex] &&
+        // @ts-ignore - check if this specific field has an error
+        formik.errors.pricingTiers[tierIndex][field]
       );
     };
 
@@ -1540,12 +1498,13 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
     };
     
     return (
-      <Box>
-        <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-          Set Your Pricing Options
+      <Card sx={{ p: 1.5, border: '1px solid', borderColor: 'divider' }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+            <PaymentIcon sx={{ mr: 1, color: '#3D1560' }} /> Pricing & Payment Options
           </Typography>
           
-        <FormControl component="fieldset" sx={{ mb: 3 }}>
+        <FormControl component="fieldset" sx={{ mb: 2 }}>
           <FormLabel component="legend" sx={{ color: '#383A47', mb: 1 }}>Pricing Model</FormLabel>
             <RadioGroup
               name="pricingModel"
@@ -1572,13 +1531,17 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
           </FormControl>
           
           {formik.values.pricingModel === 'flat' ? (
-          <Box sx={{ mb: 3 }}>
+          <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" gutterBottom>
               Flat Rate Price
               </Typography>
             <StyledTextField
                 name="flatRatePrice"
-              label="Service Price"
+              label={
+                <span>
+                  Service Price <span style={{ color: '#000', fontSize: '1.2em', fontWeight: 'bold' }}>*</span>
+                </span>
+              }
                 type="number"
               placeholder="Enter price"
                 value={formik.values.flatRatePrice}
@@ -1588,13 +1551,13 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                   startAdornment: <InputAdornment position="start">$</InputAdornment>,
                 }}
               fullWidth
-              error={hasError('flatRatePrice')}
-              helperText={getErrorMessage('flatRatePrice')}
+              error={hasError('flatRatePrice') && formik.values.flatRatePrice !== ''}
+              helperText={hasError('flatRatePrice') && formik.values.flatRatePrice !== '' ? getErrorMessage('flatRatePrice') : ''}
               />
             </Box>
           ) : (
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle1" gutterBottom sx={{ mb: 1.5 }}>
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle1" gutterBottom sx={{ mb: 1 }}>
               Pricing Tiers
               </Typography>
               
@@ -1602,8 +1565,8 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
               <Paper 
                 key={tier.id} 
                       sx={{ 
-                  p: 3, 
-                  mb: 3, 
+                  p: 2, 
+                  mb: 2, 
                   border: '1px solid #CDCED8',
                   borderRadius: 2
                 }}
@@ -1612,24 +1575,32 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                   {tier.name || `Tier ${tierIndex + 1}`}
                 </Typography>
                 
-                <Grid container spacing={3}>
+                <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <StyledTextField
                       name={`pricingTiers.${tierIndex}.name`}
-                      label="Tier Name"
+                      label={
+                        <span>
+                          Tier Name <span style={{ color: '#000', fontSize: '1.2em', fontWeight: 'bold' }}>*</span>
+                        </span>
+                      }
                       placeholder="e.g., Basic, Standard, Premium"
                           value={tier.name}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
                           fullWidth
-                      error={hasTierError(tierIndex, 'name')}
-                      helperText={getTierErrorMessage(tierIndex, 'name')}
+                      error={hasTierError(tierIndex, 'name') && tier.name !== ''}
+                      helperText={hasTierError(tierIndex, 'name') && tier.name !== '' ? getTierErrorMessage(tierIndex, 'name') : ''}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <StyledTextField
                       name={`pricingTiers.${tierIndex}.price`}
-                          label="Price"
+                      label={
+                        <span>
+                          Price <span style={{ color: '#000', fontSize: '1.2em', fontWeight: 'bold' }}>*</span>
+                        </span>
+                      }
                           type="number"
                       placeholder="Enter price"
                           value={tier.price}
@@ -1639,14 +1610,18 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                             startAdornment: <InputAdornment position="start">$</InputAdornment>,
                           }}
                       fullWidth
-                      error={hasTierError(tierIndex, 'price')}
-                      helperText={getTierErrorMessage(tierIndex, 'price')}
+                      error={hasTierError(tierIndex, 'price') && tier.price !== ''}
+                      helperText={hasTierError(tierIndex, 'price') && tier.price !== '' ? getTierErrorMessage(tierIndex, 'price') : ''}
                     />
                   </Grid>
                   <Grid item xs={12}>
                     <StyledTextField
                       name={`pricingTiers.${tierIndex}.description`}
-                          label="Description"
+                      label={
+                        <span>
+                          Description <span style={{ color: '#000', fontSize: '1.2em', fontWeight: 'bold' }}>*</span>
+                        </span>
+                      }
                           multiline
                           rows={2}
                       placeholder="Describe what's included in this tier"
@@ -1654,8 +1629,8 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
                       fullWidth
-                      error={hasTierError(tierIndex, 'description')}
-                      helperText={getTierErrorMessage(tierIndex, 'description')}
+                      error={hasTierError(tierIndex, 'description') && tier.description !== ''}
+                      helperText={hasTierError(tierIndex, 'description') && tier.description !== '' ? getTierErrorMessage(tierIndex, 'description') : ''}
                     />
                   </Grid>
                 </Grid>
@@ -1715,7 +1690,106 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                 ))}
             </Box>
           )}
-      </Box>
+          
+          <Divider sx={{ my: 2 }} />
+          
+          {/* Payment Options Section */}
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'medium', mb: 1.5 }}>
+              Payment Options
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+              <FormControlLabel
+                control={
+                  <Switch 
+                    checked={formik.values.paymentOptions.onlinePayment}
+                    onChange={(e) => {
+                      formik.setFieldValue('paymentOptions.onlinePayment', e.target.checked);
+                    }}
+                    sx={{
+                      '& .MuiSwitch-switchBase.Mui-checked': {
+                        color: '#3D1560',
+                      },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                        backgroundColor: '#9B53D9',
+                      },
+                    }}
+                  />
+                }
+                label="Accept Online Payments"
+              />
+              <FormControlLabel
+                control={
+                  <Switch 
+                    checked={formik.values.paymentOptions.payAtService}
+                    onChange={(e) => {
+                      formik.setFieldValue('paymentOptions.payAtService', e.target.checked);
+                    }}
+                    sx={{
+                      '& .MuiSwitch-switchBase.Mui-checked': {
+                        color: '#3D1560',
+                      },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                        backgroundColor: '#9B53D9',
+                      },
+                    }}
+                  />
+                }
+                label="Accept Pay at Service"
+              />
+            </Box>
+          </Box>
+          
+          <Divider sx={{ my: 2 }} />
+          
+          {/* Seller Policy Acceptance */}
+          <Box>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={formik.values.acceptSellerPolicy}
+                  onChange={(e) => {
+                    formik.setFieldValue('acceptSellerPolicy', e.target.checked);
+                  }}
+                  sx={{
+                    color: '#3D1560',
+                    '&.Mui-checked': {
+                      color: '#3D1560',
+                    },
+                  }}
+                />
+              }
+              label={
+                <Typography variant="body2" sx={{ color: '#383A47' }}>
+                  I agree to the{' '}
+                  <Typography
+                    component="span"
+                    variant="body2"
+                    onClick={() => setSellerPolicyModalOpen(true)}
+                    sx={{
+                      color: '#3D1560',
+                      textDecoration: 'underline',
+                      cursor: 'pointer',
+                      fontWeight: 'medium',
+                      '&:hover': {
+                        color: '#6D26AB',
+                      },
+                    }}
+                  >
+                    Seller Policy
+                  </Typography>
+                  <Typography
+                    component="span"
+                    sx={{ color: '#000', ml: 0.5, fontSize: '1.2em', fontWeight: 'bold' }}
+                  >
+                    *
+                  </Typography>
+                </Typography>
+              }
+            />
+          </Box>
+        </CardContent>
+      </Card>
     );
   };
 
@@ -1723,7 +1797,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
     switch (step) {
       case 0:
         return (
-          <Stack spacing={3}> {/* Increased spacing for consistency */}
+          <Stack spacing={2}> {/* Compact spacing */}
             <Accordion defaultExpanded sx={{ border: '1px solid #CDCED8', borderRadius: 1, boxShadow: 'none', '&:not(:last-child)': { mb: 0 } }}>
               <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
@@ -1817,15 +1891,15 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
         );
       case 1:
         return (
-          <Stack spacing={2}>
-            <Card sx={{ p: 2, border: '1px solid', borderColor: 'divider' }}>
+          <Stack spacing={1.5}>
+            <Card sx={{ p: 1.5, border: '1px solid', borderColor: 'divider' }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
                   <EventIcon sx={{ mr: 1 }} /> Service Category
                 </Typography>
                 
                 <StyledFormControl fullWidth>
-                  <InputLabel>Category</InputLabel>
+                  <InputLabel>Please select a service category</InputLabel>
                   <Select
                     name="category"
                     value={formik.values.category}
@@ -1848,7 +1922,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
         );
       case 2:
         return (
-          <Stack spacing={2}>
+          <Stack spacing={1.5}>
             {renderPricingSection()}
           </Stack>
         );
@@ -2002,7 +2076,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
             {renderStepContent(activeStep)}
           </Box>
           
-          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 1.5 }}>
             {activeStep > 0 && (
               <Button 
                 onClick={handleBack}
@@ -2173,7 +2247,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
             Your listing has been created and is pending approval. While you wait, please provide some additional information about your shop and services.
           </Typography>
           
-          <Grid container spacing={3}>
+          <Grid container spacing={2}>
             <Grid item xs={12}>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', color: '#1B1C20' }}>
                 Shop Policies
@@ -2321,7 +2395,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
             </Typography>
             
             {/* Display current pending listings */}
-            <Box sx={{ mt: 2, width: '100%', bgcolor: '#F8F8FA', p: 2, borderRadius: 1 }}>
+            <Box sx={{ mt: 1.5, width: '100%', bgcolor: '#F8F8FA', p: 1.5, borderRadius: 1 }}>
               <Typography variant="subtitle2" gutterBottom>
                 Your Pending Listings:
               </Typography>
@@ -2395,6 +2469,15 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
         onClose={() => setShowVerificationFlow(false)}
         onComplete={handleVerificationComplete}
         verificationType={verificationType}
+      />
+      
+      {/* Seller Policy Modal */}
+      <SellerTermsModal
+        open={sellerPolicyModalOpen}
+        onClose={() => setSellerPolicyModalOpen(false)}
+        serviceName="Your Service"
+        providerName="You"
+        serviceType="service"
       />
     </FormContainer>
   );
