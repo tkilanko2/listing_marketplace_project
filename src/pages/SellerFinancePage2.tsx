@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { 
   ArrowLeft, 
+  ArrowRight,
   TrendingUp,
   Wallet,
   Download,
@@ -14,7 +15,9 @@ import {
   CreditCard,
   X,
   ExternalLink,
-  AlertTriangle
+  AlertTriangle,
+  Clock,
+  Package
 } from 'lucide-react';
 import { 
   allFinancialTransactionsExport as allFinancialTransactions, 
@@ -188,12 +191,30 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
       {/* Hero Balance Cards - Side by Side Layout */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Available Balance - Prominent */}
-        <div className="md:col-span-2 bg-white rounded-2xl p-8 border border-[#E8E9ED] shadow-lg hover:shadow-xl transition-all">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[#70727F] text-sm font-medium mb-1">Available to Withdraw</p>
-              <h2 className="text-5xl font-bold tracking-tight text-[#1B1C20] mb-3">{formatCurrency(availableBalance)}</h2>
-              <div className="space-y-1">
+        <div 
+          className="md:col-span-2 bg-white rounded-2xl p-6 border-2 border-[#4CAF50] shadow-lg hover:shadow-2xl hover:border-[#45a049] transition-all relative overflow-hidden cursor-pointer group"
+          onClick={() => onNavigate?.('bankingSettings')}
+        >
+          {/* Subtle green accent background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#E8F5E9] to-[#F1F8F4] opacity-30 group-hover:opacity-40 transition-opacity"></div>
+          
+          <div className="relative z-10 space-y-4">
+            {/* Header */}
+            <div className="flex items-start justify-between">
+              <div>
+                <span className="inline-block text-xs font-semibold text-[#4CAF50] bg-[#E8F5E9] px-3 py-1 rounded-full mb-2">
+                  AVAILABLE
+                </span>
+                <p className="text-[#70727F] text-sm font-medium">Balance</p>
+                <h2 className="text-5xl font-bold tracking-tight text-[#1B1C20]">{formatCurrency(availableBalance)}</h2>
+              </div>
+              <Wallet className="w-10 h-10 text-[#4CAF50] flex-shrink-0 group-hover:scale-110 transition-transform" />
+            </div>
+
+            {/* Stats */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#4CAF50]" />
                 <p className="text-sm text-[#70727F]">
                   {allFinancialTransactions.filter(t => 
                     t.status === 'completed' && 
@@ -201,44 +222,94 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
                     t.availableDate <= new Date()
                   ).length} completed bookings ready for payout
                 </p>
-                <p className="text-lg font-semibold text-[#383A47]">
-                  Total Earnings: {formatCurrency(financialSummary.netEarnings)}
-                </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[#E8E9ED]">
-                <p className="text-sm text-[#70727F] mb-1">Next automatic payout</p>
-                <p className="font-semibold text-[#383A47]">{nextPayoutInfo.windowLabel}</p>
-                <p className="text-xs text-[#70727F]">Processing in 3-7 days after payout date</p>
+              
+              {/* Earnings Breakdown */}
+              <div className="bg-white bg-opacity-60 rounded-lg p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-[#4CAF50]" />
+                    <p className="text-sm font-medium text-[#383A47]">Total Earnings</p>
+                  </div>
+                  <p className="text-lg font-bold text-[#383A47]">{formatCurrency(financialSummary.netEarnings)}</p>
+                </div>
+                {pendingBalance > 0 && (
+                  <div className="flex items-center justify-between pt-2 border-t border-[#E8E9ED]">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-[#70727F]" />
+                      <p className="text-xs text-[#70727F]">In hold period</p>
+                    </div>
+                    <p className="text-sm font-semibold text-[#70727F]">{formatCurrency(pendingBalance)}</p>
+                  </div>
+                )}
               </div>
             </div>
-            <Wallet className="w-10 h-10 text-[#4CAF50]" />
+
+            {/* Next Payout - Enhanced */}
+            <div className="bg-[#4CAF50] bg-opacity-10 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-[#4CAF50] rounded-full flex items-center justify-center flex-shrink-0">
+                  <ArrowRight className="w-4 h-4 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-[#70727F] mb-1">Next payout</p>
+                  <p className="font-bold text-[#383A47] text-lg">{nextPayoutInfo.windowLabel}</p>
+                  <p className="text-xs text-[#70727F] mt-1">Arrives: {formatDate(nextPayoutInfo.earliestDate)} - {formatDate(nextPayoutInfo.latestDate)}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Hint */}
+            <div className="flex items-center justify-center gap-2 pt-3 border-t border-[#4CAF50] border-opacity-20">
+              <Building className="w-4 h-4 text-[#4CAF50]" />
+              <p className="text-sm text-[#4CAF50] font-medium group-hover:underline">Manage Banking & Payouts</p>
+              <ChevronRight className="w-4 h-4 text-[#4CAF50] group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
         </div>
 
-        {/* Pending Earnings - Confirmed Bookings */}
-        <div className="bg-white rounded-2xl p-6 border-2 border-[#3D1560] shadow-lg relative overflow-hidden">
+        {/* Confirmed Bookings */}
+        <div 
+          className="bg-white rounded-2xl p-6 border-2 border-[#3D1560] shadow-lg hover:shadow-2xl hover:border-[#6D26AB] relative overflow-hidden cursor-pointer group transition-all"
+          onClick={() => onNavigate?.('sellerBookings')}
+        >
           {/* Subtle accent background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#F5F0FF] to-[#EDD9FF] opacity-40"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-[#F5F0FF] to-[#EDD9FF] opacity-40 group-hover:opacity-50 transition-opacity"></div>
           
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-[#3D1560] bg-[#EDD9FF] px-3 py-1 rounded-full">
-                UPCOMING
-              </span>
-              <div className="w-10 h-10 bg-[#3D1560] bg-opacity-10 rounded-full flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-[#3D1560]" />
+          <div className="relative z-10 h-full flex flex-col">
+            {/* Top Content */}
+            <div className="flex-grow">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold text-[#3D1560] bg-[#EDD9FF] px-3 py-1 rounded-full">
+                  UPCOMING
+                </span>
+                <div className="w-10 h-10 bg-[#3D1560] bg-opacity-10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Calendar className="w-5 h-5 text-[#3D1560]" />
+                </div>
               </div>
+              <p className="text-[#70727F] text-sm mb-1">Confirmed Bookings</p>
+              <h3 className="text-3xl font-bold text-[#1B1C20] mb-1">{formatCurrency(projectedEarnings.amount)}</h3>
+              <div className="flex items-center gap-2 mb-2">
+                <Package className="w-4 h-4 text-[#3D1560]" />
+                <p className="text-sm text-[#70727F]">
+                  {projectedEarnings.count} {projectedEarnings.count === 1 ? 'booking' : 'bookings'} to be delivered
+                </p>
+              </div>
+              {projectedEarnings.earliestDate && projectedEarnings.latestDate && (
+                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#3D1560] border-opacity-20">
+                  <Clock className="w-3.5 h-3.5 text-[#3D1560]" />
+                  <p className="text-xs text-[#70727F]">
+                    {formatDate(projectedEarnings.earliestDate)} - {formatDate(projectedEarnings.latestDate)}
+                  </p>
+                </div>
+              )}
             </div>
-            <p className="text-[#70727F] text-sm mb-1">Pending Earnings</p>
-            <h3 className="text-3xl font-bold text-[#1B1C20] mb-1">{formatCurrency(projectedEarnings.amount)}</h3>
-            <p className="text-sm text-[#70727F]">
-              {projectedEarnings.count} confirmed {projectedEarnings.count === 1 ? 'booking' : 'bookings'} to be delivered
-            </p>
-            {pendingBalance > 0 && (
-              <div className="mt-3 pt-3 border-t border-[#E8E9ED]">
-                <p className="text-xs text-[#70727F]">In hold period: {formatCurrency(pendingBalance)}</p>
-              </div>
-            )}
+
+            {/* Action Hint - Bottom Aligned */}
+            <div className="flex items-center justify-center gap-2 pt-3 border-t border-[#3D1560] border-opacity-20 mt-auto">
+              <p className="text-sm text-[#3D1560] font-medium group-hover:underline">View All Bookings</p>
+              <ChevronRight className="w-4 h-4 text-[#3D1560] group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
         </div>
       </div>

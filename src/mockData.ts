@@ -3209,7 +3209,7 @@ export function getPendingBalance(transactions: FinancialTransaction[]): number 
 }
 
 // Get projected earnings from confirmed bookings not yet completed
-export function getProjectedEarnings(sellerId: string): { amount: number; count: number } {
+export function getProjectedEarnings(sellerId: string): { amount: number; count: number; earliestDate?: Date; latestDate?: Date } {
   const allOrders = getAllOrdersWithBookings();
   const confirmedBookings = allOrders.filter(order => 
     order.type === 'service' && 
@@ -3225,10 +3225,28 @@ export function getProjectedEarnings(sellerId: string): { amount: number; count:
     const netToSeller = booking.totalAmount - platformFee - paymentProcessingFee - transactionFee;
     return sum + netToSeller;
   }, 0);
+  
+  // Get date range from bookings
+  let earliestDate: Date | undefined;
+  let latestDate: Date | undefined;
+  
+  if (confirmedBookings.length > 0) {
+    const dates = confirmedBookings
+      .map(booking => booking.createdAt || booking.updatedAt)
+      .filter((date): date is Date => date !== undefined)
+      .sort((a, b) => a.getTime() - b.getTime());
     
-    return {
+    if (dates.length > 0) {
+      earliestDate = dates[0];
+      latestDate = dates[dates.length - 1];
+    }
+  }
+    
+  return {
     amount: Math.round(totalAmount * 100) / 100,
-    count: confirmedBookings.length
+    count: confirmedBookings.length,
+    earliestDate,
+    latestDate
   };
 }
 
