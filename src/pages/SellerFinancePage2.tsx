@@ -9,14 +9,12 @@ import {
   CheckCircle2,
   Search,
   Eye,
-  Clock,
   Building,
-  ArrowUpRight,
   ChevronRight,
   CreditCard,
-  BarChart3,
   X,
-  ExternalLink
+  ExternalLink,
+  AlertTriangle
 } from 'lucide-react';
 import { 
   allFinancialTransactionsExport as allFinancialTransactions, 
@@ -26,7 +24,9 @@ import {
   isAvailableForWithdrawal,
   getAvailableBalance,
   getPendingBalance,
+  getProjectedEarnings,
   getNextPayoutDates,
+  CURRENT_SELLER_ID,
   FinancialTransaction,
 } from '../mockData';
 
@@ -34,12 +34,15 @@ interface SellerFinancePage2Props {
   onBack?: () => void;
   onViewBookingDetails?: (bookingId: string) => void;
   onViewOrderDetails?: (orderId: string) => void;
+  onNavigate?: (page: string) => void;
 }
 
-export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDetails }: SellerFinancePage2Props) {
+export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDetails, onNavigate }: SellerFinancePage2Props) {
   const [timeFilter, setTimeFilter] = useState<'all' | '30d' | '7d' | '24h'>('30d');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTransaction, setSelectedTransaction] = useState<FinancialTransaction | null>(null);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportPeriod, setExportPeriod] = useState<'week' | 'month' | '3months'>('month');
 
   // Calculate financial summary
   const financialSummary = useMemo(() => 
@@ -56,6 +59,12 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
   const pendingBalance = useMemo(() => 
     getPendingBalance(allFinancialTransactions), 
     [allFinancialTransactions]
+  );
+
+  // Get projected earnings from confirmed bookings not yet completed
+  const projectedEarnings = useMemo(() => 
+    getProjectedEarnings(CURRENT_SELLER_ID), 
+    []
   );
 
   // Get next payout dates
@@ -80,6 +89,70 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
     day: 'numeric',
     year: 'numeric'
   });
+
+  // CSV Export Handler
+  const handleExportCSV = () => {
+    const now = new Date();
+    let filteredData = allFinancialTransactions;
+
+    // Filter by selected period
+    if (exportPeriod === 'week') {
+      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      filteredData = allFinancialTransactions.filter(t => t.date >= weekAgo);
+    } else if (exportPeriod === 'month') {
+      const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      filteredData = allFinancialTransactions.filter(t => t.date >= monthAgo);
+    } else if (exportPeriod === '3months') {
+      const threeMonthsAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+      filteredData = allFinancialTransactions.filter(t => t.date >= threeMonthsAgo);
+    }
+
+    // CSV Headers
+    const headers = [
+      'Transaction ID',
+      'Booking ID',
+      'Listing/Service Name',
+      'Date',
+      'Net Earnings'
+    ];
+
+    // CSV Rows
+    const rows = filteredData.map(transaction => [
+      transaction.transactionId,
+      transaction.bookingId || transaction.orderId || 'N/A',
+      transaction.listingName || transaction.description,
+      transaction.date.toLocaleDateString('en-US'),
+      transaction.netToSeller.toFixed(2)
+    ]);
+
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    // Generate filename: sellerid_transactions_YYYY-MM-DD.csv
+    const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const filename = `${CURRENT_SELLER_ID}_transactions_${dateStr}.csv`;
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Close modal and show success feedback
+    setShowExportModal(false);
+    
+    // Optional: Show toast notification (can implement later)
+    console.log(`✅ Exported ${filteredData.length} transactions to ${filename}`);
+  };
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-3 sm:px-4 lg:px-6 bg-[#F8F8FA] min-h-screen">
@@ -116,62 +189,56 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Available Balance - Prominent */}
         <div className="md:col-span-2 bg-white rounded-2xl p-8 border border-[#E8E9ED] shadow-lg hover:shadow-xl transition-all">
-          <div className="flex items-start justify-between mb-4">
+          <div className="flex items-start justify-between">
             <div>
               <p className="text-[#70727F] text-sm font-medium mb-1">Available to Withdraw</p>
-              <h2 className="text-5xl font-bold tracking-tight text-[#1B1C20]">{formatCurrency(availableBalance)}</h2>
-              <p className="text-sm text-[#70727F] mt-2">
-                {allFinancialTransactions.filter(t => 
-                  t.status === 'completed' && 
-                  t.availableDate && 
-                  t.availableDate <= new Date()
-                ).length} completed bookings ready for payout
-              </p>
+              <h2 className="text-5xl font-bold tracking-tight text-[#1B1C20] mb-3">{formatCurrency(availableBalance)}</h2>
+              <div className="space-y-1">
+                <p className="text-sm text-[#70727F]">
+                  {allFinancialTransactions.filter(t => 
+                    t.status === 'completed' && 
+                    t.availableDate && 
+                    t.availableDate <= new Date()
+                  ).length} completed bookings ready for payout
+                </p>
+                <p className="text-lg font-semibold text-[#383A47]">
+                  Total Earnings: {formatCurrency(financialSummary.netEarnings)}
+                </p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-[#E8E9ED]">
+                <p className="text-sm text-[#70727F] mb-1">Next automatic payout</p>
+                <p className="font-semibold text-[#383A47]">{nextPayoutInfo.windowLabel}</p>
+                <p className="text-xs text-[#70727F]">Processing in 3-7 days after payout date</p>
+              </div>
             </div>
             <Wallet className="w-10 h-10 text-[#4CAF50]" />
           </div>
-          <div className="flex items-center gap-4 mt-6">
-            <button className="bg-[#4CAF50] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#45A049] transition-all flex items-center gap-2">
-              <Download className="w-4 h-4" />
-              Withdraw Now
-            </button>
-            <div className="text-sm text-[#70727F]">
-              <p className="font-medium text-[#383A47]">Next payout: {nextPayoutInfo.windowLabel}</p>
-              <p className="text-xs">Processing in 3-7 days</p>
-            </div>
-          </div>
         </div>
 
-        {/* Pending Balance */}
-        <div className="bg-white rounded-2xl p-6 border-2 border-[#DF678C] shadow-lg relative overflow-hidden">
+        {/* Pending Earnings - Confirmed Bookings */}
+        <div className="bg-white rounded-2xl p-6 border-2 border-[#3D1560] shadow-lg relative overflow-hidden">
           {/* Subtle accent background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#FFF0F5] to-[#FFE5ED] opacity-50"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-[#F5F0FF] to-[#EDD9FF] opacity-40"></div>
           
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 bg-[#DF678C] bg-opacity-10 rounded-full flex items-center justify-center">
-                <Clock className="w-5 h-5 text-[#DF678C]" />
-              </div>
-              <span className="text-xs font-semibold text-[#DF678C] bg-[#FFE5ED] px-3 py-1 rounded-full">
-                HOLD
+              <span className="text-xs font-semibold text-[#3D1560] bg-[#EDD9FF] px-3 py-1 rounded-full">
+                UPCOMING
               </span>
+              <div className="w-10 h-10 bg-[#3D1560] bg-opacity-10 rounded-full flex items-center justify-center">
+                <Calendar className="w-5 h-5 text-[#3D1560]" />
+              </div>
             </div>
-            <p className="text-[#70727F] text-sm mb-1">In Hold Period</p>
-            <h3 className="text-3xl font-bold text-[#1B1C20] mb-1">{formatCurrency(pendingBalance)}</h3>
+            <p className="text-[#70727F] text-sm mb-1">Pending Earnings</p>
+            <h3 className="text-3xl font-bold text-[#1B1C20] mb-1">{formatCurrency(projectedEarnings.amount)}</h3>
             <p className="text-sm text-[#70727F]">
-              {(() => {
-                const pendingTransactions = allFinancialTransactions.filter(t => t.availableDate && t.availableDate > new Date());
-                if (pendingTransactions.length === 0) return 'No funds in hold';
-                
-                const nextAvailableDate = pendingTransactions[0]?.availableDate;
-                if (!nextAvailableDate) return 'Calculating...';
-                
-                const now = new Date();
-                const daysUntilAvailable = Math.ceil((nextAvailableDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-                
-                return daysUntilAvailable > 0 ? `Available in ${daysUntilAvailable} days` : 'Available now';
-              })()}
+              {projectedEarnings.count} confirmed {projectedEarnings.count === 1 ? 'booking' : 'bookings'} to be delivered
             </p>
+            {pendingBalance > 0 && (
+              <div className="mt-3 pt-3 border-t border-[#E8E9ED]">
+                <p className="text-xs text-[#70727F]">In hold period: {formatCurrency(pendingBalance)}</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -212,14 +279,21 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-5 border border-[#E8E9ED] hover:border-[#3D1560] transition-all cursor-pointer">
+        <div className="bg-white rounded-xl p-5 border border-[#E8E9ED] hover:border-[#FF9800] transition-all cursor-pointer">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[#70727F] text-sm">Total Earnings</span>
-            <BarChart3 className="w-4 h-4 text-[#3D1560]" />
+            <span className="text-[#70727F] text-sm">Disputes</span>
+            <AlertTriangle className="w-4 h-4 text-[#FF9800]" />
           </div>
-          <p className="text-2xl font-bold text-[#1B1C20]">{formatCurrency(financialSummary.netEarnings)}</p>
+          <p className="text-2xl font-bold text-[#1B1C20]">
+            {allFinancialTransactions.filter(t => t.status === 'cancelled' || (t as any).dispute).length}
+          </p>
           <div className="flex items-center gap-1 mt-1">
-            <span className="text-[#70727F] text-xs">{financialSummary.completedTransactions} bookings</span>
+            <span className="text-[#70727F] text-xs">
+              {formatCurrency(allFinancialTransactions
+                .filter(t => t.status === 'cancelled' || (t as any).dispute)
+                .reduce((sum, t) => sum + t.amount, 0)
+              )} in dispute
+            </span>
           </div>
         </div>
       </div>
@@ -284,7 +358,7 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
                       </p>
                       <div className="flex items-center gap-4 text-sm">
                         <span className="text-[#383A47] font-medium">
-                          {formatCurrency(transaction.amount)} → {formatCurrency(transaction.netToSeller)} net
+                          {formatCurrency(transaction.amount)}
                         </span>
                         {transaction.availableDate && (
                           <span className={`text-xs font-medium px-2 py-1 rounded-full ${
@@ -312,6 +386,46 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
             <div className="p-4 border-t border-[#E8E9ED] text-center">
               <button className="text-[#3D1560] hover:text-[#6D26AB] font-medium text-sm">
                 View All Transactions →
+              </button>
+            </div>
+          </div>
+
+          {/* Payout History */}
+          <div className="bg-white rounded-xl border border-[#E8E9ED] shadow-sm">
+            <div className="p-6 border-b border-[#E8E9ED]">
+              <h2 className="text-xl font-bold text-[#1B1C20]">Payout History</h2>
+            </div>
+            <div className="divide-y divide-[#E8E9ED]">
+              {mockPayoutRecords.slice(0, 5).map((payout) => (
+                <div key={payout.id} className="p-6 hover:bg-[#F8F8FA] transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-[#E8F5E9] rounded-full flex items-center justify-center">
+                        <CheckCircle2 className="w-6 h-6 text-[#4CAF50]" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-[#383A47] text-lg">{formatCurrency(payout.amount)}</p>
+                        <p className="text-sm text-[#70727F]">
+                          {formatDate(payout.initiatedDate)} • {payout.accountDetails.bankName || payout.accountDetails.email}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="px-3 py-1 text-xs bg-[#E8F5E9] text-[#4CAF50] rounded-full font-medium">
+                        {payout.status === 'completed' ? 'Completed' : payout.status === 'processing' ? 'Processing' : 'Pending'}
+                      </span>
+                      <p className="text-xs text-[#70727F] mt-1">{payout.transactionIds.length} transactions</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="p-4 border-t border-[#E8E9ED] text-center">
+              <button 
+                onClick={() => onNavigate && onNavigate('payoutHistory')}
+                className="text-[#3D1560] hover:text-[#6D26AB] font-medium text-sm"
+              >
+                View All Payouts →
               </button>
             </div>
           </div>
@@ -349,6 +463,45 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
 
         {/* Right Column - Sidebar */}
         <div className="space-y-6">
+          {/* Quick Actions */}
+          <div className="bg-white rounded-xl border border-[#E8E9ED] shadow-sm p-6">
+            <h3 className="text-lg font-bold text-[#1B1C20] mb-4">Quick Actions</h3>
+            <div className="space-y-2">
+              <button 
+                onClick={() => setShowExportModal(true)}
+                className="w-full flex items-center justify-between p-3 bg-[#F8F8FA] hover:bg-[#E8E9ED] rounded-lg transition-colors group"
+              >
+                <div className="flex items-center gap-3">
+                  <Download className="w-5 h-5 text-[#3D1560]" />
+                  <span className="font-medium text-[#383A47]">Export Reports</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-[#70727F] group-hover:text-[#3D1560] transition-colors" />
+              </button>
+              
+              <button 
+                onClick={() => onNavigate && onNavigate('payoutHistory')}
+                className="w-full flex items-center justify-between p-3 bg-[#F8F8FA] hover:bg-[#E8E9ED] rounded-lg transition-colors group"
+              >
+                <div className="flex items-center gap-3">
+                  <CreditCard className="w-5 h-5 text-[#3D1560]" />
+                  <span className="font-medium text-[#383A47]">Payout History</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-[#70727F] group-hover:text-[#3D1560] transition-colors" />
+              </button>
+              
+              <button 
+                onClick={() => onNavigate && onNavigate('bankingSettings')}
+                className="w-full flex items-center justify-between p-3 bg-[#F8F8FA] hover:bg-[#E8E9ED] rounded-lg transition-colors group"
+              >
+                <div className="flex items-center gap-3">
+                  <Building className="w-5 h-5 text-[#3D1560]" />
+                  <span className="font-medium text-[#383A47]">Banking Settings</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-[#70727F] group-hover:text-[#3D1560] transition-colors" />
+              </button>
+            </div>
+          </div>
+
           {/* Payout Schedule */}
           <div className="bg-white rounded-xl border border-[#E8E9ED] shadow-sm p-6">
             <h3 className="text-lg font-bold text-[#1B1C20] mb-4">Next Payout</h3>
@@ -383,42 +536,9 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
                 </button>
               </div>
             </div>
-          </div>
 
-          {/* Quick Actions */}
-          <div className="bg-white rounded-xl border border-[#E8E9ED] shadow-sm p-6">
-            <h3 className="text-lg font-bold text-[#1B1C20] mb-4">Quick Actions</h3>
-            <div className="space-y-2">
-              <button className="w-full flex items-center justify-between p-3 bg-[#F8F8FA] hover:bg-[#E8E9ED] rounded-lg transition-colors group">
-                <div className="flex items-center gap-3">
-                  <Download className="w-5 h-5 text-[#3D1560]" />
-                  <span className="font-medium text-[#383A47]">Export Reports</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-[#70727F] group-hover:text-[#3D1560] transition-colors" />
-              </button>
-              
-              <button className="w-full flex items-center justify-between p-3 bg-[#F8F8FA] hover:bg-[#E8E9ED] rounded-lg transition-colors group">
-                <div className="flex items-center gap-3">
-                  <CreditCard className="w-5 h-5 text-[#3D1560]" />
-                  <span className="font-medium text-[#383A47]">Payout History</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-[#70727F] group-hover:text-[#3D1560] transition-colors" />
-              </button>
-              
-              <button className="w-full flex items-center justify-between p-3 bg-[#F8F8FA] hover:bg-[#E8E9ED] rounded-lg transition-colors group">
-                <div className="flex items-center gap-3">
-                  <Building className="w-5 h-5 text-[#3D1560]" />
-                  <span className="font-medium text-[#383A47]">Banking Settings</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-[#70727F] group-hover:text-[#3D1560] transition-colors" />
-              </button>
-            </div>
-          </div>
-
-          {/* Account Status */}
-          <div className="bg-white rounded-xl border border-[#E8E9ED] shadow-sm p-6">
-            <h3 className="text-lg font-bold text-[#1B1C20] mb-4">Account Status</h3>
-            <div className="space-y-3">
+            {/* Bank Verification Status */}
+            <div className="mt-4 pt-4 border-t border-[#E8E9ED]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#4CAF50]" />
@@ -428,49 +548,8 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
                   Active
                 </span>
               </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#4CAF50]" />
-                  <span className="text-sm text-[#383A47]">Identity Verified</span>
-                </div>
-                <span className="text-xs bg-[#E8F5E9] text-[#4CAF50] px-2 py-1 rounded-full font-medium">
-                  Complete
-                </span>
-              </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Payout History Section */}
-      <div className="bg-white rounded-xl border border-[#E8E9ED] shadow-sm">
-        <div className="p-6 border-b border-[#E8E9ED]">
-          <h2 className="text-xl font-bold text-[#1B1C20]">Payout History</h2>
-        </div>
-        <div className="divide-y divide-[#E8E9ED]">
-          {mockPayoutRecords.slice(0, 5).map((payout) => (
-            <div key={payout.id} className="p-6 hover:bg-[#F8F8FA] transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-[#E8F5E9] rounded-full flex items-center justify-center">
-                    <CheckCircle2 className="w-6 h-6 text-[#4CAF50]" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-[#383A47] text-lg">{formatCurrency(payout.amount)}</p>
-                    <p className="text-sm text-[#70727F]">
-                      {formatDate(payout.initiatedDate)} • {payout.accountDetails.bankName || payout.accountDetails.email}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="px-3 py-1 text-xs bg-[#E8F5E9] text-[#4CAF50] rounded-full font-medium">
-                    {payout.status === 'completed' ? 'Completed' : payout.status === 'processing' ? 'Processing' : 'Pending'}
-                  </span>
-                  <p className="text-xs text-[#70727F] mt-1">{payout.transactionIds.length} transactions</p>
-                </div>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
 
@@ -635,6 +714,123 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
                 >
                   <ExternalLink className="w-4 h-4" />
                   View {selectedTransaction.type === 'booking_payment' ? 'Booking' : 'Order'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Export Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div className="flex items-center justify-between p-6 border-b border-[#E8E9ED]">
+              <h2 className="text-xl font-bold text-[#1B1C20]">Export Transactions</h2>
+              <button 
+                onClick={() => setShowExportModal(false)}
+                className="text-[#70727F] hover:text-[#3D1560] p-2 rounded-full hover:bg-[#F8F8FA] transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <p className="text-sm text-[#70727F] mb-4">
+                Select the time period for your transaction export:
+              </p>
+
+              {/* Export Period Options */}
+              <div className="space-y-3 mb-6">
+                <button
+                  onClick={() => setExportPeriod('week')}
+                  className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                    exportPeriod === 'week'
+                      ? 'border-[#3D1560] bg-[#EDD9FF]'
+                      : 'border-[#E8E9ED] hover:border-[#CDCED8]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold text-[#383A47]">Past Week</p>
+                      <p className="text-sm text-[#70727F]">Last 7 days of transactions</p>
+                    </div>
+                    {exportPeriod === 'week' && (
+                      <CheckCircle2 className="w-5 h-5 text-[#3D1560]" />
+                    )}
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setExportPeriod('month')}
+                  className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                    exportPeriod === 'month'
+                      ? 'border-[#3D1560] bg-[#EDD9FF]'
+                      : 'border-[#E8E9ED] hover:border-[#CDCED8]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold text-[#383A47]">Past Month</p>
+                      <p className="text-sm text-[#70727F]">Last 30 days of transactions (Default)</p>
+                    </div>
+                    {exportPeriod === 'month' && (
+                      <CheckCircle2 className="w-5 h-5 text-[#3D1560]" />
+                    )}
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setExportPeriod('3months')}
+                  className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                    exportPeriod === '3months'
+                      ? 'border-[#3D1560] bg-[#EDD9FF]'
+                      : 'border-[#E8E9ED] hover:border-[#CDCED8]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold text-[#383A47]">Past 3 Months</p>
+                      <p className="text-sm text-[#70727F]">Last 90 days of transactions</p>
+                    </div>
+                    {exportPeriod === '3months' && (
+                      <CheckCircle2 className="w-5 h-5 text-[#3D1560]" />
+                    )}
+                  </div>
+                </button>
+              </div>
+
+              {/* Export Info */}
+              <div className="bg-[#F8F8FA] rounded-lg p-4 mb-6">
+                <p className="text-sm text-[#383A47] mb-2">
+                  <span className="font-semibold">Export includes:</span>
+                </p>
+                <ul className="text-sm text-[#70727F] space-y-1">
+                  <li>• Transaction ID</li>
+                  <li>• Booking ID</li>
+                  <li>• Listing/Service Name</li>
+                  <li>• Date</li>
+                  <li>• Net Earnings (after fees)</li>
+                </ul>
+                <p className="text-xs text-[#70727F] mt-3">
+                  File format: <span className="font-mono font-semibold">{CURRENT_SELLER_ID}_transactions_{new Date().toISOString().split('T')[0]}.csv</span>
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowExportModal(false)}
+                  className="flex-1 px-4 py-3 border-2 border-[#E8E9ED] text-[#383A47] rounded-lg hover:bg-[#F8F8FA] transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleExportCSV}
+                  className="flex-1 px-4 py-3 bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] transition-colors font-semibold flex items-center justify-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Export CSV
                 </button>
               </div>
             </div>

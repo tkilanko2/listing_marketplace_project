@@ -32,6 +32,8 @@ import SignUpPage from './pages/SignUpPage';
 import { MessagingPage } from './pages/MessagingPage';
 import { SellerFinancePage } from './pages/SellerFinancePage';
 import { SellerFinancePage2 } from './pages/SellerFinancePage2';
+import { BankingSettingsPage } from './pages/BankingSettingsPage';
+import { PayoutHistoryPage } from './pages/PayoutHistoryPage';
 import SellerPolicyPage from './pages/SellerPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
@@ -3555,6 +3557,7 @@ function App() {
           console.log('🔵 Finance 2: View order clicked with ID:', orderId);
           handleViewSellerOrderDetails(orderId);
         }}
+        onNavigate={handleNavigate}
       />
     );
   };
@@ -4795,6 +4798,24 @@ function App() {
 
         {currentPage === 'sellerDashboard_settings' && (
           <SellerDashboardSettings />
+        )}
+
+        {currentPage === 'bankingSettings' && (
+          <BankingSettingsPage onBack={() => handleNavigate('sellerDashboard_finance2')} />
+        )}
+
+        {currentPage === 'payoutHistory' && (
+          <PayoutHistoryPage 
+            onBack={() => handleNavigate('sellerDashboard_finance2')} 
+            onViewBookingDetails={(bookingId) => {
+              console.log('🔵 Payout History: View booking clicked with ID:', bookingId);
+              handleSellerBookingDetails(bookingId);
+            }}
+            onViewOrderDetails={(orderId) => {
+              console.log('🔵 Payout History: View order clicked with ID:', orderId);
+              handleSellerOrderDetails(orderId);
+            }}
+          />
         )}
 
         {currentPage === 'sellerPolicy' && (

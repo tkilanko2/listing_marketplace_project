@@ -2089,7 +2089,7 @@ const currentSellerMockOrders = [
       ...(mockServices.find(s => s.id === 'professional-consultation-001') || mockServices[0]),
       provider: providers[0] // Ensure this booking uses current seller as provider
     },
-    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 2)), // 2 days from now
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 3)), // 3 days from now
     status: 'confirmed',
     paymentStatus: 'paid' as PaymentStatus,
     orderDate: new Date(new Date().setDate(new Date().getDate() - 1)),
@@ -2158,8 +2158,11 @@ const currentSellerMockOrders = [
     userId: 'USER-CS-003',
     items: [],
     type: 'service',
-    service: mockServices.find(s => s.id === 'professional-consultation-002') || mockServices[2],
-    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 1)), // Tomorrow
+    service: {
+      ...(mockServices.find(s => s.id === 'professional-consultation-002') || mockServices[2]),
+      provider: providers[0] // Ensure this booking uses current seller as provider
+    },
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() + 2)), // 2 days from now
     status: 'confirmed',
     paymentStatus: 'paid' as PaymentStatus,
     orderDate: new Date(new Date().setDate(new Date().getDate() - 3)),
@@ -2197,7 +2200,7 @@ const currentSellerMockOrders = [
       ...(mockServices.find(s => s.id === 'professional-consultation-004') || mockServices[3]),
       provider: providers[0] // Ensure this booking uses current seller as provider
     },
-    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 5)), // 5 days ago - past hold period!
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 10)), // 10 days ago - past 7-day hold period!
     status: 'completed',
     paymentStatus: 'paid' as PaymentStatus,
     orderDate: new Date(new Date().setDate(new Date().getDate() - 7)),
@@ -2306,7 +2309,7 @@ const currentSellerMockOrders = [
       ...(mockServices.find(s => s.id === 'photography-002') || mockServices[6]),
       provider: providers[0] // Ensure this booking uses current seller as provider
     },
-    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 7)), // 7 days ago - past hold period!
+    appointmentDate: new Date(new Date().setDate(new Date().getDate() - 10)), // 10 days ago - past 7-day hold period!
     status: 'completed',
     paymentStatus: 'paid' as PaymentStatus,
     orderDate: new Date(new Date().setDate(new Date().getDate() - 10)),
@@ -3126,7 +3129,7 @@ export const allFinancialTransactions: FinancialTransaction[] = (() => {
       
       // Settlement timeline dates
       const completionDate = booking.appointmentDate || booking.orderDate;
-      const holdEndDate = new Date(completionDate.getTime() + 3 * 24 * 60 * 60 * 1000); // +3 days
+      const holdEndDate = new Date(completionDate.getTime() + 7 * 24 * 60 * 60 * 1000); // +7 days (updated hold period)
       
       transactions.push({
         id: `TXN-${booking.id}`,
@@ -3193,7 +3196,7 @@ export function getAvailableBalance(transactions: FinancialTransaction[]): numbe
     .reduce((sum, t) => sum + t.netToSeller, 0);
 }
 
-// Get pending balance (completed but still in hold period)
+// Get pending balance (completed but still in 7-day hold period)
 export function getPendingBalance(transactions: FinancialTransaction[]): number {
   const now = new Date();
   return transactions
@@ -3203,6 +3206,30 @@ export function getPendingBalance(transactions: FinancialTransaction[]): number 
       t.availableDate > now
     )
     .reduce((sum, t) => sum + t.netToSeller, 0);
+}
+
+// Get projected earnings from confirmed bookings not yet completed
+export function getProjectedEarnings(sellerId: string): { amount: number; count: number } {
+  const allOrders = getAllOrdersWithBookings();
+  const confirmedBookings = allOrders.filter(order => 
+    order.type === 'service' && 
+    order.status === 'confirmed' && 
+    order.paymentStatus === 'paid' &&
+    order.service?.provider?.id === sellerId
+  );
+  
+  const totalAmount = confirmedBookings.reduce((sum, booking) => {
+    const platformFee = booking.totalAmount * 0.025;
+    const paymentProcessingFee = booking.totalAmount * 0.029 + 0.30;
+    const transactionFee = 0.25;
+    const netToSeller = booking.totalAmount - platformFee - paymentProcessingFee - transactionFee;
+    return sum + netToSeller;
+  }, 0);
+    
+    return {
+    amount: Math.round(totalAmount * 100) / 100,
+    count: confirmedBookings.length
+  };
 }
 
 // Calculate financial summary from transactions
@@ -3286,43 +3313,88 @@ export function getNextPayoutDates() {
 }
 
 // Generate mock payout records from transactions
-export const mockPayoutRecords: PayoutRecord[] = [
-  {
-    id: 'PAYOUT-001',
-    amount: 1250.00,
-    currency: 'USD',
-    status: 'completed',
-    method: 'bank_transfer',
-    accountDetails: {
-      type: 'bank',
-      last4: '1234',
-      bankName: 'Chase Bank'
-    },
-    initiatedDate: new Date(new Date().setDate(new Date().getDate() - 10)),
-    completedDate: new Date(new Date().setDate(new Date().getDate() - 5)),
-    fee: 2.50,
-    netAmount: 1247.50,
-    transactionIds: ['TXN-001', 'TXN-002'],
-    description: 'Bi-monthly payout'
-  },
-  {
-    id: 'PAYOUT-002',
-    amount: 890.00,
-    currency: 'USD',
-    status: 'processing',
-    method: 'bank_transfer',
-    accountDetails: {
-      type: 'bank',
-      last4: '1234',
-      bankName: 'Chase Bank'
-    },
-    initiatedDate: new Date(new Date().setDate(new Date().getDate() - 2)),
-    fee: 2.50,
-    netAmount: 887.50,
-    transactionIds: ['TXN-003', 'TXN-004'],
-    description: 'Bi-monthly payout'
+// Generate payout records dynamically based on actual transactions
+export const mockPayoutRecords: PayoutRecord[] = (() => {
+  const completedTransactions = allFinancialTransactions
+    .filter(t => t.status === 'completed' && t.availableDate && t.availableDate <= new Date())
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
+
+  const payouts: PayoutRecord[] = [];
+  
+  // Group transactions into payouts (2 transactions per payout for this example)
+  if (completedTransactions.length >= 2) {
+    const payout1Txns = completedTransactions.slice(0, 2);
+    const payout1Total = payout1Txns.reduce((sum, t) => sum + t.netToSeller, 0);
+    
+    payouts.push({
+      id: 'PAYOUT-001',
+      amount: Math.round(payout1Total * 100) / 100,
+      currency: 'USD',
+      status: 'completed',
+      method: 'bank_transfer',
+      accountDetails: {
+        type: 'bank',
+        last4: '1234',
+        bankName: 'Chase Bank'
+      },
+      initiatedDate: new Date(new Date().setDate(new Date().getDate() - 10)),
+      completedDate: new Date(new Date().setDate(new Date().getDate() - 5)),
+      fee: 2.50,
+      netAmount: Math.round((payout1Total - 2.50) * 100) / 100,
+      transactionIds: payout1Txns.map(t => t.transactionId),
+      description: 'Bi-monthly payout'
+    });
   }
-];
+
+  if (completedTransactions.length >= 4) {
+    const payout2Txns = completedTransactions.slice(2, 4);
+    const payout2Total = payout2Txns.reduce((sum, t) => sum + t.netToSeller, 0);
+    
+    payouts.push({
+      id: 'PAYOUT-002',
+      amount: Math.round(payout2Total * 100) / 100,
+      currency: 'USD',
+      status: 'processing',
+      method: 'bank_transfer',
+      accountDetails: {
+        type: 'bank',
+        last4: '1234',
+        bankName: 'Chase Bank'
+      },
+      initiatedDate: new Date(new Date().setDate(new Date().getDate() - 2)),
+      fee: 2.50,
+      netAmount: Math.round((payout2Total - 2.50) * 100) / 100,
+      transactionIds: payout2Txns.map(t => t.transactionId),
+      description: 'Bi-monthly payout'
+    });
+  }
+
+  // Add a third payout if we have more transactions
+  if (completedTransactions.length >= 6) {
+    const payout3Txns = completedTransactions.slice(4, 6);
+    const payout3Total = payout3Txns.reduce((sum, t) => sum + t.netToSeller, 0);
+    
+    payouts.push({
+      id: 'PAYOUT-003',
+      amount: Math.round(payout3Total * 100) / 100,
+      currency: 'USD',
+      status: 'pending',
+      method: 'bank_transfer',
+      accountDetails: {
+        type: 'bank',
+        last4: '1234',
+        bankName: 'Chase Bank'
+      },
+      initiatedDate: new Date(),
+      fee: 2.50,
+      netAmount: Math.round((payout3Total - 2.50) * 100) / 100,
+      transactionIds: payout3Txns.map(t => t.transactionId),
+      description: 'Bi-monthly payout'
+    });
+  }
+
+  return payouts;
+})();
 
 // Export the actual transactions array
 export const allFinancialTransactionsExport = allFinancialTransactions;
