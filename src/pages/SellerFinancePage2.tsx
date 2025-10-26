@@ -19,13 +19,14 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { 
-  allFinancialTransactions, 
+  allFinancialTransactionsExport as allFinancialTransactions, 
   mockPayoutRecords, 
   calculateFinancialSummary,
   formatCustomerNameForDisplay,
+  isAvailableForWithdrawal,
+  getAvailableBalance,
+  getPendingBalance,
   getNextPayoutDates,
-  calculateProjectedEarnings,
-  getListingPerformance,
   FinancialTransaction,
 } from '../mockData';
 
@@ -34,8 +35,6 @@ interface SellerFinancePage2Props {
   onViewBookingDetails?: (bookingId: string) => void;
   onViewOrderDetails?: (orderId: string) => void;
 }
-
-const CURRENT_SELLER_ID = 'SELLER001';
 
 export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDetails }: SellerFinancePage2Props) {
   const [timeFilter, setTimeFilter] = useState<'all' | '30d' | '7d' | '24h'>('30d');
@@ -48,14 +47,19 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
     [timeFilter]
   );
 
-  // Get payout window info
-  const nextPayout = getNextPayoutDates();
+  // Calculate available and pending balances
+  const availableBalance = useMemo(() => 
+    getAvailableBalance(allFinancialTransactions), 
+    [allFinancialTransactions]
+  );
 
-  // Get projected earnings
-  const projectedData = calculateProjectedEarnings(CURRENT_SELLER_ID);
+  const pendingBalance = useMemo(() => 
+    getPendingBalance(allFinancialTransactions), 
+    [allFinancialTransactions]
+  );
 
-  // Get listing performance
-  const listingPerformance = getListingPerformance(CURRENT_SELLER_ID, allFinancialTransactions);
+  // Get next payout dates
+  const nextPayoutInfo = useMemo(() => getNextPayoutDates(), []);
 
   // Filter transactions
   const filteredTransactions = useMemo(() => {
@@ -91,43 +95,84 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
       )}
 
       {/* Page Header - Compact */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[#1B1C20] mb-2">Finance</h1>
-        <p className="text-[#70727F]">Manage your earnings, payouts, and financial reports</p>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-[#1B1C20] mb-2">Finance</h1>
+          <p className="text-[#70727F]">Manage your earnings, payouts, and financial reports</p>
+        </div>
+        <div className="text-right">
+          <p className="text-sm text-[#70727F] mb-1">Today</p>
+          <p className="text-lg font-semibold text-[#383A47]">
+            {new Date().toLocaleDateString('en-US', { 
+              month: 'short', 
+              day: 'numeric', 
+              year: 'numeric' 
+            })}
+          </p>
+        </div>
       </div>
 
       {/* Hero Balance Cards - Side by Side Layout */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Available Balance - Prominent */}
-        <div className="md:col-span-2 bg-gradient-to-br from-[#4CAF50] to-[#45A049] rounded-2xl p-8 text-white shadow-lg hover:shadow-xl transition-all">
+        <div className="md:col-span-2 bg-white rounded-2xl p-8 border border-[#E8E9ED] shadow-lg hover:shadow-xl transition-all">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <p className="text-white opacity-90 text-sm font-medium mb-1">Available to Withdraw</p>
-              <h2 className="text-5xl font-bold tracking-tight">{formatCurrency(financialSummary.availableForWithdrawal)}</h2>
+              <p className="text-[#70727F] text-sm font-medium mb-1">Available to Withdraw</p>
+              <h2 className="text-5xl font-bold tracking-tight text-[#1B1C20]">{formatCurrency(availableBalance)}</h2>
+              <p className="text-sm text-[#70727F] mt-2">
+                {allFinancialTransactions.filter(t => 
+                  t.status === 'completed' && 
+                  t.availableDate && 
+                  t.availableDate <= new Date()
+                ).length} completed bookings ready for payout
+              </p>
             </div>
-            <Wallet className="w-10 h-10 opacity-80" />
+            <Wallet className="w-10 h-10 text-[#4CAF50]" />
           </div>
           <div className="flex items-center gap-4 mt-6">
-            <button className="bg-white text-[#4CAF50] px-6 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all flex items-center gap-2">
+            <button className="bg-[#4CAF50] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#45A049] transition-all flex items-center gap-2">
               <Download className="w-4 h-4" />
               Withdraw Now
             </button>
-            <div className="text-sm opacity-90">
-              <p>Next payout: {nextPayout.windowLabel}</p>
-              <p className="text-xs opacity-75">Processing in 3-7 days</p>
+            <div className="text-sm text-[#70727F]">
+              <p className="font-medium text-[#383A47]">Next payout: {nextPayoutInfo.windowLabel}</p>
+              <p className="text-xs">Processing in 3-7 days</p>
             </div>
           </div>
         </div>
 
         {/* Pending Balance */}
-        <div className="bg-gradient-to-br from-[#DF678C] to-[#E688A1] rounded-2xl p-6 text-white shadow-lg">
-          <div className="flex items-center justify-between mb-3">
-            <Clock className="w-8 h-8 opacity-80" />
-            <ArrowUpRight className="w-5 h-5" />
+        <div className="bg-white rounded-2xl p-6 border-2 border-[#DF678C] shadow-lg relative overflow-hidden">
+          {/* Subtle accent background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#FFF0F5] to-[#FFE5ED] opacity-50"></div>
+          
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-10 h-10 bg-[#DF678C] bg-opacity-10 rounded-full flex items-center justify-center">
+                <Clock className="w-5 h-5 text-[#DF678C]" />
+              </div>
+              <span className="text-xs font-semibold text-[#DF678C] bg-[#FFE5ED] px-3 py-1 rounded-full">
+                HOLD
+              </span>
+            </div>
+            <p className="text-[#70727F] text-sm mb-1">In Hold Period</p>
+            <h3 className="text-3xl font-bold text-[#1B1C20] mb-1">{formatCurrency(pendingBalance)}</h3>
+            <p className="text-sm text-[#70727F]">
+              {(() => {
+                const pendingTransactions = allFinancialTransactions.filter(t => t.availableDate && t.availableDate > new Date());
+                if (pendingTransactions.length === 0) return 'No funds in hold';
+                
+                const nextAvailableDate = pendingTransactions[0]?.availableDate;
+                if (!nextAvailableDate) return 'Calculating...';
+                
+                const now = new Date();
+                const daysUntilAvailable = Math.ceil((nextAvailableDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                
+                return daysUntilAvailable > 0 ? `Available in ${daysUntilAvailable} days` : 'Available now';
+              })()}
+            </p>
           </div>
-          <p className="text-white opacity-90 text-sm mb-1">Pending</p>
-          <h3 className="text-3xl font-bold mb-1">{formatCurrency(financialSummary.pendingEarnings)}</h3>
-          <p className="text-sm opacity-75">Available Apr 15-20</p>
         </div>
       </div>
 
@@ -169,12 +214,12 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
 
         <div className="bg-white rounded-xl p-5 border border-[#E8E9ED] hover:border-[#3D1560] transition-all cursor-pointer">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[#70727F] text-sm">Projected</span>
-            <BarChart3 className="w-4 h-4 text-[#DF678C]" />
+            <span className="text-[#70727F] text-sm">Total Earnings</span>
+            <BarChart3 className="w-4 h-4 text-[#3D1560]" />
           </div>
-          <p className="text-2xl font-bold text-[#1B1C20]">{formatCurrency(projectedData.projectedEarnings)}</p>
+          <p className="text-2xl font-bold text-[#1B1C20]">{formatCurrency(financialSummary.netEarnings)}</p>
           <div className="flex items-center gap-1 mt-1">
-            <span className="text-[#70727F] text-xs">{projectedData.upcomingBookings} upcoming</span>
+            <span className="text-[#70727F] text-xs">{financialSummary.completedTransactions} bookings</span>
           </div>
         </div>
       </div>
@@ -231,16 +276,23 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
                           {transaction.status}
                         </span>
                       </div>
-                      <p className="text-sm text-[#70727F] mb-2">
+                      <p className="text-sm text-[#70727F] mb-1">
                         {formatCustomerNameForDisplay(transaction.customerName)} • {formatDate(transaction.date)}
+                      </p>
+                      <p className="text-xs text-[#70727F] font-mono mb-2">
+                        ID: {transaction.transactionId}
                       </p>
                       <div className="flex items-center gap-4 text-sm">
                         <span className="text-[#383A47] font-medium">
                           {formatCurrency(transaction.amount)} → {formatCurrency(transaction.netToSeller)} net
                         </span>
                         {transaction.availableDate && (
-                          <span className="text-[#4CAF50] text-xs">
-                            Available {formatDate(transaction.availableDate)}
+                          <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                            isAvailableForWithdrawal(transaction) 
+                              ? 'bg-[#E8F5E9] text-[#4CAF50]' 
+                              : 'bg-[#FFE5ED] text-[#DF678C]'
+                          }`}>
+                            {isAvailableForWithdrawal(transaction) ? '✅ Available Now' : `⏳ Available ${formatDate(transaction.availableDate)}`}
                           </span>
                         )}
                       </div>
@@ -273,18 +325,21 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
               </button>
             </div>
             <div className="space-y-3">
-              {listingPerformance.slice(0, 5).map((listing, index) => (
-                <div key={listing.listingId} className="flex items-center gap-4 p-3 rounded-lg hover:bg-[#F8F8FA] transition-colors">
+              {allFinancialTransactions
+                .filter(t => t.status === 'completed')
+                .slice(0, 5)
+                .map((transaction, index) => (
+                <div key={transaction.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-[#F8F8FA] transition-colors">
                   <div className="w-8 h-8 rounded-full bg-[#EDD9FF] flex items-center justify-center text-[#3D1560] font-bold text-sm">
                     {index + 1}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-[#383A47] truncate">{listing.listingName}</h4>
-                    <p className="text-xs text-[#70727F]">{listing.transactionCount} transactions</p>
+                    <h4 className="font-medium text-[#383A47] truncate">{transaction.listingName || transaction.description}</h4>
+                    <p className="text-xs text-[#70727F]">{formatDate(transaction.date)}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-[#1B1C20]">{formatCurrency(listing.totalEarnings)}</p>
-                    <p className="text-xs text-[#70727F]">{formatCurrency(listing.averageTransaction)} avg</p>
+                    <p className="font-bold text-[#1B1C20]">{formatCurrency(transaction.netToSeller)}</p>
+                    <p className="text-xs text-[#70727F]">{formatCurrency(transaction.amount)} gross</p>
                   </div>
                 </div>
               ))}
@@ -303,14 +358,14 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
                   <Calendar className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="font-bold text-[#1B1C20] text-lg">{nextPayout.windowLabel}</p>
+                  <p className="font-bold text-[#1B1C20] text-lg">{nextPayoutInfo.windowLabel}</p>
                   <p className="text-sm text-[#70727F]">Payout Window</p>
                 </div>
               </div>
               <div className="flex items-center justify-between text-sm pt-3 border-t border-[#E8E9ED]">
                 <span className="text-[#70727F]">Expected arrival:</span>
                 <span className="font-medium text-[#383A47]">
-                  {formatDate(nextPayout.earliestDate)} - {formatDate(nextPayout.latestDate)}
+                  {formatDate(nextPayoutInfo.earliestDate)} - {formatDate(nextPayoutInfo.latestDate)}
                 </span>
               </div>
             </div>
@@ -329,20 +384,6 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
               </div>
             </div>
           </div>
-
-          {/* Projected Earnings */}
-          {projectedData.upcomingBookings > 0 && (
-            <div className="bg-gradient-to-br from-[#3D1560] to-[#6D26AB] rounded-xl p-6 text-white shadow-lg">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold">Projected This Month</h3>
-                <BarChart3 className="w-5 h-5 opacity-80" />
-              </div>
-              <p className="text-3xl font-bold mb-2">{formatCurrency(projectedData.projectedEarnings)}</p>
-              <p className="text-sm opacity-90">
-                Based on {projectedData.upcomingBookings} confirmed upcoming bookings
-              </p>
-            </div>
-          )}
 
           {/* Quick Actions */}
           <div className="bg-white rounded-xl border border-[#E8E9ED] shadow-sm p-6">

@@ -3548,12 +3548,12 @@ function App() {
       <SellerFinancePage2 
         onBack={() => handleNavigate('sellerDashboard')}
         onViewBookingDetails={(bookingId) => {
-          handleViewSellerBookingDetails(bookingId);
-          console.log('Navigating to booking:', bookingId);
+          console.log('🔵 Finance 2: View booking clicked with ID:', bookingId);
+          handleSellerBookingDetails(bookingId);
         }}
         onViewOrderDetails={(orderId) => {
+          console.log('🔵 Finance 2: View order clicked with ID:', orderId);
           handleViewSellerOrderDetails(orderId);
-          console.log('Navigating to order:', orderId);
         }}
       />
     );
