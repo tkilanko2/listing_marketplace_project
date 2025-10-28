@@ -3059,6 +3059,14 @@ export interface FinancialTransaction {
   completionDate?: Date;
   holdEndDate?: Date;
   availableDate?: Date;
+  // Refund metadata (for admin-processed refunds)
+  refundMetadata?: {
+    originalTransactionId: string;
+    processedBy: 'admin' | 'system';
+    reason: string;
+    processedDate: Date;
+    impactedBalance: 'pending' | 'deficit';
+  };
 }
 
 // Payout Record Interface
@@ -3100,6 +3108,9 @@ export interface FinancialSummary {
   monthlyRevenue: { month: string; amount: number }[];
   topPerformingServices: { name: string; revenue: number; bookings: number }[];
   monthlyTarget: number;
+  // Refund tracking
+  totalRefunds: number;
+  refundCount: number;
 }
 
 // Generate financial transactions from actual completed seller bookings
@@ -3163,6 +3174,89 @@ export const allFinancialTransactions: FinancialTransaction[] = (() => {
         availableDate: holdEndDate
       });
     });
+  
+  // Add refund transactions (admin-processed)
+  // Refund 1: Recent refund from pending earnings
+  if (transactions.length > 2) {
+    const originalTxn = transactions[2];
+    transactions.push({
+      id: `txn-refund-001`,
+      transactionId: 'TXN-REF-001',
+      bookingId: originalTxn.bookingId,
+      type: 'refund',
+      status: 'completed',
+      amount: originalTxn.amount,
+      currency: 'USD',
+      customerPaidAmount: originalTxn.customerPaidAmount,
+      platformFee: 0, // Fees not refunded to seller
+      paymentProcessingFee: 0,
+      transactionFee: 0,
+      netToSeller: -originalTxn.netToSeller, // Negative!
+      paymentMethod: originalTxn.paymentMethod,
+      customerName: originalTxn.customerName,
+      description: 'Refund: Customer cancellation',
+      date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+      settledDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      taxAmount: 0,
+      taxRate: 0,
+      region: originalTxn.region,
+      category: 'refund',
+      listingName: originalTxn.listingName,
+      listingId: originalTxn.listingId,
+      listingImage: originalTxn.listingImage,
+      serviceCategory: originalTxn.serviceCategory,
+      completionDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      availableDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // Immediate impact
+      refundMetadata: {
+        originalTransactionId: originalTxn.transactionId,
+        processedBy: 'admin',
+        reason: 'Customer requested cancellation within 24-hour policy window',
+        processedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        impactedBalance: 'pending'
+      }
+    });
+  }
+  
+  // Refund 2: Older refund (5 days ago)
+  if (transactions.length > 5) {
+    const originalTxn2 = transactions[5];
+    transactions.push({
+      id: `txn-refund-002`,
+      transactionId: 'TXN-REF-002',
+      bookingId: originalTxn2.bookingId,
+      type: 'refund',
+      status: 'completed',
+      amount: originalTxn2.amount,
+      currency: 'USD',
+      customerPaidAmount: originalTxn2.customerPaidAmount,
+      platformFee: 0,
+      paymentProcessingFee: 0,
+      transactionFee: 0,
+      netToSeller: -originalTxn2.netToSeller,
+      paymentMethod: originalTxn2.paymentMethod,
+      customerName: originalTxn2.customerName,
+      description: 'Refund: Service quality issue',
+      date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      settledDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      taxAmount: 0,
+      taxRate: 0,
+      region: originalTxn2.region,
+      category: 'refund',
+      listingName: originalTxn2.listingName,
+      listingId: originalTxn2.listingId,
+      listingImage: originalTxn2.listingImage,
+      serviceCategory: originalTxn2.serviceCategory,
+      completionDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      availableDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      refundMetadata: {
+        originalTransactionId: originalTxn2.transactionId,
+        processedBy: 'admin',
+        reason: 'Customer reported service quality issue - Admin approved refund',
+        processedDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+        impactedBalance: 'deficit'
+      }
+    });
+  }
   
   return transactions;
 })();
@@ -3267,14 +3361,26 @@ export function calculateFinancialSummary(
   }
   
   const completedTransactions = filteredTransactions.filter(t => t.status === 'completed');
-  const totalRevenue = completedTransactions.reduce((sum, t) => sum + t.amount, 0);
-  const netEarnings = completedTransactions.reduce((sum, t) => sum + t.netToSeller, 0);
-  const totalFees = completedTransactions.reduce((sum, t) => 
+  
+  // Separate refunds from regular transactions
+  const refundTransactions = completedTransactions.filter(t => t.type === 'refund');
+  const earningTransactions = completedTransactions.filter(t => t.type !== 'refund');
+  
+  const totalRevenue = earningTransactions.reduce((sum, t) => sum + t.amount, 0);
+  const netEarnings = completedTransactions.reduce((sum, t) => sum + t.netToSeller, 0); // Includes refunds (negative)
+  const totalFees = earningTransactions.reduce((sum, t) => 
     sum + t.platformFee + t.paymentProcessingFee + t.transactionFee, 0
   );
-  const totalTaxes = completedTransactions.reduce((sum, t) => sum + (t.taxAmount || 0), 0);
+  const totalTaxes = earningTransactions.reduce((sum, t) => sum + (t.taxAmount || 0), 0);
   const pendingEarnings = getPendingBalance(transactions);
   const availableForWithdrawal = getAvailableBalance(transactions);
+  
+  // Calculate refund metrics
+  const totalRefunds = Math.abs(refundTransactions.reduce((sum, t) => sum + t.netToSeller, 0));
+  const refundCount = refundTransactions.length;
+  const refundRate = completedTransactions.length > 0 
+    ? (refundCount / completedTransactions.length) * 100 
+    : 0;
 
   return {
     totalRevenue,
@@ -3283,21 +3389,24 @@ export function calculateFinancialSummary(
     availableForWithdrawal,
     totalFees,
     totalTaxes,
-    completedTransactions: completedTransactions.length,
+    completedTransactions: earningTransactions.length, // Don't count refunds
     pendingTransactions: filteredTransactions.filter(t => t.status === 'pending').length,
     revenueGrowth: 12.5, // Mock growth percentage
     transactionVolume30d: transactions.filter(t => {
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      return t.date >= thirtyDaysAgo;
+      return t.date >= thirtyDaysAgo && t.type !== 'refund';
     }).length,
-    averageOrderValue: completedTransactions.length > 0 
-      ? totalRevenue / completedTransactions.length 
+    averageOrderValue: earningTransactions.length > 0 
+      ? totalRevenue / earningTransactions.length 
       : 0,
-    refundRate: 0, // Calculate from refund transactions if needed
+    refundRate,
     categoryBreakdown: {},
     monthlyRevenue: [],
     topPerformingServices: [],
-    monthlyTarget: 10000
+    monthlyTarget: 10000,
+    // Refund tracking
+    totalRefunds,
+    refundCount
   };
 }
 

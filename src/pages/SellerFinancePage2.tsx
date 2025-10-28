@@ -369,6 +369,34 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
         </div>
       </div>
 
+      {/* Refund Alert - Show if there are refunds in current period */}
+      {financialSummary.refundCount > 0 && (
+        <div className="bg-red-50 border-l-4 border-red-400 rounded-lg p-5 mb-8">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3 flex-1">
+              <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="text-sm font-semibold text-[#1B1C20] mb-1">
+                  {financialSummary.refundCount} refund{financialSummary.refundCount !== 1 ? 's' : ''} processed this period
+                </h3>
+                <p className="text-sm text-[#70727F] mb-2">
+                  Total refunded: <span className="font-semibold text-red-600">{formatCurrency(financialSummary.totalRefunds)}</span> deducted from your earnings
+                </p>
+                <p className="text-xs text-[#70727F]">
+                  Refunds are processed by platform admins and automatically deducted from your balance. View transaction details for more information.
+                </p>
+              </div>
+            </div>
+            <button 
+              className="text-sm text-[#3D1560] hover:underline font-medium whitespace-nowrap"
+              onClick={() => setSearchTerm('refund')}
+            >
+              View Refunds →
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Left Column - Transactions */}
@@ -405,53 +433,71 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
 
             {/* Transaction List */}
             <div className="divide-y divide-[#E8E9ED]">
-              {filteredTransactions.slice(0, 10).map((transaction) => (
-                <div key={transaction.id} className="p-5 hover:bg-[#F8F8FA] transition-colors group">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-[#383A47] truncate">
-                          {transaction.listingName || transaction.description}
-                        </h3>
-                        <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                          transaction.status === 'completed' ? 'bg-[#E8F5E9] text-[#4CAF50]' : 
-                          transaction.status === 'pending' ? 'bg-[#FFE5ED] text-[#DF678C]' : 
-                          'bg-[#E8E9ED] text-[#70727F]'
-                        }`}>
-                          {transaction.status}
-                        </span>
-                      </div>
-                      <p className="text-sm text-[#70727F] mb-1">
-                        {formatCustomerNameForDisplay(transaction.customerName)} • {formatDate(transaction.date)}
-                      </p>
-                      <p className="text-xs text-[#70727F] font-mono mb-2">
-                        ID: {transaction.transactionId}
-                      </p>
-                      <div className="flex items-center gap-4 text-sm">
-                        <span className="text-[#383A47] font-medium">
-                          {formatCurrency(transaction.amount)}
-                        </span>
-                        {transaction.availableDate && (
-                          <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                            isAvailableForWithdrawal(transaction) 
-                              ? 'bg-[#E8F5E9] text-[#4CAF50]' 
-                              : 'bg-[#FFE5ED] text-[#DF678C]'
+              {filteredTransactions.slice(0, 10).map((transaction) => {
+                const isRefund = transaction.type === 'refund';
+                
+                return (
+                  <div 
+                    key={transaction.id} 
+                    className={`p-5 hover:bg-[#F8F8FA] transition-colors group ${
+                      isRefund ? 'bg-red-50 border-l-4 border-red-400' : ''
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          {isRefund && (
+                            <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                          )}
+                          <h3 className="font-semibold text-[#383A47] truncate">
+                            {isRefund ? 'Refund: ' : ''}{transaction.listingName || transaction.description}
+                          </h3>
+                          <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                            isRefund ? 'bg-red-100 text-red-700' :
+                            transaction.status === 'completed' ? 'bg-[#E8F5E9] text-[#4CAF50]' : 
+                            transaction.status === 'pending' ? 'bg-[#FFE5ED] text-[#DF678C]' : 
+                            'bg-[#E8E9ED] text-[#70727F]'
                           }`}>
-                            {isAvailableForWithdrawal(transaction) ? '✅ Available Now' : `⏳ Available ${formatDate(transaction.availableDate)}`}
+                            {isRefund ? 'Refunded' : transaction.status}
                           </span>
+                        </div>
+                        <p className="text-sm text-[#70727F] mb-1">
+                          {formatCustomerNameForDisplay(transaction.customerName)} • {formatDate(transaction.date)}
+                        </p>
+                        {isRefund && transaction.refundMetadata && (
+                          <p className="text-xs text-red-600 mb-2 italic">
+                            {transaction.refundMetadata.reason}
+                          </p>
                         )}
+                        <p className="text-xs text-[#70727F] font-mono mb-2">
+                          ID: {transaction.transactionId}
+                        </p>
+                        <div className="flex items-center gap-4 text-sm">
+                          <span className={`font-medium ${isRefund ? 'text-red-600' : 'text-[#383A47]'}`}>
+                            {isRefund ? '-' : ''}{formatCurrency(Math.abs(transaction.netToSeller))}
+                          </span>
+                          {transaction.availableDate && !isRefund && (
+                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                              isAvailableForWithdrawal(transaction) 
+                                ? 'bg-[#E8F5E9] text-[#4CAF50]' 
+                                : 'bg-[#FFE5ED] text-[#DF678C]'
+                            }`}>
+                              {isAvailableForWithdrawal(transaction) ? '✅ Available Now' : `⏳ Available ${formatDate(transaction.availableDate)}`}
+                            </span>
+                          )}
+                        </div>
                       </div>
+                      <button 
+                        onClick={() => setSelectedTransaction(transaction)}
+                        className="flex items-center gap-1 text-[#3D1560] hover:text-[#6D26AB] text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Eye className="w-4 h-4" />
+                        Details
+                      </button>
                     </div>
-                    <button 
-                      onClick={() => setSelectedTransaction(transaction)}
-                      className="flex items-center gap-1 text-[#3D1560] hover:text-[#6D26AB] text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Eye className="w-4 h-4" />
-                      Details
-                    </button>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="p-4 border-t border-[#E8E9ED] text-center">
@@ -639,6 +685,48 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
             </div>
             
             <div className="p-6 space-y-6">
+              {/* Refund Alert Banner */}
+              {selectedTransaction.type === 'refund' && selectedTransaction.refundMetadata && (
+                <div className="bg-red-50 border-l-4 border-red-400 rounded-lg p-4 mb-6">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-[#1B1C20] mb-2">Refund Processed by Platform</h4>
+                      <p className="text-sm text-[#383A47] mb-3">
+                        {selectedTransaction.refundMetadata.reason}
+                      </p>
+                      
+                      <div className="space-y-1.5 text-xs text-[#70727F] bg-white rounded-lg p-3 border border-red-200">
+                        <div className="flex justify-between">
+                          <span>Original Transaction:</span>
+                          <span className="font-mono">{selectedTransaction.refundMetadata.originalTransactionId}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Processed Date:</span>
+                          <span>{formatDate(selectedTransaction.refundMetadata.processedDate)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Processed By:</span>
+                          <span className="capitalize">{selectedTransaction.refundMetadata.processedBy}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Impact:</span>
+                          <span className="font-medium">
+                            {selectedTransaction.refundMetadata.impactedBalance === 'pending' 
+                              ? 'Deducted from pending earnings' 
+                              : 'Created account deficit (deducted from available balance)'}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <p className="text-xs text-[#70727F] mt-3 italic">
+                        Refunds are automatically processed according to platform policy. If you believe this refund was made in error, please contact support.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {/* Listing Image and Name Section */}
               {selectedTransaction.listingImage && (
                 <div className="flex gap-4 mb-4">

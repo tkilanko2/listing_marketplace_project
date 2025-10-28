@@ -1959,13 +1959,6 @@ function App() {
               </span>
             </div>
             <p className="text-3xl font-bold text-[#1B1C20]">$23,695</p>
-            {/* Add Finance 2 link for comparison */}
-            <button 
-              onClick={(e) => { e.stopPropagation(); navigateTo('sellerDashboard_finance2'); }}
-              className="mt-3 text-xs text-[#6D26AB] hover:text-[#3D1560] font-medium opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              → View Alternative Design
-            </button>
             <div className="flex items-center mt-3">
               <div className="w-full bg-[#E8E9ED] rounded-full h-1.5">
                 <div className="bg-[#3D1560] h-1.5 rounded-full" style={{ width: '78%' }}></div>
@@ -2065,30 +2058,6 @@ function App() {
           </div>
         </div>
 
-        {/* Finance Page Comparison - for testing */}
-        <div className="bg-gradient-to-r from-[#EDD9FF] to-[#F8F8FA] rounded-lg p-6 mb-8 border border-[#E8E9ED]">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-bold text-[#1B1C20] mb-1">Compare Finance Page Designs</h3>
-              <p className="text-sm text-[#70727F]">View different layouts for the financial overview</p>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => navigateTo('sellerDashboard_finance')}
-                className="px-4 py-2 bg-white border-2 border-[#3D1560] text-[#3D1560] rounded-lg hover:bg-[#3D1560] hover:text-white transition-all font-medium"
-              >
-                Finance Page (Original)
-              </button>
-              <button
-                onClick={() => navigateTo('sellerDashboard_finance2')}
-                className="px-4 py-2 bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] transition-all font-medium"
-              >
-                Finance Page 2 (Alternative)
-              </button>
-            </div>
-          </div>
-        </div>
-        
         {/* Revenue Chart */}
         <div className="bg-white rounded-lg shadow p-6 mb-8 hover:shadow-md transition-all duration-300">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -3533,18 +3502,18 @@ function App() {
     );
   }
 
-  // Seller Dashboard Finance component using the imported SellerFinancePage
-  const SellerDashboardFinance = () => {
-    return (
-      <SellerFinancePage 
-        onBack={() => handleNavigate('sellerDashboard')}
-        onViewBookingDetails={(bookingId) => handleViewSellerBookingDetails(bookingId)}
-        onViewOrderDetails={(orderId) => handleViewSellerOrderDetails(orderId)}
-      />
-    );
-  };
+  // Old Finance page component - no longer used
+  // const SellerDashboardFinance = () => {
+  //   return (
+  //     <SellerFinancePage 
+  //       onBack={() => handleNavigate('sellerDashboard')}
+  //       onViewBookingDetails={(bookingId) => handleViewSellerBookingDetails(bookingId)}
+  //       onViewOrderDetails={(orderId) => handleViewSellerOrderDetails(orderId)}
+  //     />
+  //   );
+  // };
 
-  // Seller Dashboard Finance 2 - Alternative Design
+  // Seller Dashboard Finance - Now uses the improved design
   const SellerDashboardFinance2 = () => {
     return (
       <SellerFinancePage2 
@@ -4789,24 +4758,26 @@ function App() {
         )}
 
         {currentPage === 'sellerDashboard_finance' && (
-          <SellerDashboardFinance />
+          <SellerDashboardFinance2 />
         )}
 
+        {/* Old finance page - hidden
         {currentPage === 'sellerDashboard_finance2' && (
           <SellerDashboardFinance2 />
         )}
+        */}
 
         {currentPage === 'sellerDashboard_settings' && (
           <SellerDashboardSettings />
         )}
 
         {currentPage === 'bankingSettings' && (
-          <BankingSettingsPage onBack={() => handleNavigate('sellerDashboard_finance2')} />
+          <BankingSettingsPage onBack={() => handleNavigate('sellerDashboard_finance')} />
         )}
 
         {currentPage === 'payoutHistory' && (
           <PayoutHistoryPage 
-            onBack={() => handleNavigate('sellerDashboard_finance2')} 
+            onBack={() => handleNavigate('sellerDashboard_finance')} 
             onViewBookingDetails={(bookingId) => {
               console.log('🔵 Payout History: View booking clicked with ID:', bookingId);
               handleSellerBookingDetails(bookingId);
