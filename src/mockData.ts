@@ -3184,7 +3184,7 @@ export const allFinancialTransactions: FinancialTransaction[] = (() => {
       transactionId: 'TXN-REF-001',
       bookingId: originalTxn.bookingId,
       type: 'refund',
-      status: 'completed',
+      status: 'cancelled', // Refunded bookings are cancelled, not completed
       amount: originalTxn.amount,
       currency: 'USD',
       customerPaidAmount: originalTxn.customerPaidAmount,
@@ -3225,7 +3225,7 @@ export const allFinancialTransactions: FinancialTransaction[] = (() => {
       transactionId: 'TXN-REF-002',
       bookingId: originalTxn2.bookingId,
       type: 'refund',
-      status: 'completed',
+      status: 'cancelled', // Refunded bookings are cancelled, not completed
       amount: originalTxn2.amount,
       currency: 'USD',
       customerPaidAmount: originalTxn2.customerPaidAmount,

@@ -440,43 +440,47 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
                   <div 
                     key={transaction.id} 
                     className={`p-5 hover:bg-[#F8F8FA] transition-colors group ${
-                      isRefund ? 'bg-red-50 border-l-4 border-red-400' : ''
+                      isRefund ? 'border-l-4 border-red-300' : ''
                     }`}
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          {isRefund && (
-                            <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
-                          )}
                           <h3 className="font-semibold text-[#383A47] truncate">
-                            {isRefund ? 'Refund: ' : ''}{transaction.listingName || transaction.description}
+                            {transaction.listingName || transaction.description}
                           </h3>
+                          {/* Booking Status Badge */}
                           <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                            isRefund ? 'bg-red-100 text-red-700' :
                             transaction.status === 'completed' ? 'bg-[#E8F5E9] text-[#4CAF50]' : 
                             transaction.status === 'pending' ? 'bg-[#FFE5ED] text-[#DF678C]' : 
                             'bg-[#E8E9ED] text-[#70727F]'
                           }`}>
-                            {isRefund ? 'Refunded' : transaction.status}
+                            {transaction.status}
                           </span>
                         </div>
                         <p className="text-sm text-[#70727F] mb-1">
                           {formatCustomerNameForDisplay(transaction.customerName)} • {formatDate(transaction.date)}
                         </p>
-                        {isRefund && transaction.refundMetadata && (
-                          <p className="text-xs text-red-600 mb-2 italic">
-                            {transaction.refundMetadata.reason}
-                          </p>
-                        )}
                         <p className="text-xs text-[#70727F] font-mono mb-2">
                           ID: {transaction.transactionId}
                         </p>
+                        {/* Refund reason - below ID */}
+                        {isRefund && transaction.refundMetadata && (
+                          <p className="text-xs text-[#70727F] mb-2 italic bg-[#F8F8FA] px-2 py-1 rounded border-l-2 border-[#E8E9ED]">
+                            Refund reason: {transaction.refundMetadata.reason}
+                          </p>
+                        )}
                         <div className="flex items-center gap-4 text-sm">
                           <span className={`font-medium ${isRefund ? 'text-red-600' : 'text-[#383A47]'}`}>
                             {isRefund ? '-' : ''}{formatCurrency(Math.abs(transaction.netToSeller))}
                           </span>
-                          {transaction.availableDate && !isRefund && (
+                          {/* Payment/Availability Status Badge */}
+                          {isRefund ? (
+                            <span className="text-xs font-medium px-2 py-1 rounded-full bg-[#FEF2F2] text-[#DC2626] flex items-center gap-1">
+                              <AlertTriangle className="w-3 h-3" />
+                              Refunded
+                            </span>
+                          ) : transaction.availableDate && (
                             <span className={`text-xs font-medium px-2 py-1 rounded-full ${
                               isAvailableForWithdrawal(transaction) 
                                 ? 'bg-[#E8F5E9] text-[#4CAF50]' 
@@ -487,6 +491,8 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
                           )}
                         </div>
                       </div>
+                      
+                      {/* Details button */}
                       <button 
                         onClick={() => setSelectedTransaction(transaction)}
                         className="flex items-center gap-1 text-[#3D1560] hover:text-[#6D26AB] text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity"
