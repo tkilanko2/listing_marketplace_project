@@ -639,7 +639,7 @@ const SellerTermsModal: React.FC<SellerTermsModalProps> = ({
                     onSave={handleSavePolicy}
                     onCancel={handleCancelEdit}
                     isEditing={isEditingPolicy}
-                    policyType={hasCustomPolicy ? 'custom' : 'platform'}
+                    policyType="custom"
                     showActions={false}
                     disabled={isLoading}
                   />
