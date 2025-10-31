@@ -16,6 +16,7 @@ import {
   FormLabel,
   Switch,
   Chip,
+  Checkbox,
 } from '@mui/material';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import AddIcon from '@mui/icons-material/Add';
@@ -41,10 +42,13 @@ interface TierPricingEditorProps {
     onlinePayment: boolean;
     payAtService: boolean;
   };
+  acceptSellerPolicy?: boolean;
   onPricingModelChange: (model: 'flat' | 'tiered') => void;
   onFlatPriceChange: (price: string) => void;
   onTiersChange: (tiers: PricingTier[]) => void;
   onPaymentOptionsChange: (options: { onlinePayment: boolean; payAtService: boolean }) => void;
+  onAcceptSellerPolicyChange?: (accepted: boolean) => void;
+  onOpenSellerPolicy?: () => void;
   errors?: {
     flatRatePrice?: string;
     pricingTiers?: Array<{
@@ -68,10 +72,13 @@ export const TierPricingEditor: React.FC<TierPricingEditorProps> = ({
   flatRatePrice,
   pricingTiers,
   paymentOptions,
+  acceptSellerPolicy,
   onPricingModelChange,
   onFlatPriceChange,
   onTiersChange,
   onPaymentOptionsChange,
+  onAcceptSellerPolicyChange,
+  onOpenSellerPolicy,
   errors = {},
   touched = {}
 }) => {
@@ -509,6 +516,62 @@ export const TierPricingEditor: React.FC<TierPricingEditorProps> = ({
           />
         </Box>
       </Box>
+      
+      {/* Seller Policy Acceptance - Only show if handlers provided */}
+      {onAcceptSellerPolicyChange && (
+        <>
+          <Divider sx={{ my: 2 }} />
+          
+          <Box>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={acceptSellerPolicy || false}
+                  onChange={(e) => onAcceptSellerPolicyChange?.(e.target.checked)}
+                  sx={{
+                    color: '#3D1560',
+                    '&.Mui-checked': {
+                      color: '#3D1560',
+                    },
+                  }}
+                />
+              }
+              label={
+                <Typography variant="body2" sx={{ color: '#383A47' }}>
+                  I agree to the{' '}
+                  <Typography
+                    component="span"
+                    variant="body2"
+                    onClick={() => onOpenSellerPolicy?.()}
+                    sx={{
+                      color: '#3D1560',
+                      textDecoration: 'underline',
+                      cursor: 'pointer',
+                      fontWeight: 'medium',
+                      '&:hover': {
+                        color: '#6D26AB',
+                      },
+                    }}
+                  >
+                    Seller Terms & Policies
+                  </Typography>
+                  {' '}
+                  <Typography
+                    component="span"
+                    sx={{
+                      color: '#000',
+                      fontSize: '1.2em',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    *
+                  </Typography>
+                </Typography>
+              }
+            />
+          </Box>
+        </>
+      )}
     </Box>
   );
 };

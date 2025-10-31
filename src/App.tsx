@@ -41,6 +41,7 @@ import { PayoutHistoryPage } from './pages/PayoutHistoryPage';
 import SellerPolicyPage from './pages/SellerPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import { SellerPolicyProvider } from './contexts/SellerPolicyContext';
 import { 
   BarChart, Calendar, DollarSign, ShoppingCart, Package, TrendingUp, 
   ArrowUp, Wallet, ChevronDown, ChevronLeft, ChevronRight, Search, 
@@ -4598,6 +4599,7 @@ function App() {
             }
           }
         }}
+        onNavigate={handleNavigate}
       />
     );
   };
@@ -4713,7 +4715,8 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <SellerPolicyProvider>
+      <div className="min-h-screen flex flex-col">
       <Navbar
         isAuthenticated={isAuthenticated}
         user={user}
@@ -5614,7 +5617,8 @@ function App() {
         onProceedAsGuest={handleProceedAsGuest}
         serviceName={selectedListing?.name || 'service'}
       />
-    </div>
+      </div>
+    </SellerPolicyProvider>
   );
 }
 

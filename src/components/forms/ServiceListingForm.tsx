@@ -449,7 +449,8 @@ const mapServiceToFormValues = (service: any): FormValues => {
 const ServiceListingForm: React.FC<{ 
   onBack: (fromFormSubmission?: boolean) => void;
   existingListing?: any; // Service object when editing
-}> = ({ onBack, existingListing }) => {
+  onNavigate?: (page: string) => void; // Navigation handler for policy settings
+}> = ({ onBack, existingListing, onNavigate }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [availabilityTab, setAvailabilityTab] = useState(0); // 0 for weekly, 1 for date range
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -1587,10 +1588,13 @@ const ServiceListingForm: React.FC<{
             flatRatePrice={formik.values.flatRatePrice}
             pricingTiers={formik.values.pricingTiers}
             paymentOptions={formik.values.paymentOptions}
+            acceptSellerPolicy={formik.values.acceptSellerPolicy}
             onPricingModelChange={(model) => formik.setFieldValue('pricingModel', model)}
             onFlatPriceChange={(price) => formik.setFieldValue('flatRatePrice', price)}
             onTiersChange={(tiers) => formik.setFieldValue('pricingTiers', tiers)}
             onPaymentOptionsChange={(options) => formik.setFieldValue('paymentOptions', options)}
+            onAcceptSellerPolicyChange={(accepted) => formik.setFieldValue('acceptSellerPolicy', accepted)}
+            onOpenSellerPolicy={() => setSellerPolicyModalOpen(true)}
             errors={{
               flatRatePrice: hasError('flatRatePrice') && formik.values.flatRatePrice !== '' ? getErrorMessage('flatRatePrice') : '',
               pricingTiers: formik.errors.pricingTiers as any
@@ -2739,9 +2743,16 @@ const ServiceListingForm: React.FC<{
       <SellerTermsModal
         open={sellerPolicyModalOpen}
         onClose={() => setSellerPolicyModalOpen(false)}
-        serviceName="Your Service"
+        serviceName={formik.values.title || "Your Service"}
         providerName="You"
         serviceType="service"
+        onNavigate={onNavigate}
+        allowConfiguration={true}
+        onPolicyConfigured={() => {
+          // Optionally update form state or show confirmation
+          setSnackbarMessage('Policy configured successfully!');
+          setSnackbarOpen(true);
+        }}
       />
     </FormContainer>
   );
