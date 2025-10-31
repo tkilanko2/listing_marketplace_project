@@ -192,7 +192,7 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Available Balance - Prominent */}
         <div 
-          className="md:col-span-2 bg-white rounded-2xl p-6 border-2 border-[#4CAF50] shadow-lg hover:shadow-2xl hover:border-[#45a049] transition-all relative overflow-hidden cursor-pointer group"
+          className="md:col-span-2 bg-white rounded-2xl p-6 border border-[#E8E9ED] shadow-lg hover:shadow-2xl transition-all relative overflow-hidden cursor-pointer group"
           onClick={() => onNavigate?.('bankingSettings')}
         >
           {/* Subtle green accent background */}
@@ -270,7 +270,7 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
 
         {/* Confirmed Bookings */}
         <div 
-          className="bg-white rounded-2xl p-6 border-2 border-[#3D1560] shadow-lg hover:shadow-2xl hover:border-[#6D26AB] relative overflow-hidden cursor-pointer group transition-all"
+          className="bg-white rounded-2xl p-6 border border-[#E8E9ED] shadow-lg hover:shadow-2xl relative overflow-hidden cursor-pointer group transition-all"
           onClick={() => onNavigate?.('sellerBookings')}
         >
           {/* Subtle accent background */}

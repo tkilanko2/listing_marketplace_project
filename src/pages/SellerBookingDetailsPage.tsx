@@ -30,11 +30,14 @@ import {
   Circle,
   RefreshCw,
   AlertTriangle,
-  RotateCcw
+  RotateCcw,
+  MoreVertical,
+  Download
 } from 'lucide-react';
 import { Order, OrderStatus } from '../types';
 import { OrderStatusTimeline } from '../components/OrderStatusTimeline';
 import { ReviewModal } from '../components/ReviewModal';
+import { getBookingTransactionHistory, FinancialTransaction } from '../mockData';
 
 // Extended Order interface to include customer for booking context
 interface BookingOrder extends Order {
@@ -309,6 +312,10 @@ export function SellerBookingDetailsPage({
   const [addedNotes, setAddedNotes] = useState<Array<{id: number, note: string, timestamp: Date}>>([]);
   const [bookingConfirmationOpen, setBookingConfirmationOpen] = useState(false);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [openTransactionMenu, setOpenTransactionMenu] = useState<string | null>(null);
+
+  // Get transaction history for this booking
+  const transactionHistory = getBookingTransactionHistory(booking.id);
 
   // Helper functions
   const mapServiceStatus = (status: string, userRole: 'buyer' | 'seller'): string => {
@@ -840,6 +847,96 @@ export function SellerBookingDetailsPage({
       onNavigateToService(booking.service.id);
     } else {
       console.log('Navigate to service performance for:', booking.service?.id);
+    }
+  };
+
+  // Transaction action handlers
+  const handleViewTransactionDetails = (transaction: FinancialTransaction) => {
+    console.log('View transaction details:', transaction);
+    // In real app, this would open a modal or navigate to transaction details page
+  };
+
+  const handleDownloadReceipt = (transaction: FinancialTransaction) => {
+    console.log('Download receipt for transaction:', transaction.transactionId);
+    // In real app, this would trigger receipt download
+  };
+
+  const handleReportIssue = (transaction: FinancialTransaction) => {
+    console.log('Report issue for transaction:', transaction.transactionId);
+    // In real app, this would open a support form
+  };
+
+  // Format transaction date
+  const formatTransactionDate = (date: Date): string => {
+    return new Date(date).toLocaleDateString('en-US', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
+  // Format transaction time
+  const formatTransactionTime = (date: Date): string => {
+    return new Date(date).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }) + ' GMT+1';
+  };
+
+  // Get status badge config
+  const getTransactionStatusConfig = (status: FinancialTransaction['status']) => {
+    switch (status) {
+      case 'successful':
+      case 'completed':
+        return {
+          label: 'Successful',
+          bgColor: 'bg-[#D4EDDA]',
+          textColor: 'text-[#155724]',
+          borderColor: 'border-[#C3E6CB]'
+        };
+      case 'pending':
+        return {
+          label: 'Pending',
+          bgColor: 'bg-[#FFF3CD]',
+          textColor: 'text-[#856404]',
+          borderColor: 'border-[#FFEAA7]'
+        };
+      case 'failed':
+        return {
+          label: 'Failed',
+          bgColor: 'bg-[#F8D7DA]',
+          textColor: 'text-[#721C24]',
+          borderColor: 'border-[#F5C6CB]'
+        };
+      case 'refunded':
+        return {
+          label: 'Refunded',
+          bgColor: 'bg-[#D1ECF1]',
+          textColor: 'text-[#0C5460]',
+          borderColor: 'border-[#BEE5EB]'
+        };
+      case 'unclaimed':
+        return {
+          label: 'Unclaimed',
+          bgColor: 'bg-[#E8E9ED]',
+          textColor: 'text-[#70727F]',
+          borderColor: 'border-[#CDCED8]'
+        };
+      case 'cancelled':
+        return {
+          label: 'Cancelled',
+          bgColor: 'bg-[#F8D7DA]',
+          textColor: 'text-[#721C24]',
+          borderColor: 'border-[#F5C6CB]'
+        };
+      default:
+        return {
+          label: status,
+          bgColor: 'bg-[#E8E9ED]',
+          textColor: 'text-[#70727F]',
+          borderColor: 'border-[#CDCED8]'
+        };
     }
   };
 
@@ -1481,6 +1578,155 @@ export function SellerBookingDetailsPage({
             </div>
           </div>
         </div>
+
+        {/* Transaction History Section - HIDDEN (logic preserved for future use) */}
+        {/* Uncomment below to show Transaction History card */}
+        {/* {transactionHistory.length > 0 && (
+          <div className="mt-6">
+            <div className="bg-[#FFFFFF] rounded-lg shadow-sm border border-[#E8E9ED] overflow-hidden">
+              <div className="px-6 py-5 border-b border-[#E8E9ED]">
+                <h2 className="text-xl font-semibold text-[#1B1C20]">Transaction History</h2>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-[#F8F8FA]">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[#70727F] uppercase tracking-wider">
+                        Transaction ID
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[#70727F] uppercase tracking-wider">
+                        Payment Status
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[#70727F] uppercase tracking-wider">
+                        Amount Paid
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[#70727F] uppercase tracking-wider">
+                        Payment Method
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[#70727F] uppercase tracking-wider">
+                        Payment Processor
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[#70727F] uppercase tracking-wider">
+                        Date Submitted
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[#70727F] uppercase tracking-wider">
+                        Action
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-[#E8E9ED]">
+                    {transactionHistory.map((transaction) => {
+                      const statusConfig = getTransactionStatusConfig(transaction.status);
+                      const isMenuOpen = openTransactionMenu === transaction.id;
+                      
+                      return (
+                        <tr key={transaction.id} className="hover:bg-[#F8F8FA] transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="text-sm font-medium text-[#383A47]">
+                              {transaction.transactionId}
+                            </span>
+                          </td>
+
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusConfig.bgColor} ${statusConfig.textColor}`}>
+                              {statusConfig.label}
+                            </span>
+                          </td>
+
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="text-sm font-bold text-[#1B1C20]">
+                              ${transaction.amount.toFixed(2)}
+                            </span>
+                          </td>
+
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="text-sm text-[#383A47] capitalize">
+                              {transaction.paymentMethod.replace('_', ' ')}
+                            </span>
+                          </td>
+
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="text-sm font-medium text-[#1B1C20]">
+                              {transaction.paymentProcessor}
+                            </span>
+                          </td>
+
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm">
+                              <div className="font-medium text-[#1B1C20]">
+                                {formatTransactionDate(transaction.date)}
+                              </div>
+                              <div className="text-xs text-[#70727F]">
+                                {formatTransactionTime(transaction.date)}
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="px-6 py-4 whitespace-nowrap text-right">
+                            <div className="relative inline-block text-left">
+                              <button
+                                onClick={() => setOpenTransactionMenu(isMenuOpen ? null : transaction.id)}
+                                className="p-2 hover:bg-[#E8E9ED] rounded-md transition-colors"
+                                aria-label="Transaction actions"
+                              >
+                                <MoreVertical className="w-4 h-4 text-[#70727F]" />
+                              </button>
+
+                              {isMenuOpen && (
+                                <>
+                                  <div
+                                    className="fixed inset-0 z-10"
+                                    onClick={() => setOpenTransactionMenu(null)}
+                                  />
+                                  
+                                  <div className="absolute right-0 mt-2 w-56 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
+                                    <div className="py-1">
+                                      <button
+                                        onClick={() => {
+                                          handleViewTransactionDetails(transaction);
+                                          setOpenTransactionMenu(null);
+                                        }}
+                                        className="flex items-center w-full px-4 py-2 text-sm text-[#383A47] hover:bg-[#F8F8FA] transition-colors"
+                                      >
+                                        <Eye className="w-4 h-4 mr-3 text-[#3D1560]" />
+                                        View Details
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          handleDownloadReceipt(transaction);
+                                          setOpenTransactionMenu(null);
+                                        }}
+                                        className="flex items-center w-full px-4 py-2 text-sm text-[#383A47] hover:bg-[#F8F8FA] transition-colors"
+                                      >
+                                        <Download className="w-4 h-4 mr-3 text-[#3D1560]" />
+                                        Download Receipt
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          handleReportIssue(transaction);
+                                          setOpenTransactionMenu(null);
+                                        }}
+                                        className="flex items-center w-full px-4 py-2 text-sm text-[#383A47] hover:bg-[#F8F8FA] transition-colors"
+                                      >
+                                        <AlertTriangle className="w-4 h-4 mr-3 text-[#DF678C]" />
+                                        Report Issue
+                                      </button>
+                                    </div>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )} */}
       </div>
 
       {/* Appointment Details Modal */}

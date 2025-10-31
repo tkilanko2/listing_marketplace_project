@@ -3034,7 +3034,7 @@ export interface FinancialTransaction {
   bookingId?: string;
   orderId?: string;
   type: 'booking_payment' | 'order_payment' | 'refund' | 'payout' | 'fee' | 'adjustment';
-  status: 'completed' | 'pending' | 'failed' | 'cancelled';
+  status: 'completed' | 'pending' | 'failed' | 'cancelled' | 'successful' | 'refunded' | 'unclaimed';
   amount: number;
   currency: string;
   customerPaidAmount: number;
@@ -3043,6 +3043,7 @@ export interface FinancialTransaction {
   transactionFee: number;
   netToSeller: number;
   paymentMethod: 'credit_card' | 'debit_card' | 'paypal' | 'bank_transfer' | 'apple_pay' | 'google_pay';
+  paymentProcessor: 'Stripe' | 'Paystack' | 'Flutterwave' | 'Square' | 'PayPal' | 'Razorpay';
   customerName: string;
   description: string;
   date: Date;
@@ -3156,6 +3157,7 @@ export const allFinancialTransactions: FinancialTransaction[] = (() => {
       transactionFee,
       netToSeller: Math.round(netToSeller * 100) / 100,
         paymentMethod: 'credit_card',
+        paymentProcessor: 'Stripe',
         customerName: booking.customer?.name || `Customer ${booking.id.slice(-3)}`,
         description: service.name,
         date: booking.orderDate,
@@ -3193,6 +3195,7 @@ export const allFinancialTransactions: FinancialTransaction[] = (() => {
       transactionFee: 0,
       netToSeller: -originalTxn.netToSeller, // Negative!
       paymentMethod: originalTxn.paymentMethod,
+      paymentProcessor: originalTxn.paymentProcessor,
       customerName: originalTxn.customerName,
       description: 'Refund: Customer cancellation',
       date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
@@ -3234,6 +3237,7 @@ export const allFinancialTransactions: FinancialTransaction[] = (() => {
       transactionFee: 0,
       netToSeller: -originalTxn2.netToSeller,
       paymentMethod: originalTxn2.paymentMethod,
+      paymentProcessor: originalTxn2.paymentProcessor,
       customerName: originalTxn2.customerName,
       description: 'Refund: Service quality issue',
       date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
@@ -3260,6 +3264,148 @@ export const allFinancialTransactions: FinancialTransaction[] = (() => {
   
   return transactions;
 })();
+
+// Helper function to generate transaction history for a specific booking
+// Simulates the payment flow: pending → successful/failed with possible retries
+export function getBookingTransactionHistory(bookingId: string): FinancialTransaction[] {
+  const bookingTransactions: FinancialTransaction[] = [];
+  const allOrders = getAllOrdersWithBookings();
+  const booking = allOrders.find(order => order.id === bookingId);
+  
+  if (!booking || booking.type !== 'service') {
+    return [];
+  }
+
+  const service = booking.service;
+  if (!service) return [];
+
+  // Calculate fees
+  const amount = booking.totalAmount;
+  const platformFee = amount * 0.025; // 2.5%
+  const paymentProcessingFee = amount * 0.029 + 0.30; // 2.9% + $0.30
+  const transactionFee = 0.25;
+  const netToSeller = amount - platformFee - paymentProcessingFee - transactionFee;
+
+  const baseTransaction = {
+    bookingId: booking.id,
+    type: 'booking_payment' as const,
+    amount,
+    currency: 'USD',
+    customerPaidAmount: amount,
+    platformFee: Math.round(platformFee * 100) / 100,
+    paymentProcessingFee: Math.round(paymentProcessingFee * 100) / 100,
+    transactionFee,
+    netToSeller: Math.round(netToSeller * 100) / 100,
+    paymentMethod: 'credit_card' as const,
+    customerName: booking.customer?.name || `Customer ${booking.id.slice(-3)}`,
+    description: service.name,
+    taxAmount: 0,
+    taxRate: 0,
+    region: 'US' as const,
+    category: 'service_booking' as const,
+    listingName: service.name,
+    listingId: service.id,
+    listingImage: service.images?.[0],
+    serviceCategory: service.category,
+  };
+
+  // Simulate transaction flow based on booking status
+  const bookingStatus = booking.status;
+  const paymentStatus = booking.paymentStatus;
+  const orderDate = booking.orderDate;
+
+  // Scenario 1: Failed attempt first (simulate for some pending bookings)
+  if (bookingStatus === 'pending' && Math.random() > 0.5) {
+    // First attempt failed
+    bookingTransactions.push({
+      ...baseTransaction,
+      id: `TXN-${bookingId}-001`,
+      transactionId: `0242ac${Math.random().toString(36).substr(2, 6)}`,
+      status: 'failed',
+      date: new Date(orderDate.getTime() - 2 * 60 * 1000), // 2 mins before
+      paymentProcessor: 'Stripe',
+      settledDate: new Date(orderDate.getTime() - 2 * 60 * 1000),
+    });
+    
+    // Second attempt pending
+    bookingTransactions.push({
+      ...baseTransaction,
+      id: `TXN-${bookingId}-002`,
+      transactionId: `0242ac${Math.random().toString(36).substr(2, 6)}`,
+      status: 'pending',
+      date: orderDate,
+      paymentProcessor: 'Paystack',
+    });
+  }
+  // Scenario 2: Pending payment (awaiting seller confirmation)
+  else if (bookingStatus === 'pending' || bookingStatus === 'requested') {
+    bookingTransactions.push({
+      ...baseTransaction,
+      id: `TXN-${bookingId}-001`,
+      transactionId: `0242ac${Math.random().toString(36).substr(2, 6)}`,
+      status: 'pending',
+      date: orderDate,
+      paymentProcessor: 'Stripe',
+    });
+  }
+  // Scenario 3: Confirmed booking (payment successful)
+  else if (bookingStatus === 'confirmed' || bookingStatus === 'scheduled' || bookingStatus === 'completed') {
+    bookingTransactions.push({
+      ...baseTransaction,
+      id: `TXN-${bookingId}-001`,
+      transactionId: `0242ac${Math.random().toString(36).substr(2, 6)}`,
+      status: 'successful',
+      date: orderDate,
+      paymentProcessor: 'Stripe',
+      settledDate: new Date(orderDate.getTime() + 2 * 24 * 60 * 60 * 1000), // +2 days
+      completionDate: booking.appointmentDate || orderDate,
+      holdEndDate: new Date((booking.appointmentDate || orderDate).getTime() + 7 * 24 * 60 * 60 * 1000),
+      availableDate: new Date((booking.appointmentDate || orderDate).getTime() + 7 * 24 * 60 * 60 * 1000),
+    });
+  }
+  // Scenario 4: Cancelled/Declined booking
+  else if (bookingStatus === 'cancelled' || bookingStatus === 'declined') {
+    // Initial pending transaction
+    bookingTransactions.push({
+      ...baseTransaction,
+      id: `TXN-${bookingId}-001`,
+      transactionId: `0242ac${Math.random().toString(36).substr(2, 6)}`,
+      status: 'unclaimed',
+      date: orderDate,
+      paymentProcessor: 'Stripe',
+      settledDate: orderDate,
+    });
+  }
+  // Scenario 5: Refunded booking
+  else if (bookingStatus === 'refunded' || paymentStatus === 'refunded') {
+    // Original successful payment
+    bookingTransactions.push({
+      ...baseTransaction,
+      id: `TXN-${bookingId}-001`,
+      transactionId: `0242ac${Math.random().toString(36).substr(2, 6)}`,
+      status: 'successful',
+      date: orderDate,
+      paymentProcessor: 'Stripe',
+      settledDate: new Date(orderDate.getTime() + 2 * 24 * 60 * 60 * 1000),
+    });
+    
+    // Refund transaction
+    bookingTransactions.push({
+      ...baseTransaction,
+      id: `TXN-${bookingId}-REF`,
+      transactionId: `ref_${Math.random().toString(36).substr(2, 12)}`,
+      type: 'refund',
+      status: 'refunded',
+      date: new Date(orderDate.getTime() + 5 * 24 * 60 * 60 * 1000), // 5 days later
+      paymentProcessor: 'Stripe',
+      settledDate: new Date(orderDate.getTime() + 5 * 24 * 60 * 60 * 1000),
+      netToSeller: -Math.round(netToSeller * 100) / 100, // Negative amount
+      description: `Refund: ${service.name}`,
+    });
+  }
+
+  return bookingTransactions;
+}
 
 // Helper function to format customer name as "First LastInitial" (e.g., "Sarah M.")
 export function formatCustomerNameForDisplay(fullName: string): string {
