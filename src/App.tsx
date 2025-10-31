@@ -6,6 +6,8 @@ import { BookingPage } from './pages/BookingPage';
 import { BookingDetailsPage } from './pages/BookingDetailsPage';
 import { SellerProfilePage } from './pages/SellerProfilePage';
 import CreateListingPage from './pages/CreateListingPage';
+import ServiceListingForm from './components/forms/ServiceListingForm';
+import { AvailabilityScheduler } from './components/AvailabilityScheduler';
 import { PaymentPage } from './pages/PaymentPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { MyOrdersPage } from './pages/MyOrdersPage';
@@ -2372,6 +2374,17 @@ function App() {
       setActiveMenu(null);
     };
     
+    const handleQuickEdit = (id: string) => {
+      // Find the listing details
+      const listing = combinedListings.find(item => item.id === id);
+      if (listing) {
+        // Set the selected listing and navigate to quick edit page
+        setSelectedListingForEdit(listing);
+        setCurrentPage('quickEditListing');
+      }
+      setActiveMenu(null);
+    };
+    
     const handlePromote = (id: string) => {
       alert(`Promote listing ${id}`);
       setActiveMenu(null);
@@ -2931,6 +2944,16 @@ function App() {
                                 >
                                   <Edit className="w-4 h-4 mr-2" />
                                   Edit
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleQuickEdit(listing.id);
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                >
+                                  <Edit className="w-4 h-4 mr-2" />
+                                  Quick Edit
                                 </button>
                                 <button
                                   onClick={(e) => {
@@ -3828,8 +3851,70 @@ function App() {
     const [activeTab, setActiveTab] = useState('details');
     const listing = selectedListingForEdit;
     
-    // For handling form submission
+    // State to track form values
+    const [formData, setFormData] = useState({
+      name: listing?.name || '',
+      category: listing?.category || '',
+      status: listing?.status || 'active',
+      type: listing?.type || 'service',
+      shortDescription: listing?.shortDescription || '',
+      longDescription: listing?.longDescription || '',
+      price: listing?.price || 0,
+      availability: typeof listing?.availability === 'object' 
+        ? listing.availability 
+        : {
+            type: 'weekdays',
+            scheduleType: 'weekly',
+            customSchedule: {
+              monday: true,
+              tuesday: true,
+              wednesday: true,
+              thursday: true,
+              friday: true,
+              saturday: false,
+              sunday: false,
+              timeRanges: [{ startTime: '09:00', endTime: '17:00', days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] }]
+            },
+            dateRanges: []
+          },
+      serviceDeliveryModes: listing?.serviceDeliveryModes || ['at_seller', 'at_buyer', 'remote'],
+      serviceCities: listing?.serviceCities || [],
+      duration: listing?.duration || 60
+    });
+    
+    // Separate state for availability tab selection
+    const [availabilityTab, setAvailabilityTab] = useState(0); // 0 = weekly, 1 = date range
+    
+    // For handling form submission - now with proper data saving
     const handleSave = () => {
+      if (!listing) return;
+      
+      // Find and update the listing in mockServices
+      const listingIndex = mockServices.findIndex(s => s.id === listing.id);
+      if (listingIndex !== -1) {
+        // Update the listing while preserving all rich data structures
+        const updatedListing = {
+          ...mockServices[listingIndex],
+          name: formData.name,
+          category: formData.category,
+          status: formData.status as any,
+          type: formData.type as any,
+          shortDescription: formData.shortDescription,
+          longDescription: formData.longDescription,
+          price: formData.price,
+          // NOW INCLUDING: availability, service delivery, duration
+          availability: formData.availability,
+          serviceDeliveryModes: formData.serviceDeliveryModes,
+          serviceCities: formData.serviceCities,
+          duration: formData.duration,
+          // All other rich data structures are preserved (tiers, etc.)
+        };
+        
+        mockServices[listingIndex] = updatedListing;
+        console.log('Listing updated via Edit page:', updatedListing.id);
+        console.log('Updated availability:', updatedListing.availability);
+      }
+      
       alert('Changes saved successfully!');
       setCurrentPage('sellerDashboard_myShop');
     };
@@ -3871,57 +3956,41 @@ function App() {
     
     return (
       <div className="p-8">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Edit Listing</h1>
-            <p className="text-gray-600">ID: {listing.id}</p>
-          </div>
-          <div className="space-x-3">
-            <button 
-              onClick={handleCancel}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button 
-              onClick={handleSave}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              Save Changes
-            </button>
-          </div>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-[#1B1C20]">Edit Listing</h1>
+          <p className="text-[#70727F] text-sm">ID: {listing.id}</p>
         </div>
         
         {/* Tabs */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-          <div className="border-b border-gray-100">
+        <div className="bg-white rounded-xl shadow-sm border border-[#E8E9ED] overflow-hidden mb-6">
+          <div className="border-b border-[#E8E9ED]">
             <div className="flex">
               <button
-                className={`px-6 py-3 text-sm font-medium ${activeTab === 'details' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'details' ? 'text-[#3D1560] border-b-2 border-[#3D1560]' : 'text-[#70727F] hover:text-[#6D26AB]'}`}
                 onClick={() => setActiveTab('details')}
               >
                 Basic Details
               </button>
               <button
-                className={`px-6 py-3 text-sm font-medium ${activeTab === 'media' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'media' ? 'text-[#3D1560] border-b-2 border-[#3D1560]' : 'text-[#70727F] hover:text-[#6D26AB]'}`}
                 onClick={() => setActiveTab('media')}
               >
                 Media
               </button>
               <button
-                className={`px-6 py-3 text-sm font-medium ${activeTab === 'attributes' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-                onClick={() => setActiveTab('attributes')}
+                className={`px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'availability' ? 'text-[#3D1560] border-b-2 border-[#3D1560]' : 'text-[#70727F] hover:text-[#6D26AB]'}`}
+                onClick={() => setActiveTab('availability')}
               >
-                Attributes
+                Availability & Service
               </button>
               <button
-                className={`px-6 py-3 text-sm font-medium ${activeTab === 'pricing' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'pricing' ? 'text-[#3D1560] border-b-2 border-[#3D1560]' : 'text-[#70727F] hover:text-[#6D26AB]'}`}
                 onClick={() => setActiveTab('pricing')}
               >
                 Pricing & Inventory
               </button>
               <button
-                className={`px-6 py-3 text-sm font-medium ${activeTab === 'seo' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'seo' ? 'text-[#3D1560] border-b-2 border-[#3D1560]' : 'text-[#70727F] hover:text-[#6D26AB]'}`}
                 onClick={() => setActiveTab('seo')}
               >
                 SEO & Visibility
@@ -3932,21 +4001,23 @@ function App() {
           {/* Tab Content */}
           <div className="p-6">
             {activeTab === 'details' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Listing Name</label>
+                    <label className="block text-sm font-medium text-[#383A47] mb-1.5">Listing Name</label>
                     <input 
                       type="text" 
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      defaultValue={listing.name}
+                      className="w-full px-3 py-2 border border-[#CDCED8] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] text-[#383A47]"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <label className="block text-sm font-medium text-[#383A47] mb-1.5">Category</label>
                     <select 
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      defaultValue={listing.category}
+                      className="w-full px-3 py-2 border border-[#CDCED8] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] text-[#383A47]"
+                      value={formData.category}
+                      onChange={(e) => setFormData({...formData, category: e.target.value})}
                     >
                       <option value="Beauty & Wellness">Beauty & Wellness</option>
                       <option value="Beauty Products">Beauty Products</option>
@@ -3957,36 +4028,39 @@ function App() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Listing Type</label>
+                    <label className="block text-sm font-medium text-[#383A47] mb-1.5">Listing Type</label>
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center">
                         <input 
                           type="radio" 
                           id="type-product" 
                           name="listing-type" 
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500" 
+                          className="h-4 w-4 text-[#3D1560] focus:ring-[#3D1560] border-[#CDCED8]" 
+                          style={{accentColor: '#3D1560'}}
                           defaultChecked={listing.type === 'product'}
                         />
-                        <label htmlFor="type-product" className="ml-2 text-sm text-gray-700">Product</label>
+                        <label htmlFor="type-product" className="ml-2 text-sm text-[#383A47]">Product</label>
                       </div>
                       <div className="flex items-center">
                         <input 
                           type="radio" 
                           id="type-service" 
                           name="listing-type" 
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500" 
+                          className="h-4 w-4 text-[#3D1560] focus:ring-[#3D1560] border-[#CDCED8]" 
+                          style={{accentColor: '#3D1560'}}
                           defaultChecked={listing.type === 'service'}
                         />
-                        <label htmlFor="type-service" className="ml-2 text-sm text-gray-700">Service</label>
+                        <label htmlFor="type-service" className="ml-2 text-sm text-[#383A47]">Service</label>
                       </div>
                     </div>
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <label className="block text-sm font-medium text-[#383A47] mb-1.5">Status</label>
                     <select 
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      defaultValue={listing.status}
+                      className="w-full px-3 py-2 border border-[#CDCED8] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] text-[#383A47]"
+                      value={formData.status}
+                      onChange={(e) => setFormData({...formData, status: e.target.value})}
                     >
                       <option value="active">Live</option>
                       <option value="draft">Draft</option>
@@ -3996,20 +4070,22 @@ function App() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Short Description</label>
+                  <label className="block text-sm font-medium text-[#383A47] mb-1.5">Short Description</label>
                   <textarea 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-[#CDCED8] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] text-[#383A47]"
                     rows={2}
-                    defaultValue={`Short description for ${listing.name}`}
+                    value={formData.shortDescription}
+                    onChange={(e) => setFormData({...formData, shortDescription: e.target.value})}
                   ></textarea>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Detailed Description</label>
+                  <label className="block text-sm font-medium text-[#383A47] mb-1.5">Detailed Description</label>
                   <textarea 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    rows={5}
-                    defaultValue={`Detailed description for ${listing.name}. This is where you would provide all the important information about your ${listing.type}.`}
+                    className="w-full px-3 py-2 border border-[#CDCED8] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] text-[#383A47]"
+                    rows={4}
+                    value={formData.longDescription}
+                    onChange={(e) => setFormData({...formData, longDescription: e.target.value})}
                   ></textarea>
                 </div>
               </div>
@@ -4017,16 +4093,16 @@ function App() {
             
             {activeTab === 'media' && (
               <div>
-                <div className="mb-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Listing Images</h3>
-                  <p className="text-sm text-gray-600 mb-4">Add up to 8 images to showcase your listing. The first image will be used as the thumbnail.</p>
+                <div className="mb-5">
+                  <h3 className="text-base font-semibold text-[#1B1C20] mb-2">Listing Images</h3>
+                  <p className="text-sm text-[#70727F] mb-4">Add up to 8 images to showcase your listing. The first image will be used as the thumbnail.</p>
                   
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex items-center justify-center flex-col text-center hover:bg-gray-50 cursor-pointer transition-colors">
-                      <div className="bg-gray-100 rounded-full p-3 mb-2">
-                        <PlusCircle className="h-6 w-6 text-gray-500" />
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="border-2 border-dashed border-[#CDCED8] rounded-lg p-4 flex items-center justify-center flex-col text-center hover:bg-[#F8F8FA] hover:border-[#3D1560] cursor-pointer transition-colors">
+                      <div className="bg-[#EDD9FF] rounded-full p-3 mb-2">
+                        <PlusCircle className="h-6 w-6 text-[#3D1560]" />
                       </div>
-                      <span className="text-sm font-medium text-gray-600">Add Image</span>
+                      <span className="text-sm font-medium text-[#70727F]">Add Image</span>
                     </div>
                     
                     <div className="relative group">
@@ -4199,17 +4275,17 @@ function App() {
             )}
             
             {activeTab === 'pricing' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                    <label className="block text-sm font-medium text-[#383A47] mb-1.5">Price</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-gray-500 sm:text-sm">$</span>
+                        <span className="text-[#70727F] text-sm">$</span>
                       </div>
                       <input 
                         type="text" 
-                        className="w-full pl-7 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full pl-7 px-3 py-2 border border-[#CDCED8] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] text-[#383A47]"
                         placeholder="0.00"
                         defaultValue={listing.price}
                       />
@@ -4217,14 +4293,14 @@ function App() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Discounted Price (Optional)</label>
+                    <label className="block text-sm font-medium text-[#383A47] mb-1.5">Discounted Price (Optional)</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-gray-500 sm:text-sm">$</span>
+                        <span className="text-[#70727F] text-sm">$</span>
                       </div>
                       <input 
                         type="text" 
-                        className="w-full pl-7 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full pl-7 px-3 py-2 border border-[#CDCED8] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] text-[#383A47]"
                         placeholder="0.00"
                       />
                     </div>
@@ -4233,20 +4309,20 @@ function App() {
                   {listing.type === 'product' && (
                     <>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                        <label className="block text-sm font-medium text-[#383A47] mb-1.5">Quantity</label>
                         <input 
                           type="number" 
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-[#CDCED8] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] text-[#383A47]"
                           defaultValue={listing.quantity === 'Unlimited' ? '' : listing.quantity}
                           placeholder="Enter available quantity"
                         />
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">SKU (Stock Keeping Unit)</label>
+                        <label className="block text-sm font-medium text-[#383A47] mb-1.5">SKU (Stock Keeping Unit)</label>
                         <input 
                           type="text" 
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-[#CDCED8] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] text-[#383A47]"
                           placeholder="e.g., PRD-12345"
                         />
                       </div>
@@ -4255,109 +4331,209 @@ function App() {
                   
                   {listing.type === 'service' && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Availability</label>
+                      <label className="block text-sm font-medium text-[#383A47] mb-1.5">Availability</label>
                       <div className="flex items-center space-x-2">
                         <input 
                           type="checkbox" 
                           id="unlimited-availability" 
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          className="h-4 w-4 text-[#3D1560] focus:ring-[#3D1560] border-[#CDCED8] rounded"
+                          style={{accentColor: '#3D1560'}}
                           defaultChecked={listing.quantity === 'Unlimited'}
                         />
-                        <label htmlFor="unlimited-availability" className="text-sm text-gray-700">Unlimited availability</label>
+                        <label htmlFor="unlimited-availability" className="text-sm text-[#383A47]">Unlimited availability</label>
                       </div>
                     </div>
                   )}
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Shipping & Delivery (for products)</label>
-                  <div className="space-y-3">
+                  <label className="block text-sm font-medium text-[#383A47] mb-1.5">Shipping & Delivery (for products)</label>
+                  <div className="space-y-2">
                     <div className="flex items-center space-x-2">
                       <input 
                         type="checkbox" 
                         id="free-shipping" 
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        className="h-4 w-4 text-[#3D1560] focus:ring-[#3D1560] border-[#CDCED8] rounded"
+                        style={{accentColor: '#3D1560'}}
                       />
-                      <label htmlFor="free-shipping" className="text-sm text-gray-700">Offer free shipping</label>
+                      <label htmlFor="free-shipping" className="text-sm text-[#383A47]">Offer free shipping</label>
                     </div>
                     
                     <div className="flex items-center space-x-2">
                       <input 
                         type="checkbox" 
                         id="local-pickup" 
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        className="h-4 w-4 text-[#3D1560] focus:ring-[#3D1560] border-[#CDCED8] rounded"
+                        style={{accentColor: '#3D1560'}}
                       />
-                      <label htmlFor="local-pickup" className="text-sm text-gray-700">Allow local pickup</label>
+                      <label htmlFor="local-pickup" className="text-sm text-[#383A47]">Allow local pickup</label>
                     </div>
                   </div>
                 </div>
               </div>
             )}
             
+            {activeTab === 'availability' && (
+              <div className="space-y-5">
+                {/* Service Details Card - Compact & Styled */}
+                <div className="bg-white border border-[#E8E9ED] rounded-lg p-5">
+                  <div className="flex items-center space-x-2 mb-4">
+                    <svg className="w-5 h-5 text-[#3D1560]" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                    </svg>
+                    <h3 className="text-base font-semibold text-[#1B1C20]">Service Details</h3>
+                  </div>
+                  
+                  <div className="flex flex-col md:flex-row md:items-start gap-20">
+                    {/* Service Delivery Modes */}
+                    <div>
+                      <label className="block text-sm font-medium text-[#383A47] mb-2">Service Delivery</label>
+                      <div className="space-y-1.5">
+                        <label className="flex items-center group cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.serviceDeliveryModes.includes('at_seller')}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData({...formData, serviceDeliveryModes: [...formData.serviceDeliveryModes, 'at_seller']});
+                              } else {
+                                setFormData({...formData, serviceDeliveryModes: formData.serviceDeliveryModes.filter(m => m !== 'at_seller')});
+                              }
+                            }}
+                            className="h-4 w-4 text-[#3D1560] focus:ring-[#3D1560] border-[#CDCED8] rounded checked:bg-[#3D1560] checked:border-[#3D1560]"
+                            style={{accentColor: '#3D1560'}}
+                          />
+                          <span className="ml-2 text-sm text-[#383A47] group-hover:text-[#1B1C20]">At Seller Location</span>
+                        </label>
+                        <label className="flex items-center group cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.serviceDeliveryModes.includes('at_buyer')}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData({...formData, serviceDeliveryModes: [...formData.serviceDeliveryModes, 'at_buyer']});
+                              } else {
+                                setFormData({...formData, serviceDeliveryModes: formData.serviceDeliveryModes.filter(m => m !== 'at_buyer')});
+                              }
+                            }}
+                            className="h-4 w-4 text-[#3D1560] focus:ring-[#3D1560] border-[#CDCED8] rounded checked:bg-[#3D1560] checked:border-[#3D1560]"
+                            style={{accentColor: '#3D1560'}}
+                          />
+                          <span className="ml-2 text-sm text-[#383A47] group-hover:text-[#1B1C20]">At Buyer Location</span>
+                        </label>
+                        <label className="flex items-center group cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.serviceDeliveryModes.includes('remote')}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData({...formData, serviceDeliveryModes: [...formData.serviceDeliveryModes, 'remote']});
+                              } else {
+                                setFormData({...formData, serviceDeliveryModes: formData.serviceDeliveryModes.filter(m => m !== 'remote')});
+                              }
+                            }}
+                            className="h-4 w-4 text-[#3D1560] focus:ring-[#3D1560] border-[#CDCED8] rounded checked:bg-[#3D1560] checked:border-[#3D1560]"
+                            style={{accentColor: '#3D1560'}}
+                          />
+                          <span className="ml-2 text-sm text-[#383A47] group-hover:text-[#1B1C20]">Remote</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Duration */}
+                    <div>
+                      <label className="block text-sm font-medium text-[#383A47] mb-2">Service Duration</label>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="number"
+                          value={formData.duration}
+                          onChange={(e) => setFormData({...formData, duration: parseInt(e.target.value) || 60})}
+                          className="w-20 px-2 py-1.5 border border-[#CDCED8] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] text-[#383A47] text-sm"
+                          placeholder="60"
+                          min="1"
+                        />
+                        <span className="text-sm text-[#70727F]">minutes</span>
+                      </div>
+                      <p className="mt-1 text-xs text-[#70727F]">Estimated time to complete the service</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Availability Scheduler - Below Service Details */}
+                <AvailabilityScheduler
+                  value={formData.availability}
+                  onChange={(newValue) => setFormData({...formData, availability: newValue})}
+                />
+              </div>
+            )}
+            
             {activeTab === 'seo' && (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">SEO Title</label>
+                  <label className="block text-sm font-medium text-[#383A47] mb-1.5">SEO Title</label>
                   <input 
                     type="text" 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-[#CDCED8] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] text-[#383A47]"
                     defaultValue={listing.name}
                   />
-                  <p className="mt-1 text-sm text-gray-500">Recommended length: 50-60 characters</p>
+                  <p className="mt-1 text-xs text-[#70727F]">Recommended length: 50-60 characters</p>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Meta Description</label>
+                  <label className="block text-sm font-medium text-[#383A47] mb-1.5">Meta Description</label>
                   <textarea 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-[#CDCED8] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] text-[#383A47]"
                     rows={3}
                     defaultValue={`${listing.name} - ${listing.category} - Best quality ${listing.type} available at competitive prices.`}
                   ></textarea>
-                  <p className="mt-1 text-sm text-gray-500">Recommended length: 150-160 characters</p>
+                  <p className="mt-1 text-xs text-[#70727F]">Recommended length: 150-160 characters</p>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+                  <label className="block text-sm font-medium text-[#383A47] mb-1.5">Tags</label>
                   <input 
                     type="text" 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-[#CDCED8] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] text-[#383A47]"
                     placeholder="e.g., beauty, haircut, styling"
                     defaultValue={listing.category.toLowerCase().replace('&', '').split(' ').join(', ')}
                   />
-                  <p className="mt-1 text-sm text-gray-500">Separate tags with commas</p>
+                  <p className="mt-1 text-xs text-[#70727F]">Separate tags with commas</p>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Visibility</label>
-                  <div className="space-y-2">
+                  <label className="block text-sm font-medium text-[#383A47] mb-1.5">Visibility</label>
+                  <div className="space-y-1.5">
                     <div className="flex items-center">
                       <input 
                         type="radio" 
                         id="visibility-public" 
                         name="visibility" 
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500" 
+                        className="h-4 w-4 text-[#3D1560] focus:ring-[#3D1560] border-[#CDCED8]" 
+                        style={{accentColor: '#3D1560'}}
                         defaultChecked={listing.status === 'active'}
                       />
-                      <label htmlFor="visibility-public" className="ml-2 text-sm text-gray-700">Live - Visible to everyone</label>
+                      <label htmlFor="visibility-public" className="ml-2 text-sm text-[#383A47]">Live - Visible to everyone</label>
                     </div>
                     <div className="flex items-center">
                       <input 
                         type="radio" 
                         id="visibility-hidden" 
                         name="visibility" 
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500" 
+                        className="h-4 w-4 text-[#3D1560] focus:ring-[#3D1560] border-[#CDCED8]" 
+                        style={{accentColor: '#3D1560'}}
                         defaultChecked={listing.status === 'inactive'}
                       />
-                      <label htmlFor="visibility-hidden" className="ml-2 text-sm text-gray-700">Hidden - Not visible in search or browse</label>
+                      <label htmlFor="visibility-hidden" className="ml-2 text-sm text-[#383A47]">Hidden - Not visible in search or browse</label>
                     </div>
                     <div className="flex items-center">
                       <input 
                         type="radio" 
                         id="visibility-password" 
                         name="visibility" 
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                        className="h-4 w-4 text-[#3D1560] focus:ring-[#3D1560] border-[#CDCED8]"
+                        style={{accentColor: '#3D1560'}}
                       />
-                      <label htmlFor="visibility-password" className="ml-2 text-sm text-gray-700">Password Protected - Require a password to view</label>
+                      <label htmlFor="visibility-password" className="ml-2 text-sm text-[#383A47]">Password Protected - Require a password to view</label>
                     </div>
                   </div>
                 </div>
@@ -4365,22 +4541,76 @@ function App() {
             )}
           </div>
         </div>
-        
-        <div className="flex justify-end space-x-3">
+
+        {/* CTAs at Bottom Right */}
+        <div className="flex justify-end items-center space-x-3 pt-6 border-t border-[#E8E9ED]">
           <button 
             onClick={handleCancel}
-            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 text-[#70727F] hover:text-[#383A47] transition-colors font-medium"
           >
             Cancel
           </button>
           <button 
             onClick={handleSave}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            className="px-6 py-2.5 bg-[#3D1560] text-white rounded-md hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-colors font-medium shadow-sm"
           >
             Save Changes
           </button>
         </div>
       </div>
+    );
+  };
+
+  // Quick Edit Listing Page - Uses ServiceListingForm for comprehensive editing
+  const QuickEditListingPage = () => {
+    const listing = selectedListingForEdit;
+    
+    if (!listing) {
+      return (
+        <div className="p-8">
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-yellow-700">
+                  No listing selected for editing. Please go back and select a listing.
+                </p>
+              </div>
+            </div>
+          </div>
+          <button 
+            onClick={() => setCurrentPage('sellerDashboard_myShop')}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Back to My Shop
+          </button>
+        </div>
+      );
+    }
+    
+    // Use ServiceListingForm for comprehensive editing
+    return (
+      <ServiceListingForm 
+        existingListing={listing}
+        onBack={(fromSubmission?: boolean) => {
+          if (fromSubmission) {
+            // Successfully saved, go back to My Shop
+            setSelectedListingForEdit(null);
+            setCurrentPage('sellerDashboard_myShop');
+          } else {
+            // Cancelled, confirm before going back
+            const confirmCancel = window.confirm('Are you sure you want to discard your changes?');
+            if (confirmCancel) {
+              setSelectedListingForEdit(null);
+              setCurrentPage('sellerDashboard_myShop');
+            }
+          }
+        }}
+      />
     );
   };
 
@@ -5102,6 +5332,10 @@ function App() {
 
         {currentPage === 'editListing' && (
           <EditListingPage />
+        )}
+
+        {currentPage === 'quickEditListing' && (
+          <QuickEditListingPage />
         )}
 
         {currentPage === 'bookings' && (

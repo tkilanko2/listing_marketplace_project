@@ -72,6 +72,7 @@ import { mockServices } from '../../mockData';
 import SellerVerificationModal from '../SellerVerificationModal';
 import VerificationFlowModal from '../verification/VerificationFlowModal';
 import SellerTermsModal from '../SellerTermsModal';
+import { AvailabilityScheduler } from '../AvailabilityScheduler';
 
 const serviceCategories = [
   'Professional Services',
@@ -383,7 +384,71 @@ const placeholderImages = [
   'https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=800&q=80'
 ];
 
-const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => void }> = ({ onBack }) => {
+// Helper function to map Service back to FormValues for editing
+const mapServiceToFormValues = (service: any): FormValues => {
+  return {
+    title: service.name || '',
+    shortDescription: service.shortDescription || '',
+    detailedDescription: service.longDescription || '',
+    price: service.price?.toString() || '',
+    location: service.location?.city || '',
+    country: service.location?.country || '',
+    coverageAreaKm: service.serviceCities?.[0]?.radius || '',
+    serviceAreas: [],
+    serviceCities: service.serviceCities || [],
+    images: service.images || [],
+    category: service.category || '',
+    serviceType: service.serviceType || '',
+    paymentOptions: service.paymentOptions || {
+      onlinePayment: true,
+      payAtService: true,
+    },
+    availability: typeof service.availability === 'object' 
+      ? service.availability 
+      : {
+          type: 'weekdays',
+          scheduleType: 'weekly',
+          customSchedule: {
+            monday: true,
+            tuesday: true,
+            wednesday: true,
+            thursday: true,
+            friday: true,
+            saturday: false,
+            sunday: false,
+            timeRanges: [
+              {
+                startTime: '09:00',
+                endTime: '17:00',
+                days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
+              }
+            ]
+          },
+          dateRanges: []
+        },
+    pricingModel: service.tiers && service.tiers.length > 0 ? 'tiered' : 'flat',
+    flatRatePrice: service.tiers && service.tiers.length > 0 ? '' : service.price?.toString() || '',
+    pricingTiers: service.tiers?.map((tier: any) => ({
+      id: tier.id,
+      name: tier.name,
+      price: tier.price?.toString() || '',
+      description: tier.description || '',
+      features: [],
+      tierImage: null
+    })) || [
+      { id: '1', name: 'Basic', price: '', description: '', features: [], tierImage: null },
+      { id: '2', name: 'Standard', price: '', description: '', features: [], tierImage: null },
+      { id: '3', name: 'Premium', price: '', description: '', features: [], tierImage: null }
+    ],
+    acceptSellerPolicy: true, // Already accepted if editing
+    status: service.status || 'pending'
+  };
+};
+
+const ServiceListingForm: React.FC<{ 
+  onBack: (fromFormSubmission?: boolean) => void;
+  existingListing?: any; // Service object when editing
+}> = ({ onBack, existingListing }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [availabilityTab, setAvailabilityTab] = useState(0); // 0 for weekly, 1 for date range
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -397,6 +462,9 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
   const [verificationType, setVerificationType] = useState<'individual' | 'business'>('individual');
   const [sellerPolicyModalOpen, setSellerPolicyModalOpen] = useState(false);
   const steps = ['Basic Information', 'Category & Availability', 'Pricing Options'];
+  
+  // Determine if we're in edit mode
+  const isEditMode = !!existingListing;
 
   // Seller info form state
   const [sellerInfo, setSellerInfo] = useState({
@@ -409,75 +477,77 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
   });
 
   const formik = useFormik<FormValues>({
-    initialValues: {
-      title: '',
-      shortDescription: '',
-      detailedDescription: '',
-      price: '',
-      location: '',
-      country: '',
-      coverageAreaKm: '', // Changed from 'Entire City' to empty string
-      serviceAreas: [],
-      serviceCities: [],
-      images: [],
-      category: '',
-      serviceType: '',
-      paymentOptions: {
-        onlinePayment: true,
-        payAtService: true,
-      },
-      availability: {
-        type: 'weekdays',
-        scheduleType: 'weekly',
-        customSchedule: {
-          monday: true,
-          tuesday: true,
-          wednesday: true,
-          thursday: true,
-          friday: true,
-          saturday: false,
-          sunday: false,
-          timeRanges: [
+    initialValues: existingListing 
+      ? mapServiceToFormValues(existingListing)
+      : {
+          title: '',
+          shortDescription: '',
+          detailedDescription: '',
+          price: '',
+          location: '',
+          country: '',
+          coverageAreaKm: '', // Changed from 'Entire City' to empty string
+          serviceAreas: [],
+          serviceCities: [],
+          images: [],
+          category: '',
+          serviceType: '',
+          paymentOptions: {
+            onlinePayment: true,
+            payAtService: true,
+          },
+          availability: {
+            type: 'weekdays',
+            scheduleType: 'weekly',
+            customSchedule: {
+              monday: true,
+              tuesday: true,
+              wednesday: true,
+              thursday: true,
+              friday: true,
+              saturday: false,
+              sunday: false,
+              timeRanges: [
+                {
+                  startTime: '09:00',
+                  endTime: '17:00',
+                  days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
+                }
+              ]
+            },
+            dateRanges: []
+          },
+          pricingModel: 'flat',
+          flatRatePrice: '',
+          pricingTiers: [
             {
-              startTime: '09:00',
-              endTime: '17:00',
-              days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
+              id: '1',
+              name: 'Basic',
+              price: '',
+              description: '',
+              features: [],
+              tierImage: null
+            },
+            {
+              id: '2',
+              name: 'Standard',
+              price: '',
+              description: '',
+              features: [],
+              tierImage: null
+            },
+            {
+              id: '3',
+              name: 'Premium',
+              price: '',
+              description: '',
+              features: [],
+              tierImage: null
             }
-          ]
+          ],
+          acceptSellerPolicy: false,
+          status: 'pending'
         },
-        dateRanges: []
-      },
-      pricingModel: 'flat',
-      flatRatePrice: '',
-      pricingTiers: [
-        {
-          id: '1',
-          name: 'Basic',
-          price: '',
-          description: '',
-          features: [],
-          tierImage: null
-        },
-        {
-          id: '2',
-          name: 'Standard',
-          price: '',
-          description: '',
-          features: [],
-          tierImage: null
-        },
-        {
-          id: '3',
-          name: 'Premium',
-          price: '',
-          description: '',
-          features: [],
-          tierImage: null
-        }
-      ],
-      acceptSellerPolicy: false,
-      status: 'pending'
-    },
     validationSchema: Yup.object({
       title: Yup.string().required('Title is required'),
       shortDescription: Yup.string().required('Short description is required'),
@@ -627,31 +697,73 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
             serviceArea: values.serviceCities.length > 0 
               ? `Multiple locations in ${values.serviceCities.length + 1} cities` 
               : `Coverage area: ${values.coverageAreaKm || 'local'} km`,
-            availability: getAvailabilityPreviewText(values.availability),
+            // FIXED: Save rich availability object instead of converting to string
+            availability: values.availability,
             pricingStructure: values.pricingModel === 'tiered' ? 'tiered' : 'fixed',
             languagesSpoken: ['English'],
+            // FIXED: Use new serviceDeliveryModes array instead of deprecated serviceMode
+            // Default to all modes until UI captures specific selection
+            serviceDeliveryModes: ['at_seller', 'at_buyer', 'remote'] as ('at_buyer' | 'at_seller' | 'remote')[],
+            // Keep deprecated field for backward compatibility
             serviceMode: 'both' as const,
+            // FIXED: Save serviceCities coverage data
+            serviceCities: values.serviceCities.length > 0 ? values.serviceCities : undefined,
+            serviceCoverage: 'local' as const,
             paymentOptions: {
               onlinePayment: values.paymentOptions?.onlinePayment || false,
               payAtService: values.paymentOptions?.payAtService || true
             },
+            // FIXED: Save pricing tiers if using tiered model
+            tiers: values.pricingModel === 'tiered' && values.pricingTiers ? values.pricingTiers.map(tier => ({
+              id: tier.id,
+              name: tier.name,
+              price: parseFloat(tier.price) || 0,
+              duration: 60, // Default, could be made configurable
+              description: tier.description,
+              onlinePayment: true,
+            })) : undefined,
+            defaultTier: values.pricingModel === 'tiered' && values.pricingTiers.length > 0 ? values.pricingTiers[0].id : undefined,
             views: 0,
             saves: 0,
             status: 'pending' as const,
+            reviews: [],
           };
           
-          console.log('Adding new service listing:', newServiceListing);
+          if (isEditMode) {
+            // EDIT MODE: Update existing listing
+            console.log('Updating existing service listing:', newServiceListing.id);
+            
+            const listingIndex = mockServices.findIndex(s => s.id === existingListing.id);
+            if (listingIndex !== -1) {
+              // Preserve some fields from original listing
+              newServiceListing.id = existingListing.id;
+              newServiceListing.createdAt = existingListing.createdAt;
+              newServiceListing.views = existingListing.views;
+              newServiceListing.saves = existingListing.saves;
+              newServiceListing.reviews = existingListing.reviews;
+              newServiceListing.provider = existingListing.provider;
+              
+              // Update the listing in the array
+              mockServices[listingIndex] = newServiceListing;
+              console.log('Listing updated successfully');
+            }
+          } else {
+            // CREATE MODE: Add new listing
+            console.log('Adding new service listing:', newServiceListing);
+            mockServices.push(newServiceListing);
+          }
           
-          // Add the new listing to mockServices
-          mockServices.push(newServiceListing);
+          // PHASE 1 TEST: Log critical data structures
+          console.log('=== PHASE 1 & 2 DATA VALIDATION ===');
+          console.log('Mode:', isEditMode ? 'EDIT' : 'CREATE');
+          console.log('Listing ID:', newServiceListing.id);
+          console.log('Availability (should be object):', JSON.stringify(newServiceListing.availability, null, 2));
+          console.log('Service Delivery Modes (should be array):', JSON.stringify(newServiceListing.serviceDeliveryModes, null, 2));
+          console.log('Service Cities (if set):', JSON.stringify(newServiceListing.serviceCities, null, 2));
+          console.log('Pricing Tiers (if tiered):', JSON.stringify(newServiceListing.tiers, null, 2));
+          console.log('===========================');
+          
           console.log('mockServices array updated, length:', mockServices.length);
-          
-          // Log all current pending listings to help debug
-          console.log('Current pending listings:', 
-            mockServices
-              .filter(service => service.status === 'pending')
-              .map(service => ({ id: service.id, name: service.name, status: service.status }))
-          );
           
           // Show success dialog directly
           setTimeout(() => {
@@ -1024,6 +1136,16 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
   };
 
   const renderAvailabilitySection = () => {
+    return (
+      <AvailabilityScheduler
+        value={formik.values.availability}
+        onChange={(newValue) => formik.setFieldValue('availability', newValue)}
+      />
+    );
+  };
+
+  // REMOVED: Old inline availability code - now using AvailabilityScheduler component
+  const _oldRenderAvailabilitySection_REMOVED = () => {
     const weekDays = [
       { value: 'monday', label: 'MON' },
       { value: 'tuesday', label: 'TUE' },
@@ -1410,7 +1532,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
         </CardContent>
       </Card>
     );
-  };
+  }; // End of old code (not used anymore)
 
   const renderCategoryDetails = () => {
     if (!formik.values.category) {
@@ -2212,7 +2334,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
               <ArrowBackIcon />
             </IconButton>
             <Typography variant="h5" component="h1">
-              Create Service Listing
+              {isEditMode ? 'Edit Service Listing' : 'Create Service Listing'}
             </Typography>
           </Stack>
           <StepIndicator>
@@ -2279,7 +2401,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                 },
               }}
             >
-              {activeStep === steps.length - 1 ? 'Submit' : 'Next'}
+              {activeStep === steps.length - 1 ? (isEditMode ? 'Save Changes' : 'Submit Listing') : 'Next'}
             </Button>
           </Box>
         </form>
@@ -2335,6 +2457,7 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
             serviceArea: formik.values.serviceCities.length > 0 
               ? `Multiple locations in ${formik.values.serviceCities.length + 1} cities` 
               : `Coverage area: ${formik.values.coverageAreaKm || 'local'} km`,
+            // For preview, convert availability to display string
             availability: formik.values.availability.scheduleType === 'dateRange'
               ? `Available on specific dates` 
               : formik.values.availability.type === 'custom'
@@ -2346,11 +2469,25 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
                     : 'All week',
             pricingStructure: formik.values.pricingModel === 'tiered' ? 'tiered' : 'fixed',
             languagesSpoken: ['English'],
+            // Use new field for preview
+            serviceDeliveryModes: ['at_seller', 'at_buyer', 'remote'] as ('at_buyer' | 'at_seller' | 'remote')[],
             serviceMode: 'both' as const,
+            serviceCities: formik.values.serviceCities.length > 0 ? formik.values.serviceCities : undefined,
+            serviceCoverage: 'local' as const,
             paymentOptions: {
               onlinePayment: formik.values.paymentOptions?.onlinePayment || false,
               payAtService: formik.values.paymentOptions?.payAtService || true
             },
+            tiers: formik.values.pricingModel === 'tiered' && formik.values.pricingTiers ? formik.values.pricingTiers.map(tier => ({
+              id: tier.id,
+              name: tier.name,
+              price: parseFloat(tier.price) || 0,
+              duration: 60,
+              description: tier.description,
+              onlinePayment: true,
+            })) : undefined,
+            defaultTier: formik.values.pricingModel === 'tiered' && formik.values.pricingTiers.length > 0 ? formik.values.pricingTiers[0].id : undefined,
+            reviews: [],
           }}
           type="service"
         />
@@ -2547,18 +2684,19 @@ const ServiceListingForm: React.FC<{ onBack: (fromFormSubmission?: boolean) => v
       >
         <DialogTitle id="listing-success-dialog-title" sx={{ bgcolor: '#F8F8FA', borderBottom: '1px solid #CDCED8' }}>
           <Typography variant="h6" component="div" sx={{ color: '#1B1C20', fontWeight: 'bold' }}>
-            Listing Created Successfully
+            {isEditMode ? 'Listing Updated Successfully' : 'Listing Created Successfully'}
           </Typography>
         </DialogTitle>
         <DialogContent sx={{ pt: 4, pb: 2 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
             <CheckIcon sx={{ fontSize: 60, color: '#3D1560', bgcolor: '#EDD9FF', p: 1, borderRadius: '50%' }} />
             <Typography variant="h6" align="center" color="#3D1560">
-              Your service listing has been submitted!
+              {isEditMode ? 'Your changes have been saved!' : 'Your service listing has been submitted!'}
             </Typography>
             <Typography variant="body1" align="center" paragraph sx={{ mb: 2 }}>
-              Your listing is now pending approval and will appear in your listings soon. 
-              The approval process usually takes 24-48 hours.
+              {isEditMode 
+                ? 'Your listing has been updated and the changes are now live.'
+                : 'Your listing is now pending approval and will appear in your listings soon. The approval process usually takes 24-48 hours.'}
             </Typography>
             <Typography variant="body2" align="center" color="text.secondary">
               Listing ID: {newListingId}

@@ -68,16 +68,50 @@ export interface Service extends BaseItem {
   duration: number;
   serviceType: string;
   serviceArea: string;
-  availability: string;
+  // Support both rich availability object and simple string for backward compatibility
+  availability: {
+    type: 'weekdays' | 'weekends' | 'allWeek' | 'custom';
+    scheduleType: 'weekly' | 'dateRange';
+    customSchedule?: {
+      monday: boolean;
+      tuesday: boolean;
+      wednesday: boolean;
+      thursday: boolean;
+      friday: boolean;
+      saturday: boolean;
+      sunday: boolean;
+      timeRanges: Array<{
+        startTime: string;
+        endTime: string;
+        days: string[];
+      }>;
+    };
+    dateRanges?: Array<{
+      startDate: string;
+      endDate: string;
+      timeSlots: Array<{
+        startTime: string;
+        endTime: string;
+      }>;
+    }>;
+  } | string; // Keep string for backward compatibility
   pricingStructure: string;
   experience?: string;
   certifications?: string[];
   materialsProvided?: string[];
   specialRequirements?: string[];
   languagesSpoken: string[];
-  serviceMode: 'onsite' | 'remote' | 'both'; // Deprecated: kept for compatibility
-  serviceDeliveryModes: ('at_buyer' | 'at_seller' | 'remote')[]; // New: can support multiple delivery modes
+  // NEW: Primary field for service delivery - array to support multiple modes
+  serviceDeliveryModes: ('at_buyer' | 'at_seller' | 'remote')[];
+  // DEPRECATED: Keep for backward compatibility only
+  serviceMode?: 'onsite' | 'remote' | 'both';
   serviceCoverage: 'local' | 'citywide' | 'regional' | 'nationwide' | 'global'; // For visibility logic
+  // NEW: Service coverage areas with radius
+  serviceCities?: Array<{
+    country: string;
+    city: string;
+    radius: string;
+  }>;
   paymentOptions: {
     onlinePayment: boolean;
     payAtService: boolean;
