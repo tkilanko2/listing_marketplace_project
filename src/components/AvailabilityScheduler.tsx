@@ -459,9 +459,14 @@ export const AvailabilityScheduler: React.FC<AvailabilitySchedulerProps> = ({ va
   return (
     <Card sx={{ mt: 0, p: 2, border: '1px solid', borderColor: '#E8E9ED', boxShadow: 'none', borderRadius: 2 }}>
       <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', color: '#1B1C20', fontSize: '1rem', fontWeight: 600, mb: 2 }}>
-          <CalendarMonthIcon sx={{ mr: 1, color: '#3D1560' }} /> Availability
-        </Typography>
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', color: '#1B1C20', fontSize: '1rem', fontWeight: 600, mb: 0.5 }}>
+            <CalendarMonthIcon sx={{ mr: 1, color: '#3D1560' }} /> Availability
+          </Typography>
+          <Typography variant="caption" sx={{ color: '#70727F', fontSize: '0.75rem' }}>
+            Timezone: {Intl.DateTimeFormat().resolvedOptions().timeZone}
+          </Typography>
+        </Box>
         
         <Box sx={{ width: '100%', mb: 2 }}>
           <Tabs

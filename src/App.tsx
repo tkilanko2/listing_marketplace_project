@@ -8,6 +8,7 @@ import { SellerProfilePage } from './pages/SellerProfilePage';
 import CreateListingPage from './pages/CreateListingPage';
 import ServiceListingForm from './components/forms/ServiceListingForm';
 import { AvailabilityScheduler } from './components/AvailabilityScheduler';
+import { AvailabilityPreview } from './components/AvailabilityPreview';
 import { PaymentPage } from './pages/PaymentPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { MyOrdersPage } from './pages/MyOrdersPage';
@@ -3849,6 +3850,8 @@ function App() {
   // Listing Edit Page
   const EditListingPage = () => {
     const [activeTab, setActiveTab] = useState('details');
+    const [isEditingAvailability, setIsEditingAvailability] = useState(false);
+    const [showConfirmation, setShowConfirmation] = useState(false);
     const listing = selectedListingForEdit;
     
     // State to track form values
@@ -4459,11 +4462,42 @@ function App() {
                   </div>
                 </div>
 
-                {/* Availability Scheduler - Below Service Details */}
-                <AvailabilityScheduler
-                  value={formData.availability}
-                  onChange={(newValue) => setFormData({...formData, availability: newValue})}
-                />
+                {/* Availability - Toggle between Preview and Edit */}
+                {!isEditingAvailability ? (
+                  /* VIEW MODE: Calendar Preview from BookingPage */
+                  <AvailabilityPreview
+                    availability={formData.availability}
+                    onModify={() => setIsEditingAvailability(true)}
+                  />
+                ) : (
+                  /* EDIT MODE: Full Scheduler */
+                  <div className="space-y-3">
+                    <AvailabilityScheduler
+                      value={formData.availability}
+                      onChange={(newValue) => setFormData({...formData, availability: newValue})}
+                    />
+                    {/* Edit Mode Actions */}
+                    <div className="flex justify-end space-x-3">
+                      <button
+                        onClick={() => setIsEditingAvailability(false)}
+                        className="px-4 py-2 text-[#70727F] hover:text-[#383A47] transition-colors font-medium"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsEditingAvailability(false);
+                          setShowConfirmation(true);
+                          setTimeout(() => setShowConfirmation(false), 3000);
+                          // Data is already in formData.availability, will save on main Save Changes
+                        }}
+                        className="px-5 py-2 bg-[#3D1560] text-white rounded-md hover:bg-[#6D26AB] transition-colors font-medium text-sm"
+                      >
+                        Done
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             
@@ -4557,6 +4591,16 @@ function App() {
             Save Changes
           </button>
         </div>
+
+        {/* Confirmation Toast */}
+        {showConfirmation && (
+          <div className="fixed bottom-6 right-6 bg-[#3D1560] text-white px-5 py-3 rounded-lg shadow-lg flex items-center space-x-3 animate-fade-in z-50">
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            <span className="font-medium">Availability updated! Click Save Changes to apply.</span>
+          </div>
+        )}
       </div>
     );
   };
