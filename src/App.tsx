@@ -4772,7 +4772,10 @@ function App() {
         )}
 
         {currentPage === 'bankingSettings' && (
-          <BankingSettingsPage onBack={() => handleNavigate('sellerDashboard_finance')} />
+          <BankingSettingsPage 
+            onBack={() => handleNavigate('sellerDashboard_finance')} 
+            onNavigate={handleNavigate}
+          />
         )}
 
         {currentPage === 'payoutHistory' && (

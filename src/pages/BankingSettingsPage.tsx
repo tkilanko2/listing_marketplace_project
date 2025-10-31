@@ -14,6 +14,7 @@ import {
 
 interface BankingSettingsPageProps {
   onBack?: () => void;
+  onNavigate?: (page: string) => void;
 }
 
 interface BankAccount {
@@ -34,7 +35,7 @@ interface PayoutConfiguration {
   currency: 'USD' | 'EUR' | 'GBP';
 }
 
-export function BankingSettingsPage({ onBack }: BankingSettingsPageProps) {
+export function BankingSettingsPage({ onBack, onNavigate }: BankingSettingsPageProps) {
   // Mock data
   const [bankAccount] = useState<BankAccount>({
     accountName: 'John Doe',
@@ -340,7 +341,7 @@ export function BankingSettingsPage({ onBack }: BankingSettingsPageProps) {
               </button>
               
               <button 
-                onClick={onBack}
+                onClick={() => onNavigate?.('payoutHistory')}
                 className="w-full flex items-center justify-between p-3 bg-[#F8F8FA] hover:bg-[#E8E9ED] rounded-lg transition-colors group"
               >
                 <div className="flex items-center gap-3">

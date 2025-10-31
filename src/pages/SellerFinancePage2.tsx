@@ -271,7 +271,7 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
         {/* Confirmed Bookings */}
         <div 
           className="bg-white rounded-2xl p-6 border border-[#E8E9ED] shadow-lg hover:shadow-2xl relative overflow-hidden cursor-pointer group transition-all"
-          onClick={() => onNavigate?.('sellerBookings')}
+          onClick={() => onNavigate?.('sellerDashboard_appointments')}
         >
           {/* Subtle accent background */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#F5F0FF] to-[#EDD9FF] opacity-40 group-hover:opacity-50 transition-opacity"></div>
@@ -553,35 +553,6 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
             </div>
           </div>
 
-          {/* Top Performing Listings */}
-          <div className="bg-white rounded-xl border border-[#E8E9ED] shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-[#1B1C20]">Top Performing Listings</h2>
-              <button className="text-[#3D1560] hover:text-[#6D26AB] text-sm font-medium">
-                View All
-              </button>
-            </div>
-            <div className="space-y-3">
-              {allFinancialTransactions
-                .filter(t => t.status === 'completed')
-                .slice(0, 5)
-                .map((transaction, index) => (
-                <div key={transaction.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-[#F8F8FA] transition-colors">
-                  <div className="w-8 h-8 rounded-full bg-[#EDD9FF] flex items-center justify-center text-[#3D1560] font-bold text-sm">
-                    {index + 1}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-[#383A47] truncate">{transaction.listingName || transaction.description}</h4>
-                    <p className="text-xs text-[#70727F]">{formatDate(transaction.date)}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-[#1B1C20]">{formatCurrency(transaction.netToSeller)}</p>
-                    <p className="text-xs text-[#70727F]">{formatCurrency(transaction.amount)} gross</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Right Column - Sidebar */}
@@ -671,6 +642,62 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
                   Active
                 </span>
               </div>
+            </div>
+          </div>
+
+          {/* Top Performing Listings */}
+          <div className="bg-white rounded-xl border border-[#E8E9ED] shadow-sm p-5">
+            <div className="mb-3">
+              <h3 className="text-lg font-bold text-[#1B1C20]">Top Performing Listings</h3>
+              <p className="text-xs text-[#70727F]">By total revenue</p>
+            </div>
+            <div className="space-y-2">
+              {(() => {
+                // Group transactions by listing to get booking counts
+                const listingStats = allFinancialTransactions
+                  .filter(t => t.status === 'completed')
+                  .reduce((acc, t) => {
+                    const key = t.listingId || t.listingName || t.description;
+                    if (!acc[key]) {
+                      acc[key] = {
+                        transaction: t,
+                        bookingCount: 0,
+                        totalRevenue: 0,
+                        totalNetEarnings: 0
+                      };
+                    }
+                    acc[key].bookingCount += 1;
+                    acc[key].totalRevenue += t.amount;
+                    acc[key].totalNetEarnings += t.netToSeller;
+                    return acc;
+                  }, {} as Record<string, { transaction: FinancialTransaction; bookingCount: number; totalRevenue: number; totalNetEarnings: number }>);
+
+                // Convert to array and sort by total revenue
+                return Object.values(listingStats)
+                  .sort((a, b) => b.totalRevenue - a.totalRevenue)
+                  .slice(0, 4)
+                  .map(({ transaction, bookingCount, totalNetEarnings }) => (
+                    <button 
+                      key={transaction.id} 
+                      onClick={() => {
+                        if (transaction.bookingId && onViewBookingDetails) {
+                          onViewBookingDetails(transaction.bookingId);
+                        } else if (transaction.orderId && onViewOrderDetails) {
+                          onViewOrderDetails(transaction.orderId);
+                        }
+                      }}
+                      className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-[#F8F8FA] transition-colors cursor-pointer group"
+                    >
+                      <div className="w-7 h-7 rounded-full bg-[#EDD9FF] group-hover:bg-[#3D1560] flex items-center justify-center text-[#3D1560] group-hover:text-white font-bold text-xs flex-shrink-0 transition-colors">
+                        {bookingCount}
+                      </div>
+                      <div className="flex-1 min-w-0 text-left">
+                        <h4 className="font-medium text-[#383A47] group-hover:text-[#3D1560] text-sm truncate transition-colors">{transaction.listingName || transaction.description}</h4>
+                        <p className="text-xs text-[#70727F] font-bold">{formatCurrency(totalNetEarnings)}</p>
+                      </div>
+                    </button>
+                  ));
+              })()}
             </div>
           </div>
         </div>
