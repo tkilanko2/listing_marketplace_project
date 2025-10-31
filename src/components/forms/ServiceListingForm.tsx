@@ -73,6 +73,7 @@ import SellerVerificationModal from '../SellerVerificationModal';
 import VerificationFlowModal from '../verification/VerificationFlowModal';
 import SellerTermsModal from '../SellerTermsModal';
 import { AvailabilityScheduler } from '../AvailabilityScheduler';
+import { TierPricingEditor } from '../TierPricingEditor';
 
 const serviceCategories = [
   'Professional Services',
@@ -1561,46 +1562,6 @@ const ServiceListingForm: React.FC<{
   };
   
   const renderPricingSection = () => {
-    const addFeature = (tierIndex: number) => {
-      const newPricingTiers = [...formik.values.pricingTiers];
-      if (newPricingTiers[tierIndex]) {
-        newPricingTiers[tierIndex].features = [...(newPricingTiers[tierIndex].features || []), ''];
-        formik.setFieldValue('pricingTiers', newPricingTiers);
-      }
-    };
-    
-    const removeFeature = (tierIndex: number, featureIndex: number) => {
-      const newPricingTiers = [...formik.values.pricingTiers];
-      if (newPricingTiers[tierIndex] && newPricingTiers[tierIndex].features) {
-        newPricingTiers[tierIndex].features = newPricingTiers[tierIndex].features.filter((_, index) => index !== featureIndex);
-        formik.setFieldValue('pricingTiers', newPricingTiers);
-      }
-    };
-
-    const addTier = () => {
-      const currentTiers = formik.values.pricingTiers;
-      if (currentTiers.length >= 10) return; // Max 10 tiers
-      
-      const newTier = {
-        id: `tier-${Date.now()}`,
-        name: `Tier ${currentTiers.length + 1}`,
-        price: '',
-        description: '',
-        features: [],
-        tierImage: null
-      };
-      
-      formik.setFieldValue('pricingTiers', [...currentTiers, newTier]);
-    };
-
-    const removeTier = (tierIndex: number) => {
-      const currentTiers = formik.values.pricingTiers;
-      if (currentTiers.length <= 2 || tierIndex < 2) return; // Keep minimum 2 tiers, first 2 can't be deleted
-      
-      const newTiers = currentTiers.filter((_, index) => index !== tierIndex);
-      formik.setFieldValue('pricingTiers', newTiers);
-    };
-
     // Helper to check if a field has an error
     const hasError = (field: string) => {
       return Boolean(
@@ -1617,44 +1578,39 @@ const ServiceListingForm: React.FC<{
       // Convert the error to a string if it's not already
       return typeof error === 'string' ? error : '';
     };
-
-    // Helper to check if a tier field has an error
-    const hasTierError = (tierIndex: number, field: string) => {
-      return Boolean(
-        formik.touched.pricingTiers && 
-        formik.touched.pricingTiers[tierIndex] && 
-        // @ts-ignore - ignoring type checking for accessing dynamic properties
-        formik.touched.pricingTiers[tierIndex][field] && 
-        formik.errors.pricingTiers && 
-        formik.errors.pricingTiers[tierIndex] &&
-        // @ts-ignore - check if this specific field has an error
-        formik.errors.pricingTiers[tierIndex][field]
-      );
-    };
-
-    // Helper to get error message for a tier field
-    const getTierErrorMessage = (tierIndex: number, field: string) => {
-      if (formik.touched.pricingTiers && 
-          formik.touched.pricingTiers[tierIndex] && 
-          // @ts-ignore - ignoring type checking for accessing dynamic properties
-          formik.touched.pricingTiers[tierIndex][field] && 
-          formik.errors.pricingTiers && 
-          formik.errors.pricingTiers[tierIndex]) {
-        // @ts-ignore - ignoring type checking for accessing dynamic properties
-        const error = formik.errors.pricingTiers[tierIndex][field];
-        return typeof error === 'string' ? error : '';
-      }
-      return '';
-    };
     
     return (
-      <Card sx={{ p: 1.5, border: '1px solid', borderColor: 'divider' }}>
+      <Card sx={{ p: 1.5, border: '1px solid', borderColor: '#E8E9ED', boxShadow: 'none', borderRadius: 2 }}>
         <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-            <PaymentIcon sx={{ mr: 1, color: '#3D1560' }} /> Pricing & Payment Options
-          </Typography>
-          
-        <FormControl component="fieldset" sx={{ mb: 1.5 }}>
+          <TierPricingEditor
+            pricingModel={formik.values.pricingModel}
+            flatRatePrice={formik.values.flatRatePrice}
+            pricingTiers={formik.values.pricingTiers}
+            paymentOptions={formik.values.paymentOptions}
+            onPricingModelChange={(model) => formik.setFieldValue('pricingModel', model)}
+            onFlatPriceChange={(price) => formik.setFieldValue('flatRatePrice', price)}
+            onTiersChange={(tiers) => formik.setFieldValue('pricingTiers', tiers)}
+            onPaymentOptionsChange={(options) => formik.setFieldValue('paymentOptions', options)}
+            errors={{
+              flatRatePrice: hasError('flatRatePrice') && formik.values.flatRatePrice !== '' ? getErrorMessage('flatRatePrice') : '',
+              pricingTiers: formik.errors.pricingTiers as any
+            }}
+            touched={{
+              flatRatePrice: formik.touched.flatRatePrice,
+              pricingTiers: formik.touched.pricingTiers as any
+            }}
+          />
+        </CardContent>
+      </Card>
+    );
+  };
+
+  // REMOVED: Old pricing section code (now using TierPricingEditor component)
+  const _oldRenderPricingSection_REMOVED = () => {
+    return (
+      <Card>
+        <CardContent>
+          <FormControl component="fieldset" sx={{ mb: 1.5 }}>
           <FormLabel component="legend" sx={{ color: '#383A47', mb: 1 }}>Pricing Model</FormLabel>
             <RadioGroup
               name="pricingModel"
@@ -2083,7 +2039,7 @@ const ServiceListingForm: React.FC<{
         </CardContent>
       </Card>
     );
-  };
+  }; // End of old code (not used anymore)
 
   const renderStepContent = (step: number) => {
     switch (step) {

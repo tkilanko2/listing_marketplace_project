@@ -9,6 +9,7 @@ import CreateListingPage from './pages/CreateListingPage';
 import ServiceListingForm from './components/forms/ServiceListingForm';
 import { AvailabilityScheduler } from './components/AvailabilityScheduler';
 import { AvailabilityPreview } from './components/AvailabilityPreview';
+import { TierPricingEditor } from './components/TierPricingEditor';
 import { PaymentPage } from './pages/PaymentPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { MyOrdersPage } from './pages/MyOrdersPage';
@@ -3882,7 +3883,25 @@ function App() {
           },
       serviceDeliveryModes: listing?.serviceDeliveryModes || ['at_seller', 'at_buyer', 'remote'],
       serviceCities: listing?.serviceCities || [],
-      duration: listing?.duration || 60
+      duration: listing?.duration || 60,
+      pricingModel: (listing?.tiers && listing.tiers.length > 0 ? 'tiered' : 'flat') as 'flat' | 'tiered',
+      flatRatePrice: (listing?.tiers && listing.tiers.length > 0) ? '' : listing?.price?.toString() || '',
+      pricingTiers: listing?.tiers?.map((tier: any) => ({
+        id: tier.id,
+        name: tier.name,
+        price: tier.price?.toString() || '',
+        description: tier.description || '',
+        features: [],
+        tierImage: null
+      })) || [
+        { id: '1', name: 'Basic', price: '', description: '', features: [], tierImage: null },
+        { id: '2', name: 'Standard', price: '', description: '', features: [], tierImage: null },
+        { id: '3', name: 'Premium', price: '', description: '', features: [], tierImage: null }
+      ],
+      paymentOptions: listing?.paymentOptions || {
+        onlinePayment: true,
+        payAtService: true
+      }
     });
     
     // Separate state for availability tab selection
@@ -3904,13 +3923,22 @@ function App() {
           type: formData.type as any,
           shortDescription: formData.shortDescription,
           longDescription: formData.longDescription,
-          price: formData.price,
-          // NOW INCLUDING: availability, service delivery, duration
+          // NOW INCLUDING: availability, service delivery, duration, pricing/tiers
           availability: formData.availability,
           serviceDeliveryModes: formData.serviceDeliveryModes,
           serviceCities: formData.serviceCities,
           duration: formData.duration,
-          // All other rich data structures are preserved (tiers, etc.)
+          price: formData.pricingModel === 'flat' ? parseFloat(formData.flatRatePrice) || formData.price : formData.price,
+          tiers: formData.pricingModel === 'tiered' ? formData.pricingTiers.map((tier: any) => ({
+            id: tier.id,
+            name: tier.name,
+            price: parseFloat(tier.price) || 0,
+            duration: formData.duration,
+            description: tier.description,
+            onlinePayment: true
+          })) : undefined,
+          paymentOptions: formData.paymentOptions,
+          // All other rich data structures are preserved
         };
         
         mockServices[listingIndex] = updatedListing;
@@ -4278,101 +4306,17 @@ function App() {
             )}
             
             {activeTab === 'pricing' && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-[#383A47] mb-1.5">Price</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-[#70727F] text-sm">$</span>
-                      </div>
-                      <input 
-                        type="text" 
-                        className="w-full pl-7 px-3 py-2 border border-[#CDCED8] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] text-[#383A47]"
-                        placeholder="0.00"
-                        defaultValue={listing.price}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-[#383A47] mb-1.5">Discounted Price (Optional)</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-[#70727F] text-sm">$</span>
-                      </div>
-                      <input 
-                        type="text" 
-                        className="w-full pl-7 px-3 py-2 border border-[#CDCED8] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] text-[#383A47]"
-                        placeholder="0.00"
-                      />
-                    </div>
-                  </div>
-                  
-                  {listing.type === 'product' && (
-                    <>
-                      <div>
-                        <label className="block text-sm font-medium text-[#383A47] mb-1.5">Quantity</label>
-                        <input 
-                          type="number" 
-                          className="w-full px-3 py-2 border border-[#CDCED8] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] text-[#383A47]"
-                          defaultValue={listing.quantity === 'Unlimited' ? '' : listing.quantity}
-                          placeholder="Enter available quantity"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-[#383A47] mb-1.5">SKU (Stock Keeping Unit)</label>
-                        <input 
-                          type="text" 
-                          className="w-full px-3 py-2 border border-[#CDCED8] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3D1560] focus:border-[#3D1560] text-[#383A47]"
-                          placeholder="e.g., PRD-12345"
-                        />
-                      </div>
-                    </>
-                  )}
-                  
-                  {listing.type === 'service' && (
-                    <div>
-                      <label className="block text-sm font-medium text-[#383A47] mb-1.5">Availability</label>
-                      <div className="flex items-center space-x-2">
-                        <input 
-                          type="checkbox" 
-                          id="unlimited-availability" 
-                          className="h-4 w-4 text-[#3D1560] focus:ring-[#3D1560] border-[#CDCED8] rounded"
-                          style={{accentColor: '#3D1560'}}
-                          defaultChecked={listing.quantity === 'Unlimited'}
-                        />
-                        <label htmlFor="unlimited-availability" className="text-sm text-[#383A47]">Unlimited availability</label>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-[#383A47] mb-1.5">Shipping & Delivery (for products)</label>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <input 
-                        type="checkbox" 
-                        id="free-shipping" 
-                        className="h-4 w-4 text-[#3D1560] focus:ring-[#3D1560] border-[#CDCED8] rounded"
-                        style={{accentColor: '#3D1560'}}
-                      />
-                      <label htmlFor="free-shipping" className="text-sm text-[#383A47]">Offer free shipping</label>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <input 
-                        type="checkbox" 
-                        id="local-pickup" 
-                        className="h-4 w-4 text-[#3D1560] focus:ring-[#3D1560] border-[#CDCED8] rounded"
-                        style={{accentColor: '#3D1560'}}
-                      />
-                      <label htmlFor="local-pickup" className="text-sm text-[#383A47]">Allow local pickup</label>
-                    </div>
-                  </div>
-                </div>
+              <div>
+                <TierPricingEditor
+                  pricingModel={formData.pricingModel}
+                  flatRatePrice={formData.flatRatePrice}
+                  pricingTiers={formData.pricingTiers}
+                  paymentOptions={formData.paymentOptions}
+                  onPricingModelChange={(model) => setFormData({...formData, pricingModel: model})}
+                  onFlatPriceChange={(price) => setFormData({...formData, flatRatePrice: price})}
+                  onTiersChange={(tiers) => setFormData({...formData, pricingTiers: tiers})}
+                  onPaymentOptionsChange={(options) => setFormData({...formData, paymentOptions: options})}
+                />
               </div>
             )}
             
