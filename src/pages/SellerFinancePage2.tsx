@@ -268,7 +268,7 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
           </div>
         </div>
 
-        {/* Confirmed Bookings */}
+        {/* Upcoming Earnings */}
         <div 
           className="bg-white rounded-2xl p-6 border border-[#E8E9ED] shadow-lg hover:shadow-2xl relative overflow-hidden cursor-pointer group transition-all"
           onClick={() => onNavigate?.('sellerDashboard_appointments')}
@@ -281,13 +281,13 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
             <div className="flex-grow">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-semibold text-[#3D1560] bg-[#EDD9FF] px-3 py-1 rounded-full">
-                  UPCOMING
+                  UPCOMING EARNINGS
                 </span>
                 <div className="w-10 h-10 bg-[#3D1560] bg-opacity-10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Calendar className="w-5 h-5 text-[#3D1560]" />
                 </div>
               </div>
-              <p className="text-[#70727F] text-sm mb-1">Confirmed Bookings</p>
+              <p className="text-[#70727F] text-sm mb-1">Projected</p>
               <h3 className="text-3xl font-bold text-[#1B1C20] mb-1">{formatCurrency(projectedEarnings.amount)}</h3>
               <div className="flex items-center gap-2 mb-2">
                 <Package className="w-4 h-4 text-[#3D1560]" />
