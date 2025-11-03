@@ -190,7 +190,7 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
 
       {/* Hero Balance Cards - Side by Side Layout */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {/* Available Balance - Prominent */}
+        {/* Earnings Card - Prominent */}
         <div 
           className="md:col-span-2 bg-white rounded-2xl p-6 border border-[#E8E9ED] shadow-lg hover:shadow-2xl transition-all relative overflow-hidden cursor-pointer group"
           onClick={() => onNavigate?.('bankingSettings')}
@@ -203,9 +203,9 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
             <div className="flex items-start justify-between">
               <div>
                 <span className="inline-block text-xs font-semibold text-[#4CAF50] bg-[#E8F5E9] px-3 py-1 rounded-full mb-2">
-                  AVAILABLE
+                  EARNINGS
                 </span>
-                <p className="text-[#70727F] text-sm font-medium">Balance</p>
+                <p className="text-[#70727F] text-sm font-medium">Available</p>
                 <h2 className="text-5xl font-bold tracking-tight text-[#1B1C20]">{formatCurrency(availableBalance)}</h2>
               </div>
               <Wallet className="w-10 h-10 text-[#4CAF50] flex-shrink-0 group-hover:scale-110 transition-transform" />

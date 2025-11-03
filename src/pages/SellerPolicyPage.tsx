@@ -76,7 +76,7 @@ const SellerPolicyPage: React.FC<SellerPolicyPageProps> = ({ onBack, onNavigate 
         await createCustomPolicy(editablePolicy);
         alert('Custom policy created successfully!');
       }
-      setIsEditingCancellation(false);
+    setIsEditingCancellation(false);
     } catch (error) {
       console.error('Failed to save policy:', error);
       alert('Failed to save policy. Please try again.');
@@ -99,7 +99,7 @@ const SellerPolicyPage: React.FC<SellerPolicyPageProps> = ({ onBack, onNavigate 
     } else {
       try {
         await activatePolicy('custom');
-        alert('Custom policy applied to all listings successfully!');
+    alert('Custom policy applied to all listings successfully!');
       } catch (error) {
         alert('Failed to apply policy. Please try again.');
       }
@@ -147,23 +147,23 @@ const SellerPolicyPage: React.FC<SellerPolicyPageProps> = ({ onBack, onNavigate 
               
               <div className="space-y-2">
                 {/* Platform Policy */}
-                <div className="relative group">
-                  <button
-                    onClick={() => setSelectedPolicyView('platform')}
+                                  <div className="relative group">
+                    <button
+                      onClick={() => setSelectedPolicyView('platform')}
                     className={`w-full text-center px-3 py-2 rounded-lg transition-all duration-200 ${
-                      selectedPolicyView === 'platform'
-                        ? 'bg-[#EDD9FF] border border-[#3D1560] text-[#3D1560]'
-                        : 'bg-[#F8F8FA] hover:bg-[#E8E9ED] text-[#383A47]'
-                    }`}
-                  >
+                        selectedPolicyView === 'platform'
+                          ? 'bg-[#EDD9FF] border border-[#3D1560] text-[#3D1560]'
+                          : 'bg-[#F8F8FA] hover:bg-[#E8E9ED] text-[#383A47]'
+                      }`}
+                    >
                     <div className="flex items-center justify-center space-x-2">
                       <Shield className="h-4 w-4" />
                       <div className="text-sm font-medium">Platform Policy</div>
-                    </div>
+                      </div>
                     {activePolicy === 'platform' && (
                       <Check className="h-3 w-3 text-[#4CAF50] mx-auto mt-1" />
-                    )}
-                  </button>
+                      )}
+                    </button>
                 </div>
 
                 {/* Custom Policy */}
@@ -295,7 +295,7 @@ const SellerPolicyPage: React.FC<SellerPolicyPageProps> = ({ onBack, onNavigate 
             <div className="bg-white rounded-lg shadow-sm border border-[#E8E9ED] p-6">
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center space-x-3">
-                  <Calendar className="h-5 w-5 text-[#3D1560]" />
+                    <Calendar className="h-5 w-5 text-[#3D1560]" />
                   <h3 className="text-xl font-bold text-[#1B1C20]">Cancellation Policy</h3>
                 </div>
                 {!isEditingCancellation && selectedPolicyView === 'custom' && (
@@ -332,15 +332,15 @@ const SellerPolicyPage: React.FC<SellerPolicyPageProps> = ({ onBack, onNavigate 
                   </div>
                 </div>
               )}
-            </div>
+                      </div>
 
             {/* Refund Policy */}
             <div className="bg-white rounded-lg shadow-sm border border-[#E8E9ED] p-6">
               <div className="flex items-center space-x-3 mb-5">
                 <DollarSign className="h-5 w-5 text-[#3D1560]" />
                 <h3 className="text-xl font-bold text-[#1B1C20]">Refund Policy</h3>
-              </div>
-              
+                      </div>
+
               <div className="space-y-4">
                 <div className="bg-[#F8F8FA] rounded-lg p-5 border border-[#E8E9ED]">
                   <div className="text-sm text-[#383A47] leading-relaxed space-y-3">
@@ -415,4 +415,4 @@ const SellerPolicyPage: React.FC<SellerPolicyPageProps> = ({ onBack, onNavigate 
   );
 };
 
-export default SellerPolicyPage;
+export default SellerPolicyPage; 
