@@ -1,4 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { Info } from 'lucide-react';
 import { 
   ArrowLeft, 
   ArrowRight,
@@ -26,6 +28,7 @@ import {
   formatCustomerNameForDisplay,
   isAvailableForWithdrawal,
   getAvailableBalance,
+  getAvailableBalanceSinceLastPayout,
   getPendingBalance,
   getProjectedEarnings,
   getNextPayoutDates,
@@ -40,6 +43,108 @@ interface SellerFinancePage2Props {
   onNavigate?: (page: string) => void;
 }
 
+// Tooltip Component
+const Tooltip = ({ 
+  children, 
+  content, 
+  position = 'top',
+  maxWidth = '280px'
+}: { 
+  children: React.ReactNode; 
+  content: string; 
+  position?: 'top' | 'bottom' | 'left' | 'right';
+  maxWidth?: string;
+}) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const [showTimeout, setShowTimeout] = useState<number | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0, bottom: 0 });
+  const triggerRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseEnter = () => {
+    // Add delay before showing tooltip (500ms)
+    const timeout = setTimeout(() => {
+      if (triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect();
+        let top = 0;
+        let left = 0;
+        let bottom = 0;
+
+        if (position === 'top') {
+          top = rect.top - 10; // 10px gap above
+          left = rect.left + rect.width / 2; // Center horizontally
+        } else if (position === 'bottom') {
+          bottom = window.innerHeight - rect.bottom + 10; // 10px gap below
+          left = rect.left + rect.width / 2;
+        } else if (position === 'left') {
+          top = rect.top + rect.height / 2;
+          left = rect.left - 10;
+        } else {
+          top = rect.top + rect.height / 2;
+          left = rect.right + 10;
+        }
+
+        setTooltipPosition({ top, left, bottom });
+        setIsVisible(true);
+      }
+    }, 500);
+    setShowTimeout(timeout);
+  };
+
+  const handleMouseLeave = () => {
+    // Clear timeout if mouse leaves before delay
+    if (showTimeout) {
+      clearTimeout(showTimeout);
+      setShowTimeout(null);
+    }
+    setIsVisible(false);
+  };
+
+  const tooltipContent = isVisible ? (
+    <div
+      className="fixed z-[9999] whitespace-normal animate-in fade-in duration-200"
+      style={{
+        top: position === 'top' ? `${tooltipPosition.top}px` : 'auto',
+        bottom: position === 'bottom' ? `${tooltipPosition.bottom}px` : 'auto',
+        left: `${tooltipPosition.left}px`,
+        transform: position === 'top' ? 'translateX(-50%) translateY(-100%)' : position === 'bottom' ? 'translateX(-50%)' : position === 'left' ? 'translate(-100%, -50%)' : 'translateY(-50%)',
+        pointerEvents: 'none',
+      }}
+    >
+      <div 
+        className="bg-white border border-[#EDD9FF] rounded-lg p-2.5 shadow-md opacity-90"
+        style={{ maxWidth, width: 'max-content' }}
+      >
+        <p className="text-xs text-[#383A47] leading-snug">{content}</p>
+        {/* Arrow */}
+        {position === 'top' && (
+          <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px">
+            <div className="w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-[#EDD9FF]"></div>
+          </div>
+        )}
+        {position === 'bottom' && (
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 -mb-px">
+            <div className="w-0 h-0 border-l-8 border-r-8 border-b-8 border-l-transparent border-r-transparent border-b-[#EDD9FF]"></div>
+          </div>
+        )}
+      </div>
+    </div>
+  ) : null;
+
+  return (
+    <>
+      <div 
+        ref={triggerRef}
+        className="relative inline-block"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {children}
+      </div>
+      {typeof document !== 'undefined' && createPortal(tooltipContent, document.body)}
+    </>
+  );
+};
+
 export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDetails, onNavigate }: SellerFinancePage2Props) {
   const [timeFilter, setTimeFilter] = useState<'all' | '30d' | '7d' | '24h'>('30d');
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,9 +158,9 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
     [timeFilter]
   );
 
-  // Calculate available and pending balances
+  // Calculate available balance since last payout (completed bookings since last payout)
   const availableBalance = useMemo(() => 
-    getAvailableBalance(allFinancialTransactions), 
+    getAvailableBalanceSinceLastPayout(allFinancialTransactions), 
     [allFinancialTransactions]
   );
 
@@ -205,7 +310,16 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
                 <span className="inline-block text-xs font-semibold text-[#4CAF50] bg-[#E8F5E9] px-3 py-1 rounded-full mb-2">
                   EARNINGS
                 </span>
-                <p className="text-[#70727F] text-sm font-medium">Available</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-[#70727F] text-sm font-medium">Available</p>
+                  <Tooltip 
+                    content="Money you can withdraw now from completed bookings since last payout (after 7-day hold). Payouts happen automatically on the 1st and 15th of each month."
+                    position="top"
+                    maxWidth="320px"
+                  >
+                    <Info className="w-3 h-3 text-[#70727F] opacity-60 cursor-help" />
+                  </Tooltip>
+                </div>
                 <h2 className="text-5xl font-bold tracking-tight text-[#1B1C20]">{formatCurrency(availableBalance)}</h2>
               </div>
               <Wallet className="w-10 h-10 text-[#4CAF50] flex-shrink-0 group-hover:scale-110 transition-transform" />
@@ -229,7 +343,16 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-[#4CAF50]" />
-                    <p className="text-sm font-medium text-[#383A47]">Total Earnings</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-medium text-[#383A47]">Total Earnings</p>
+                      <Tooltip 
+                        content="Total amount you've earned from all completed bookings (all-time). This shows your lifetime earnings after all fees are deducted."
+                        position="top"
+                        maxWidth="280px"
+                      >
+                        <Info className="w-3 h-3 text-[#383A47] opacity-60 cursor-help" />
+                      </Tooltip>
+                    </div>
                   </div>
                   <p className="text-lg font-bold text-[#383A47]">{formatCurrency(financialSummary.netEarnings)}</p>
                 </div>
@@ -237,7 +360,16 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
                   <div className="flex items-center justify-between pt-2 border-t border-[#E8E9ED]">
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-[#70727F]" />
-                      <p className="text-xs text-[#70727F]">In hold period</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs text-[#70727F]">In hold period</p>
+                        <Tooltip 
+                          content="Earnings from completed bookings still in the 7-day hold period. After 7 days, funds move to Available Balance and are included in the next payout (1st or 15th of month)."
+                          position="top"
+                          maxWidth="280px"
+                        >
+                          <Info className="w-3 h-3 text-[#70727F] opacity-60 cursor-help" />
+                        </Tooltip>
+                      </div>
                     </div>
                     <p className="text-sm font-semibold text-[#70727F]">{formatCurrency(pendingBalance)}</p>
                   </div>
@@ -252,7 +384,16 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
                   <ArrowRight className="w-4 h-4 text-white" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs text-[#70727F] mb-1">Next payout</p>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <p className="text-xs text-[#70727F]">Next payout</p>
+                    <Tooltip 
+                      content="Automatic payouts happen twice a month on the 1st and 15th. All funds in your Available Balance will be sent to your bank account. Processing takes 3-7 business days."
+                      position="top"
+                      maxWidth="280px"
+                    >
+                      <Info className="w-3 h-3 text-[#70727F] opacity-60 cursor-help" />
+                    </Tooltip>
+                  </div>
                   <p className="font-bold text-[#383A47] text-lg">{nextPayoutInfo.windowLabel}</p>
                   <p className="text-xs text-[#70727F] mt-1">Arrives: {formatDate(nextPayoutInfo.earliestDate)} - {formatDate(nextPayoutInfo.latestDate)}</p>
                 </div>
@@ -287,7 +428,16 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
                   <Calendar className="w-5 h-5 text-[#3D1560]" />
                 </div>
               </div>
-              <p className="text-[#70727F] text-sm mb-1">Projected</p>
+              <div className="flex items-center gap-1.5 mb-1">
+                <p className="text-[#70727F] text-sm">Projected</p>
+                <Tooltip 
+                  content="Money you'll earn from confirmed bookings that haven't been completed yet. Once you complete the service, these earnings will move to Total Earnings and then become available after the hold period."
+                  position="top"
+                  maxWidth="280px"
+                >
+                  <Info className="w-3 h-3 text-[#70727F] opacity-60 cursor-help" />
+                </Tooltip>
+              </div>
               <h3 className="text-3xl font-bold text-[#1B1C20] mb-1">{formatCurrency(projectedEarnings.amount)}</h3>
               <div className="flex items-center gap-2 mb-2">
                 <Package className="w-4 h-4 text-[#3D1560]" />
@@ -318,7 +468,16 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-xl p-5 border border-[#E8E9ED] hover:border-[#3D1560] transition-all cursor-pointer">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[#70727F] text-sm">Total Revenue</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[#70727F] text-sm">Total Revenue</span>
+              <Tooltip 
+                content="Total earnings from completed bookings and sales (before fees) for the selected time period. Revenue growth compares to the previous period."
+                position="top"
+                maxWidth="240px"
+              >
+                <Info className="w-3.5 h-3.5 text-[#3D1560] opacity-60 cursor-help" />
+              </Tooltip>
+            </div>
             <TrendingUp className="w-4 h-4 text-[#3D1560]" />
           </div>
           <p className="text-2xl font-bold text-[#1B1C20]">{formatCurrency(financialSummary.totalRevenue)}</p>
@@ -330,7 +489,16 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
 
         <div className="bg-white rounded-xl p-5 border border-[#E8E9ED] hover:border-[#3D1560] transition-all cursor-pointer">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[#70727F] text-sm">Net Earnings</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[#70727F] text-sm">Net Earnings</span>
+              <Tooltip 
+                content="How much you actually keep after all fees are deducted. Includes Platform Fee (2.5%), Payment Processing (2.9% + $0.30), and Transaction Fee ($0.25)."
+                position="top"
+                maxWidth="240px"
+              >
+                <Info className="w-3.5 h-3.5 text-[#3D1560] opacity-60 cursor-help" />
+              </Tooltip>
+            </div>
             <DollarSign className="w-4 h-4 text-[#4CAF50]" />
           </div>
           <p className="text-2xl font-bold text-[#1B1C20]">{formatCurrency(financialSummary.netEarnings)}</p>
@@ -341,7 +509,16 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
 
         <div className="bg-white rounded-xl p-5 border border-[#E8E9ED] hover:border-[#3D1560] transition-all cursor-pointer">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[#70727F] text-sm">Transactions</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[#70727F] text-sm">Transactions</span>
+              <Tooltip 
+                content="Total number of completed bookings and sales within the selected time period. Refunds are not counted. Average order value shows your typical transaction size."
+                position="top"
+                maxWidth="240px"
+              >
+                <Info className="w-3.5 h-3.5 text-[#3D1560] opacity-60 cursor-help" />
+              </Tooltip>
+            </div>
             <CreditCard className="w-4 h-4 text-[#70727F]" />
           </div>
           <p className="text-2xl font-bold text-[#1B1C20]">{financialSummary.completedTransactions}</p>
@@ -352,7 +529,16 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
 
         <div className="bg-white rounded-xl p-5 border border-[#E8E9ED] hover:border-[#FF9800] transition-all cursor-pointer">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[#70727F] text-sm">Disputes</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[#70727F] text-sm">Disputes</span>
+              <Tooltip 
+                content="Number of bookings or orders that have been cancelled or are currently in dispute. The amount shown is the total value of funds currently being held until disputes are resolved."
+                position="top"
+                maxWidth="240px"
+              >
+                <Info className="w-3.5 h-3.5 text-[#3D1560] opacity-60 cursor-help" />
+              </Tooltip>
+            </div>
             <AlertTriangle className="w-4 h-4 text-[#FF9800]" />
           </div>
           <p className="text-2xl font-bold text-[#1B1C20]">

@@ -3436,6 +3436,25 @@ export function getAvailableBalance(transactions: FinancialTransaction[]): numbe
     .reduce((sum, t) => sum + t.netToSeller, 0);
 }
 
+// Get available balance since last payout (completed bookings since last payout)
+export function getAvailableBalanceSinceLastPayout(transactions: FinancialTransaction[]): number {
+  const now = new Date();
+  const lastPayoutDate = getLastPayoutDate();
+  
+  // Get transactions that:
+  // 1. Are completed
+  // 2. Have passed hold period (availableDate <= now)
+  // 3. Were completed after the last payout date (date >= lastPayoutDate)
+  return transactions
+    .filter(t => 
+      t.status === 'completed' && 
+      t.availableDate && 
+      t.availableDate <= now &&
+      t.date >= lastPayoutDate
+    )
+    .reduce((sum, t) => sum + t.netToSeller, 0);
+}
+
 // Get pending balance (completed but still in 7-day hold period)
 export function getPendingBalance(transactions: FinancialTransaction[]): number {
   const now = new Date();
@@ -3556,7 +3575,30 @@ export function calculateFinancialSummary(
   };
 }
 
-// Get next payout dates (15th and 30th of month)
+// Get last payout date (1st and 15th of month)
+export function getLastPayoutDate(): Date {
+  const now = new Date();
+  const currentDay = now.getDate();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+
+  // Payouts happen on 1st and 15th of each month
+  if (currentDay >= 1 && currentDay < 15) {
+    // If we're between 1st and 15th, last payout was on 1st of this month
+    return new Date(currentYear, currentMonth, 1);
+  } else if (currentDay >= 15) {
+    // If we're on or after 15th, last payout was on 15th of this month
+    return new Date(currentYear, currentMonth, 15);
+  } else {
+    // If we're before 1st (shouldn't happen, but handle edge case)
+    // Last payout was 15th of previous month
+    const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+    return new Date(prevYear, prevMonth, 15);
+  }
+}
+
+// Get next payout dates (1st and 15th of month)
 export function getNextPayoutDates() {
   const now = new Date();
   const currentDay = now.getDate();
@@ -3565,13 +3607,18 @@ export function getNextPayoutDates() {
 
   let payoutDate: Date;
   
-  if (currentDay < 15) {
+  // Payouts happen on 1st and 15th of each month
+  if (currentDay < 1) {
+    // Before 1st (shouldn't happen, but handle edge case)
+    payoutDate = new Date(currentYear, currentMonth, 1);
+  } else if (currentDay < 15) {
+    // Between 1st and 15th, next payout is 15th of this month
     payoutDate = new Date(currentYear, currentMonth, 15);
-  } else if (currentDay < 30) {
-    payoutDate = new Date(currentYear, currentMonth, 30);
   } else {
-    // Next month's 15th
-    payoutDate = new Date(currentYear, currentMonth + 1, 15);
+    // On or after 15th, next payout is 1st of next month
+    const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
+    const nextYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+    payoutDate = new Date(nextYear, nextMonth, 1);
   }
 
   const earliestArrival = new Date(payoutDate.getTime() + 3 * 24 * 60 * 60 * 1000);
