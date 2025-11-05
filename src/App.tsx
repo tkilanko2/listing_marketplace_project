@@ -101,6 +101,7 @@ function App() {
   const [selectedMyShopListing, setSelectedMyShopListing] = useState<any>(null);
   const [checkoutStep, setCheckoutStep] = useState<'auth' | 'shipping' | 'payment' | 'review'>('auth');
   const [bookingsInitialFilter, setBookingsInitialFilter] = useState<'all' | 'pending' | 'confirmed'>('all');
+  const [bankingModalState, setBankingModalState] = useState<{ openEditBank?: boolean; openPayoutSchedule?: boolean }>({});
 
   // Effect to handle highlighted product and show modal (moved to App level)
   useEffect(() => {
@@ -3587,35 +3588,21 @@ function App() {
                 <p className="text-sm text-[#70727F]">Automatically confirm service bookings without manual approval</p>
               </div>
 
-              {/* Auto Confirm Orders */}
+              {/* Global Seller Policy */}
               <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-md font-medium text-[#383A47]">Auto-Confirm Orders</h3>
-                  <label htmlFor="auto-orders" className="flex items-center cursor-pointer">
-                    <div className="relative">
-                      <input type="checkbox" id="auto-orders" className="sr-only peer" defaultChecked />
-                      <div className="block bg-[#E8E9ED] w-12 h-6 rounded-full peer-checked:bg-[#3D1560]"></div>
-                      <div className="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out transform peer-checked:translate-x-full"></div>
-                    </div>
-                  </label>
-                </div>
-                <p className="text-sm text-[#70727F]">Automatically process product orders when payment is received</p>
-              </div>
-
-              {/* Global Seller Policy */}
-              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED] md:col-span-2">
-                <div className="flex items-center justify-between mb-3">
                   <h3 className="text-md font-medium text-[#383A47]">Global Seller Policy</h3>
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2">
                     <button 
                       onClick={() => handleNavigate('sellerPolicy')}
-                      className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                      className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
                     >
                       View
                     </button>
+                    <span className="text-[#CDCED8]">|</span>
                     <button 
                       onClick={() => handleNavigate('sellerPolicy')}
-                      className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                      className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
                     >
                       Configure
                     </button>
@@ -3627,34 +3614,27 @@ function App() {
           </div>
         </div>
 
-        {/* Business Profile & KYC Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Business Profile */}
+        {/* Shop Information & Verification Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Shop Information */}
           <div className="bg-white rounded-lg shadow-lg border border-[#E8E9ED]">
             <div className="px-6 py-4 border-b border-[#E8E9ED]">
               <h2 className="text-xl font-semibold text-[#1B1C20] flex items-center">
                 <Store className="h-5 w-5 mr-2 text-[#3D1560]" />
-                Business Profile
+                Shop Information
               </h2>
             </div>
             <div className="p-6">
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-md font-medium text-[#383A47]">Business Information</h3>
-                    <p className="text-sm text-[#70727F]">Company details, tax info, and legal structure</p>
-                  </div>
-                  <span className="px-2 py-1 text-xs bg-[#FFE5ED] text-[#DF678C] rounded-full">Incomplete</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-md font-medium text-[#383A47]">Business Address</h3>
-                    <p className="text-sm text-[#70727F]">Primary business location and contact details</p>
-                  </div>
-                  <span className="px-2 py-1 text-xs bg-[#E8F5E9] text-[#4CAF50] rounded-full">Complete</span>
+                <div>
+                  <p className="text-sm text-[#70727F] mb-4">Manage your shop profile, name, description, and business hours</p>
                 </div>
                 <button
-                  onClick={() => alert('Manage Business Profile (Coming Soon)')}
+                  onClick={() => {
+                    // Navigate to My Shop page and open shop information edit form
+                    handleNavigate('sellerDashboard_myShop');
+                    // TODO: Trigger shop info edit mode
+                  }}
                   className="w-full text-sm text-white bg-[#3D1560] hover:bg-[#6D26AB] py-2 px-4 rounded-lg transition-colors"
                 >
                   Manage Profile
@@ -3673,112 +3653,65 @@ function App() {
             </div>
             <div className="p-6">
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-md font-medium text-[#383A47]">Identity Verification</h3>
-                    <p className="text-sm text-[#70727F]">Government-issued ID verification</p>
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h3 className="text-md font-medium text-[#383A47]">Identity Verification</h3>
+                      <p className="text-sm text-[#70727F]">Government-issued ID verification</p>
+                    </div>
+                    <span className="px-2 py-1 text-xs bg-[#FFE5ED] text-[#DF678C] rounded-full">Not Started</span>
                   </div>
-                  <span className="px-2 py-1 text-xs bg-[#E8F5E9] text-[#4CAF50] rounded-full">Verified</span>
+                  <button
+                    onClick={() => {
+                      // Check if mobile or desktop
+                      const isMobile = window.innerWidth < 768;
+                      
+                      if (isMobile) {
+                        // Show QR code for mobile
+                        alert('Please scan the QR code to complete identity verification.\n\nURL: https://verify.expats.com');
+                      } else {
+                        // Open external verification in new tab
+                        window.open('https://verify.expats.com', '_blank');
+                      }
+                    }}
+                    className="w-full text-sm text-white bg-[#3D1560] hover:bg-[#6D26AB] py-2 px-4 rounded-lg transition-colors"
+                  >
+                    Verify Identity
+                  </button>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-md font-medium text-[#383A47]">Business Verification</h3>
-                    <p className="text-sm text-[#70727F]">Business license and registration documents</p>
-                  </div>
-                  <span className="px-2 py-1 text-xs bg-[#FFF8DD] text-[#DAA520] rounded-full">Pending</span>
-                </div>
-                <button
-                  onClick={() => alert('Complete KYC Verification (Coming Soon)')}
-                  className="w-full text-sm text-white bg-[#3D1560] hover:bg-[#6D26AB] py-2 px-4 rounded-lg transition-colors"
-                >
-                  Complete Verification
-                </button>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Integrations Section */}
-        <div className="bg-white rounded-lg shadow-lg border border-[#E8E9ED]">
-          <div className="px-6 py-4 border-b border-[#E8E9ED]">
-            <h2 className="text-xl font-semibold text-[#1B1C20] flex items-center">
-              <Package className="h-5 w-5 mr-2 text-[#3D1560]" />
-              Integrations
-            </h2>
-            <p className="text-sm text-[#70727F] mt-1">Connect external services to enhance your business</p>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* AI Features */}
-              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED] text-center">
-                <div className="w-12 h-12 bg-[#EDD9FF] rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Zap className="h-6 w-6 text-[#3D1560]" />
+          {/* KYB Verification */}
+          <div className="bg-white rounded-lg shadow-lg border border-[#E8E9ED]">
+            <div className="px-6 py-4 border-b border-[#E8E9ED]">
+              <h2 className="text-xl font-semibold text-[#1B1C20] flex items-center">
+                <Shield className="h-5 w-5 mr-2 text-[#3D1560]" />
+                KYB Verification
+              </h2>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h3 className="text-md font-medium text-[#383A47]">Business Verification</h3>
+                      <p className="text-sm text-[#70727F]">Business license and registration documents</p>
+                    </div>
+                    <span className="px-2 py-1 text-xs bg-[#FFF8DD] text-[#DAA520] rounded-full">Pending</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      // Open BusinessVerificationFlow modal
+                      alert('Business Verification form will open here (KYB form)');
+                      // TODO: setShowBusinessVerificationModal(true);
+                    }}
+                    className="w-full text-sm text-white bg-[#3D1560] hover:bg-[#6D26AB] py-2 px-4 rounded-lg transition-colors"
+                  >
+                    Verify Business
+                  </button>
                 </div>
-                <h3 className="text-md font-medium text-[#383A47] mb-2">AI Features</h3>
-                <p className="text-xs text-[#70727F] mb-3">Smart pricing, automated responses, content generation</p>
-                <div className="flex items-center justify-center mb-2">
-                  <span className="px-2 py-1 text-xs bg-[#FFE5ED] text-[#DF678C] rounded-full">Not Connected</span>
-                </div>
-                <button
-                  onClick={() => alert('Connect AI Features (Coming Soon)')}
-                  className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
-                >
-                  Connect
-                </button>
-              </div>
-
-              {/* Calendar Integration */}
-              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED] text-center">
-                <div className="w-12 h-12 bg-[#EDD9FF] rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Calendar className="h-6 w-6 text-[#3D1560]" />
-                </div>
-                <h3 className="text-md font-medium text-[#383A47] mb-2">Calendar</h3>
-                <p className="text-xs text-[#70727F] mb-3">Google Calendar, Outlook sync for bookings</p>
-                <div className="flex items-center justify-center mb-2">
-                  <span className="px-2 py-1 text-xs bg-[#E8F5E9] text-[#4CAF50] rounded-full">Connected</span>
-                </div>
-                <button
-                  onClick={() => alert('Manage Calendar Integration (Coming Soon)')}
-                  className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
-                >
-                  Manage
-                </button>
-              </div>
-
-              {/* Shipping Integration */}
-              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED] text-center">
-                <div className="w-12 h-12 bg-[#EDD9FF] rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Package className="h-6 w-6 text-[#3D1560]" />
-                </div>
-                <h3 className="text-md font-medium text-[#383A47] mb-2">Shipping</h3>
-                <p className="text-xs text-[#70727F] mb-3">FedEx, UPS, USPS integration for order fulfillment</p>
-                <div className="flex items-center justify-center mb-2">
-                  <span className="px-2 py-1 text-xs bg-[#FFF8DD] text-[#DAA520] rounded-full">Partial</span>
-                </div>
-                <button
-                  onClick={() => alert('Configure Shipping (Coming Soon)')}
-                  className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
-                >
-                  Configure
-                </button>
-              </div>
-
-              {/* Accounting Integration */}
-              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED] text-center">
-                <div className="w-12 h-12 bg-[#EDD9FF] rounded-full flex items-center justify-center mx-auto mb-3">
-                  <DollarSign className="h-6 w-6 text-[#3D1560]" />
-                </div>
-                <h3 className="text-md font-medium text-[#383A47] mb-2">Accounting</h3>
-                <p className="text-xs text-[#70727F] mb-3">QuickBooks, Xero sync for financial tracking</p>
-                <div className="flex items-center justify-center mb-2">
-                  <span className="px-2 py-1 text-xs bg-[#FFE5ED] text-[#DF678C] rounded-full">Not Connected</span>
-                </div>
-                <button
-                  onClick={() => alert('Connect Accounting (Coming Soon)')}
-                  className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
-                >
-                  Connect
-                </button>
               </div>
             </div>
           </div>
@@ -3798,10 +3731,20 @@ function App() {
               <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
                 <h3 className="text-md font-medium text-[#383A47] mb-2">Bank Account</h3>
                 <p className="text-sm text-[#70727F] mb-3">Primary account for receiving payouts</p>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-2">
                   <span className="text-xs text-[#70727F]">****1234</span>
                   <span className="px-2 py-1 text-xs bg-[#E8F5E9] text-[#4CAF50] rounded-full">Active</span>
                 </div>
+                <button 
+                  onClick={() => {
+                    // Navigate to Banking Settings page and auto-open Primary Account Edit modal
+                    setBankingModalState({ openEditBank: true });
+                    handleNavigate('bankingSettings');
+                  }}
+                  className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                >
+                  Modify
+                </button>
               </div>
               <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
                 <h3 className="text-md font-medium text-[#383A47] mb-2">Payout Schedule</h3>
@@ -3809,7 +3752,11 @@ function App() {
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-[#383A47] font-medium">Weekly</span>
                   <button 
-                    onClick={() => alert('Change Payout Schedule (Coming Soon)')}
+                    onClick={() => {
+                      // Navigate to Banking Settings page and auto-open Change Payout Schedule modal
+                      setBankingModalState({ openPayoutSchedule: true });
+                      handleNavigate('bankingSettings');
+                    }}
                     className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
                   >
                     Change
@@ -3819,15 +3766,66 @@ function App() {
               <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
                 <h3 className="text-md font-medium text-[#383A47] mb-2">Tax Information</h3>
                 <p className="text-sm text-[#70727F] mb-3">W-9, tax ID, and reporting settings</p>
-                <div className="flex items-center justify-between">
-                  <span className="px-2 py-1 text-xs bg-[#FFF8DD] text-[#DAA520] rounded-full">Incomplete</span>
-                  <button 
-                    onClick={() => alert('Complete Tax Info (Coming Soon)')}
-                    className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
-                  >
-                    Complete
-                  </button>
+                <div className="text-center py-2">
+                  <span className="text-xs text-[#70727F] italic">Coming Soon</span>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Integrations & Notifications Section */}
+        <div className="bg-white rounded-lg shadow-lg border border-[#E8E9ED]">
+          <div className="px-6 py-4 border-b border-[#E8E9ED]">
+            <h2 className="text-xl font-semibold text-[#1B1C20] flex items-center">
+              <Package className="h-5 w-5 mr-2 text-[#3D1560]" />
+              Integrations & Notifications
+            </h2>
+            <p className="text-sm text-[#70727F] mt-1">Connect external services and manage your notification preferences</p>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Notifications */}
+              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED] text-center">
+                <div className="w-12 h-12 bg-[#EDD9FF] rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Bell className="h-6 w-6 text-[#3D1560]" />
+                </div>
+                <h3 className="text-md font-medium text-[#383A47] mb-2">Notifications</h3>
+                <p className="text-xs text-[#70727F] mb-4">Email and in-app notification preferences</p>
+                <button
+                  onClick={() => {
+                    // TODO: Open notification settings modal
+                    alert('Notification Settings modal will open here.\n\nYou will be able to configure:\n- Order notifications\n- Booking notifications\n- Message notifications\n- Review notifications\n- Payment notifications\n- Account notifications\n\nFor both Email and In-App channels.');
+                  }}
+                  className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                >
+                  Configure
+                </button>
+              </div>
+
+              {/* Calendar Integration */}
+              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED] text-center">
+                <div className="w-12 h-12 bg-[#EDD9FF] rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Calendar className="h-6 w-6 text-[#3D1560]" />
+                </div>
+                <h3 className="text-md font-medium text-[#383A47] mb-2">Calendar</h3>
+                <p className="text-xs text-[#70727F] mb-4">Google Calendar, Outlook sync for bookings</p>
+                <button
+                  onClick={() => alert('Manage Calendar Integration (Coming Soon)')}
+                  className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                >
+                  Manage
+                </button>
+              </div>
+
+              {/* AI Features */}
+              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED] text-center">
+                <div className="w-12 h-12 bg-[#EDD9FF] rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Zap className="h-6 w-6 text-[#3D1560]" />
+                </div>
+                <h3 className="text-md font-medium text-[#383A47] mb-2">AI Features</h3>
+                <p className="text-xs text-[#70727F] mb-4">Smart pricing, automated responses, content generation</p>
+                <span className="text-xs text-[#70727F] italic">Coming Soon</span>
               </div>
             </div>
           </div>
@@ -4994,8 +4992,13 @@ function App() {
 
         {currentPage === 'bankingSettings' && (
           <BankingSettingsPage 
-            onBack={() => handleNavigate('sellerDashboard_finance')} 
+            onBack={() => {
+              setBankingModalState({}); // Reset modal state when going back
+              handleNavigate('sellerDashboard_finance');
+            }} 
             onNavigate={handleNavigate}
+            openEditBankModal={bankingModalState.openEditBank}
+            openPayoutScheduleModal={bankingModalState.openPayoutSchedule}
           />
         )}
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   ArrowLeft, 
   CheckCircle2, 
@@ -15,6 +15,8 @@ import {
 interface BankingSettingsPageProps {
   onBack?: () => void;
   onNavigate?: (page: string) => void;
+  openEditBankModal?: boolean;
+  openPayoutScheduleModal?: boolean;
 }
 
 interface BankAccount {
@@ -35,7 +37,7 @@ interface PayoutConfiguration {
   currency: 'USD' | 'EUR' | 'GBP';
 }
 
-export function BankingSettingsPage({ onBack, onNavigate }: BankingSettingsPageProps) {
+export function BankingSettingsPage({ onBack, onNavigate, openEditBankModal = false, openPayoutScheduleModal = false }: BankingSettingsPageProps) {
   // Mock data
   const [bankAccount] = useState<BankAccount>({
     accountName: 'John Doe',
@@ -54,8 +56,18 @@ export function BankingSettingsPage({ onBack, onNavigate }: BankingSettingsPageP
     currency: 'USD'
   });
 
-  const [showEditBankModal, setShowEditBankModal] = useState(false);
-  const [showPayoutMethodModal, setShowPayoutMethodModal] = useState(false);
+  const [showEditBankModal, setShowEditBankModal] = useState(openEditBankModal);
+  const [showPayoutMethodModal, setShowPayoutMethodModal] = useState(openPayoutScheduleModal);
+
+  // Auto-open modals if props are provided
+  useEffect(() => {
+    if (openEditBankModal) {
+      setShowEditBankModal(true);
+    }
+    if (openPayoutScheduleModal) {
+      setShowPayoutMethodModal(true);
+    }
+  }, [openEditBankModal, openPayoutScheduleModal]);
 
   // Temp state for editing
   const [tempPayoutConfig, setTempPayoutConfig] = useState<PayoutConfiguration>(payoutConfig);
@@ -493,7 +505,7 @@ export function BankingSettingsPage({ onBack, onNavigate }: BankingSettingsPageP
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full">
             <div className="flex items-center justify-between p-6 border-b border-[#E8E9ED]">
-              <h2 className="text-xl font-bold text-[#1B1C20]">Change Payout Method</h2>
+              <h2 className="text-xl font-bold text-[#1B1C20]">Change Payout Schedule</h2>
               <button 
                 onClick={handleCancelPayoutMethod}
                 className="text-[#70727F] hover:text-[#3D1560] p-2 rounded-full hover:bg-[#F8F8FA] transition-colors"
