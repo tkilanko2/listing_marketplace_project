@@ -46,7 +46,7 @@ import {
   BarChart, Calendar, DollarSign, ShoppingCart, Package, TrendingUp, 
   ArrowUp, Wallet, ChevronDown, ChevronLeft, ChevronRight, Search, 
   Edit, Trash, Eye, PlusCircle, Zap, BarChart2, Settings, 
-  Users, Star, CheckCircle, MoreVertical, Film, X, Bookmark, ChevronUp, LayoutDashboard, Store, ExternalLink, Archive, Trash2, AlertTriangle, MapPin, Heart, Shield, Bell, SlidersHorizontal, TrendingDown // Added new icons
+  Users, Star, CheckCircle, MoreVertical, Film, X, Bookmark, ChevronUp, LayoutDashboard, Store, ExternalLink, Archive, Trash2, AlertTriangle, MapPin, Heart, Shield, Bell, SlidersHorizontal, TrendingDown, CreditCard, Clock, Receipt // Added new icons
 } from 'lucide-react';
 import { 
   OrderDetailsPage, 
@@ -57,6 +57,7 @@ import {
 } from './pages/PlaceholderPages';
 import { SellerBookingDashboard } from './components/seller-bookings';
 import { SellerAppointmentDetailsModal, RescheduleBookingModal } from './components/seller-bookings';
+import { NotificationsSettingsModal } from './components/NotificationsSettingsModal';
 import { Box, Typography } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -102,6 +103,7 @@ function App() {
   const [checkoutStep, setCheckoutStep] = useState<'auth' | 'shipping' | 'payment' | 'review'>('auth');
   const [bookingsInitialFilter, setBookingsInitialFilter] = useState<'all' | 'pending' | 'confirmed'>('all');
   const [bankingModalState, setBankingModalState] = useState<{ openEditBank?: boolean; openPayoutSchedule?: boolean }>({});
+  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
 
   // Effect to handle highlighted product and show modal (moved to App level)
   useEffect(() => {
@@ -3572,7 +3574,7 @@ function App() {
             <p className="text-sm text-[#70727F] mt-1">Configure global seller settings and automation</p>
           </div>
           <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Auto Confirm Bookings */}
               <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
                 <div className="flex items-center justify-between mb-3">
@@ -3592,14 +3594,13 @@ function App() {
               <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-md font-medium text-[#383A47]">Global Seller Policy</h3>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-3">
                     <button 
                       onClick={() => handleNavigate('sellerPolicy')}
                       className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
                     >
                       View
                     </button>
-                    <span className="text-[#CDCED8]">|</span>
                     <button 
                       onClick={() => handleNavigate('sellerPolicy')}
                       className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
@@ -3635,9 +3636,9 @@ function App() {
                     handleNavigate('sellerDashboard_myShop');
                     // TODO: Trigger shop info edit mode
                   }}
-                  className="w-full text-sm text-white bg-[#3D1560] hover:bg-[#6D26AB] py-2 px-4 rounded-lg transition-colors"
+                  className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
                 >
-                  Manage Profile
+                  Manage Shop
                 </button>
               </div>
             </div>
@@ -3661,23 +3662,31 @@ function App() {
                     </div>
                     <span className="px-2 py-1 text-xs bg-[#FFE5ED] text-[#DF678C] rounded-full">Not Started</span>
                   </div>
-                  <button
-                    onClick={() => {
-                      // Check if mobile or desktop
-                      const isMobile = window.innerWidth < 768;
-                      
-                      if (isMobile) {
-                        // Show QR code for mobile
-                        alert('Please scan the QR code to complete identity verification.\n\nURL: https://verify.expats.com');
-                      } else {
-                        // Open external verification in new tab
-                        window.open('https://verify.expats.com', '_blank');
-                      }
-                    }}
-                    className="w-full text-sm text-white bg-[#3D1560] hover:bg-[#6D26AB] py-2 px-4 rounded-lg transition-colors"
-                  >
-                    Verify Identity
-                  </button>
+                  {(() => {
+                    const kycStatus = "Not Started"; // This would come from state/API
+                    if (kycStatus !== "Pending") {
+                      return (
+                        <button
+                          onClick={() => {
+                            // Check if mobile or desktop
+                            const isMobile = window.innerWidth < 768;
+                            
+                            if (isMobile) {
+                              // Show QR code for mobile
+                              alert('Please scan the QR code to complete identity verification.\n\nURL: https://verify.expats.com');
+                            } else {
+                              // Open external verification in new tab
+                              window.open('https://verify.expats.com', '_blank');
+                            }
+                          }}
+                          className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                        >
+                          Verify Identity
+                        </button>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               </div>
             </div>
@@ -3701,16 +3710,24 @@ function App() {
                     </div>
                     <span className="px-2 py-1 text-xs bg-[#FFF8DD] text-[#DAA520] rounded-full">Pending</span>
                   </div>
-                  <button
-                    onClick={() => {
-                      // Open BusinessVerificationFlow modal
-                      alert('Business Verification form will open here (KYB form)');
-                      // TODO: setShowBusinessVerificationModal(true);
-                    }}
-                    className="w-full text-sm text-white bg-[#3D1560] hover:bg-[#6D26AB] py-2 px-4 rounded-lg transition-colors"
-                  >
-                    Verify Business
-                  </button>
+                  {(() => {
+                    const kybStatus = "Pending"; // This would come from state/API
+                    if (kybStatus !== "Pending") {
+                      return (
+                        <button
+                          onClick={() => {
+                            // Open BusinessVerificationFlow modal
+                            alert('Business Verification form will open here (KYB form)');
+                            // TODO: setShowBusinessVerificationModal(true);
+                          }}
+                          className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                        >
+                          Verify Business
+                        </button>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               </div>
             </div>
@@ -3727,9 +3744,12 @@ function App() {
             <p className="text-sm text-[#70727F] mt-1">Manage how you receive payments from customers</p>
           </div>
           <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
-                <h3 className="text-md font-medium text-[#383A47] mb-2">Bank Account</h3>
+                <div className="flex items-center mb-3">
+                  <CreditCard className="h-4 w-4 mr-2 text-[#3D1560]" />
+                  <h3 className="text-md font-medium text-[#383A47]">Bank Account</h3>
+                </div>
                 <p className="text-sm text-[#70727F] mb-3">Primary account for receiving payouts</p>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs text-[#70727F]">****1234</span>
@@ -3747,27 +3767,34 @@ function App() {
                 </button>
               </div>
               <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
-                <h3 className="text-md font-medium text-[#383A47] mb-2">Payout Schedule</h3>
-                <p className="text-sm text-[#70727F] mb-3">How often you receive payments</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-[#383A47] font-medium">Weekly</span>
-                  <button 
-                    onClick={() => {
-                      // Navigate to Banking Settings page and auto-open Change Payout Schedule modal
-                      setBankingModalState({ openPayoutSchedule: true });
-                      handleNavigate('bankingSettings');
-                    }}
-                    className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
-                  >
-                    Change
-                  </button>
+                <div className="flex items-center mb-3">
+                  <Clock className="h-4 w-4 mr-2 text-[#3D1560]" />
+                  <h3 className="text-md font-medium text-[#383A47]">Payout Schedule</h3>
                 </div>
+                <p className="text-sm text-[#70727F] mb-3">How often you receive payments</p>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-[#383A47] font-medium">Weekly</span>
+                  <span className="text-xs text-[#70727F]">Next: Jan 15, 2025</span>
+                </div>
+                <button 
+                  onClick={() => {
+                    // Navigate to Banking Settings page and auto-open Change Payout Schedule modal
+                    setBankingModalState({ openPayoutSchedule: true });
+                    handleNavigate('bankingSettings');
+                  }}
+                  className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                >
+                  Change
+                </button>
               </div>
               <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
-                <h3 className="text-md font-medium text-[#383A47] mb-2">Tax Information</h3>
+                <div className="flex items-center mb-3">
+                  <Receipt className="h-4 w-4 mr-2 text-[#3D1560]" />
+                  <h3 className="text-md font-medium text-[#383A47]">Tax Information</h3>
+                </div>
                 <p className="text-sm text-[#70727F] mb-3">W-9, tax ID, and reporting settings</p>
-                <div className="text-center py-2">
-                  <span className="text-xs text-[#70727F] italic">Coming Soon</span>
+                <div className="py-2">
+                  <span className="px-2 py-1 text-xs bg-[#E8E9ED] text-[#70727F] rounded-full inline-block">Coming Soon</span>
                 </div>
               </div>
             </div>
@@ -3784,19 +3811,16 @@ function App() {
             <p className="text-sm text-[#70727F] mt-1">Connect external services and manage your notification preferences</p>
           </div>
           <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Notifications */}
-              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED] text-center">
-                <div className="w-12 h-12 bg-[#EDD9FF] rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Bell className="h-6 w-6 text-[#3D1560]" />
+              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
+                <div className="flex items-center mb-3">
+                  <Bell className="h-4 w-4 mr-2 text-[#3D1560]" />
+                  <h3 className="text-md font-medium text-[#383A47]">Notifications</h3>
                 </div>
-                <h3 className="text-md font-medium text-[#383A47] mb-2">Notifications</h3>
                 <p className="text-xs text-[#70727F] mb-4">Email and in-app notification preferences</p>
                 <button
-                  onClick={() => {
-                    // TODO: Open notification settings modal
-                    alert('Notification Settings modal will open here.\n\nYou will be able to configure:\n- Order notifications\n- Booking notifications\n- Message notifications\n- Review notifications\n- Payment notifications\n- Account notifications\n\nFor both Email and In-App channels.');
-                  }}
+                  onClick={() => setShowNotificationsModal(true)}
                   className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
                 >
                   Configure
@@ -3804,11 +3828,11 @@ function App() {
               </div>
 
               {/* Calendar Integration */}
-              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED] text-center">
-                <div className="w-12 h-12 bg-[#EDD9FF] rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Calendar className="h-6 w-6 text-[#3D1560]" />
+              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
+                <div className="flex items-center mb-3">
+                  <Calendar className="h-4 w-4 mr-2 text-[#3D1560]" />
+                  <h3 className="text-md font-medium text-[#383A47]">Calendar</h3>
                 </div>
-                <h3 className="text-md font-medium text-[#383A47] mb-2">Calendar</h3>
                 <p className="text-xs text-[#70727F] mb-4">Google Calendar, Outlook sync for bookings</p>
                 <button
                   onClick={() => alert('Manage Calendar Integration (Coming Soon)')}
@@ -3819,13 +3843,13 @@ function App() {
               </div>
 
               {/* AI Features */}
-              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED] text-center">
-                <div className="w-12 h-12 bg-[#EDD9FF] rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Zap className="h-6 w-6 text-[#3D1560]" />
+              <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
+                <div className="flex items-center mb-3">
+                  <Zap className="h-4 w-4 mr-2 text-[#3D1560]" />
+                  <h3 className="text-md font-medium text-[#383A47]">AI Features</h3>
                 </div>
-                <h3 className="text-md font-medium text-[#383A47] mb-2">AI Features</h3>
                 <p className="text-xs text-[#70727F] mb-4">Smart pricing, automated responses, content generation</p>
-                <span className="text-xs text-[#70727F] italic">Coming Soon</span>
+                <span className="px-2 py-1 text-xs bg-[#E8E9ED] text-[#70727F] rounded-full inline-block">Coming Soon</span>
               </div>
             </div>
           </div>
@@ -5619,6 +5643,10 @@ function App() {
         onSignup={handleSignup}
         onProceedAsGuest={handleProceedAsGuest}
         serviceName={selectedListing?.name || 'service'}
+      />
+      <NotificationsSettingsModal
+        isOpen={showNotificationsModal}
+        onClose={() => setShowNotificationsModal(false)}
       />
       </div>
     </SellerPolicyProvider>
