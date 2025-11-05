@@ -58,6 +58,7 @@ import {
 import { SellerBookingDashboard } from './components/seller-bookings';
 import { SellerAppointmentDetailsModal, RescheduleBookingModal } from './components/seller-bookings';
 import { NotificationsSettingsModal } from './components/NotificationsSettingsModal';
+import { ShopInformationModal } from './components/ShopInformationModal';
 import { Box, Typography } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -104,6 +105,7 @@ function App() {
   const [bookingsInitialFilter, setBookingsInitialFilter] = useState<'all' | 'pending' | 'confirmed'>('all');
   const [bankingModalState, setBankingModalState] = useState<{ openEditBank?: boolean; openPayoutSchedule?: boolean }>({});
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+  const [showShopInformationModal, setShowShopInformationModal] = useState(false);
 
   // Effect to handle highlighted product and show modal (moved to App level)
   useEffect(() => {
@@ -2515,7 +2517,10 @@ function App() {
                   </>
                 )}
               </button>
-              <button className="text-[#3D1560] hover:text-[#6D26AB] text-sm font-medium flex items-center transition-colors duration-200">
+              <button 
+                onClick={() => setShowShopInformationModal(true)}
+                className="text-[#3D1560] hover:text-[#6D26AB] text-sm font-medium flex items-center transition-colors duration-200"
+              >
                 <Edit className="w-4 h-4 mr-1" />
                 Edit Shop
               </button>
@@ -3561,7 +3566,10 @@ function App() {
   };
 
   // Seller Dashboard Settings placeholder
-  const SellerDashboardSettings = () => (
+  const SellerDashboardSettings = () => {
+    const [autoConfirmBookings, setAutoConfirmBookings] = useState(false);
+    
+    return (
     <PlaceholderPage title="Seller Settings">
       <div className="space-y-8">
         {/* Account Management Section */}
@@ -3581,13 +3589,28 @@ function App() {
                   <h3 className="text-md font-medium text-[#383A47]">Auto-Confirm Bookings</h3>
                   <label htmlFor="auto-bookings" className="flex items-center cursor-pointer">
                     <div className="relative">
-                      <input type="checkbox" id="auto-bookings" className="sr-only peer" />
+                      <input 
+                        type="checkbox" 
+                        id="auto-bookings" 
+                        checked={autoConfirmBookings}
+                        onChange={(e) => setAutoConfirmBookings(e.target.checked)}
+                        className="sr-only peer" 
+                      />
                       <div className="block bg-[#E8E9ED] w-12 h-6 rounded-full peer-checked:bg-[#3D1560]"></div>
                       <div className="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out transform peer-checked:translate-x-full"></div>
                     </div>
                   </label>
                 </div>
-                <p className="text-sm text-[#70727F]">Automatically confirm service bookings without manual approval</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-[#70727F]">Automatically confirm service bookings without manual approval</p>
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                    autoConfirmBookings 
+                      ? 'bg-[#E8F5E9] text-[#4CAF50]' 
+                      : 'bg-[#E8E9ED] text-[#70727F]'
+                  }`}>
+                    {autoConfirmBookings ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
               </div>
 
               {/* Global Seller Policy */}
@@ -3597,13 +3620,13 @@ function App() {
                   <div className="flex items-center space-x-3">
                     <button 
                       onClick={() => handleNavigate('sellerPolicy')}
-                      className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                      className="px-3 py-1.5 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
                     >
                       View
                     </button>
                     <button 
                       onClick={() => handleNavigate('sellerPolicy')}
-                      className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                      className="px-3 py-1.5 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
                     >
                       Configure
                     </button>
@@ -3631,12 +3654,8 @@ function App() {
                   <p className="text-sm text-[#70727F] mb-4">Manage your shop profile, name, description, and business hours</p>
                 </div>
                 <button
-                  onClick={() => {
-                    // Navigate to My Shop page and open shop information edit form
-                    handleNavigate('sellerDashboard_myShop');
-                    // TODO: Trigger shop info edit mode
-                  }}
-                  className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                  onClick={() => setShowShopInformationModal(true)}
+                  className="px-3 py-1.5 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
                 >
                   Manage Shop
                 </button>
@@ -3679,7 +3698,7 @@ function App() {
                               window.open('https://verify.expats.com', '_blank');
                             }
                           }}
-                          className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                          className="px-3 py-1.5 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
                         >
                           Verify Identity
                         </button>
@@ -3720,7 +3739,7 @@ function App() {
                             alert('Business Verification form will open here (KYB form)');
                             // TODO: setShowBusinessVerificationModal(true);
                           }}
-                          className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                          className="px-3 py-1.5 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
                         >
                           Verify Business
                         </button>
@@ -3761,7 +3780,7 @@ function App() {
                     setBankingModalState({ openEditBank: true });
                     handleNavigate('bankingSettings');
                   }}
-                  className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                  className="px-3 py-1.5 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
                 >
                   Modify
                 </button>
@@ -3782,7 +3801,7 @@ function App() {
                     setBankingModalState({ openPayoutSchedule: true });
                     handleNavigate('bankingSettings');
                   }}
-                  className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                  className="px-3 py-1.5 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
                 >
                   Change
                 </button>
@@ -3821,7 +3840,7 @@ function App() {
                 <p className="text-xs text-[#70727F] mb-4">Email and in-app notification preferences</p>
                 <button
                   onClick={() => setShowNotificationsModal(true)}
-                  className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                  className="px-3 py-1.5 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
                 >
                   Configure
                 </button>
@@ -3836,7 +3855,7 @@ function App() {
                 <p className="text-xs text-[#70727F] mb-4">Google Calendar, Outlook sync for bookings</p>
                 <button
                   onClick={() => alert('Manage Calendar Integration (Coming Soon)')}
-                  className="text-xs text-[#3D1560] hover:text-[#6D26AB] font-medium"
+                  className="px-3 py-1.5 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
                 >
                   Manage
                 </button>
@@ -3856,7 +3875,8 @@ function App() {
         </div>
       </div>
     </PlaceholderPage>
-  );
+    );
+  };
 
   // Mock data for saved items
   const savedItems = [
@@ -5647,6 +5667,18 @@ function App() {
       <NotificationsSettingsModal
         isOpen={showNotificationsModal}
         onClose={() => setShowNotificationsModal(false)}
+      />
+      <ShopInformationModal
+        isOpen={showShopInformationModal}
+        onClose={() => setShowShopInformationModal(false)}
+        initialData={{
+          shopName: 'Urban Style Studio',
+          description: 'Urban Style Studio specializes in premium beauty services and products, wellness treatments, and curated home decor items. Our skilled professionals offer services ranging from haircuts and styling to spa massages and online yoga classes, while our product selection includes professional-grade beauty equipment, hair treatment products, and handcrafted home accessories.',
+          location: 'Chicago, United States',
+          contactEmail: 'contact@urbanstylestudio.com',
+          businessHours: 'Mon-Fri: 9AM-6PM',
+          specializations: ['Beauty & Wellness', 'Health Services', 'Home Decor']
+        }}
       />
       </div>
     </SellerPolicyProvider>

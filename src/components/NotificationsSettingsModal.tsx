@@ -101,8 +101,8 @@ export function NotificationsSettingsModal({ isOpen, onClose }: NotificationsSet
                             onChange={() => handleToggle(pref.id, 'email')}
                             className="sr-only peer"
                           />
-                          <div className="block bg-[#E8E9ED] w-11 h-6 rounded-full peer-checked:bg-[#3D1560] transition-colors"></div>
-                          <div className="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out transform peer-checked:translate-x-5"></div>
+                          <div className="block bg-[#E8E9ED] w-9 h-5 rounded-full peer-checked:bg-[#3D1560] transition-colors"></div>
+                          <div className="dot absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out transform peer-checked:translate-x-4"></div>
                         </div>
                       </label>
                     </td>
@@ -115,8 +115,8 @@ export function NotificationsSettingsModal({ isOpen, onClose }: NotificationsSet
                             onChange={() => handleToggle(pref.id, 'inApp')}
                             className="sr-only peer"
                           />
-                          <div className="block bg-[#E8E9ED] w-11 h-6 rounded-full peer-checked:bg-[#3D1560] transition-colors"></div>
-                          <div className="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out transform peer-checked:translate-x-5"></div>
+                          <div className="block bg-[#E8E9ED] w-9 h-5 rounded-full peer-checked:bg-[#3D1560] transition-colors"></div>
+                          <div className="dot absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out transform peer-checked:translate-x-4"></div>
                         </div>
                       </label>
                     </td>
