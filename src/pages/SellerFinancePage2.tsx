@@ -313,7 +313,7 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
                 <div className="flex items-center gap-1.5">
                   <p className="text-[#70727F] text-sm font-medium">Available</p>
                   <Tooltip 
-                    content="Money you can withdraw now from completed bookings since last payout (after 7-day hold). Payouts happen automatically on the 1st and 15th of each month."
+                    content="Money you can withdraw now from completed bookings since your last payout. Payouts are sent automatically based on your selected payout schedule."
                     position="top"
                     maxWidth="320px"
                   >
@@ -344,9 +344,9 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-[#4CAF50]" />
                     <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-medium text-[#383A47]">Total Earnings</p>
+                      <p className="text-sm font-medium text-[#383A47]">Total Completed Earnings</p>
                       <Tooltip 
-                        content="Total amount you've earned from all completed bookings (all-time). This shows your lifetime earnings after all fees are deducted."
+                        content="Total amount earned from all completed bookings within the selected time period. This includes funds that are available and those still in the hold period."
                         position="top"
                         maxWidth="280px"
                       >
@@ -363,7 +363,7 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
                       <div className="flex items-center gap-1.5">
                         <p className="text-xs text-[#70727F]">In hold period</p>
                         <Tooltip 
-                          content="Earnings from completed bookings still in the 7-day hold period. After 7 days, funds move to Available Balance and are included in the next payout (1st or 15th of month)."
+                          content="Earnings from completed bookings still in the 7-day hold period. After this period, funds move to your Available Balance and are paid out based on your selected payout schedule."
                           position="top"
                           maxWidth="280px"
                         >
@@ -387,7 +387,7 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
                   <div className="flex items-center gap-1.5 mb-1">
                     <p className="text-xs text-[#70727F]">Next payout</p>
                     <Tooltip 
-                      content="Automatic payouts happen twice a month on the 1st and 15th. All funds in your Available Balance will be sent to your bank account. Processing takes 3-7 business days."
+                      content="Payouts are automatically sent based on your selected payout schedule. All funds in your Available Balance will be transferred to your bank account. Processing may take 3–7 business days depending on your bank."
                       position="top"
                       maxWidth="280px"
                     >
@@ -431,7 +431,7 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
               <div className="flex items-center gap-1.5 mb-1">
                 <p className="text-[#70727F] text-sm">Projected</p>
                 <Tooltip 
-                  content="Money you'll earn from confirmed bookings that haven't been completed yet. Once you complete the service, these earnings will move to Total Earnings and then become available after the hold period."
+                  content="Money you'll earn from confirmed bookings that haven't been completed yet."
                   position="top"
                   maxWidth="280px"
                 >
@@ -471,7 +471,7 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
             <div className="flex items-center gap-2">
               <span className="text-[#70727F] text-sm">Total Revenue</span>
               <Tooltip 
-                content="Total earnings from completed bookings and sales (before fees) for the selected time period. Revenue growth compares to the previous period."
+                content="Total earnings from completed bookings within the selected time period (before fees). Revenue growth compares your performance to the previous period."
                 position="top"
                 maxWidth="240px"
               >
@@ -492,7 +492,7 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
             <div className="flex items-center gap-2">
               <span className="text-[#70727F] text-sm">Net Earnings</span>
               <Tooltip 
-                content="How much you actually keep after all fees are deducted. Includes Platform Fee (2.5%), Payment Processing (2.9% + $0.30), and Transaction Fee ($0.25)."
+                content="Your actual earnings after platform fees have been deducted."
                 position="top"
                 maxWidth="240px"
               >
@@ -512,7 +512,7 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
             <div className="flex items-center gap-2">
               <span className="text-[#70727F] text-sm">Transactions</span>
               <Tooltip 
-                content="Total number of completed bookings and sales within the selected time period. Refunds are not counted. Average order value shows your typical transaction size."
+                content="Total number of completed bookings within the selected time period."
                 position="top"
                 maxWidth="240px"
               >
@@ -532,7 +532,7 @@ export function SellerFinancePage2({ onBack, onViewBookingDetails, onViewOrderDe
             <div className="flex items-center gap-2">
               <span className="text-[#70727F] text-sm">Disputes</span>
               <Tooltip 
-                content="Number of bookings or orders that have been cancelled or are currently in dispute. The amount shown is the total value of funds currently being held until disputes are resolved."
+                content="Number of bookings currently under dispute or refund review. The amount shown represents the total value of funds on hold until resolved."
                 position="top"
                 maxWidth="240px"
               >
