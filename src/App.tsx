@@ -68,7 +68,6 @@ function App() {
   const [selectedProvider, setSelectedProvider] = useState<ServiceProvider | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<{ name: string; email: string; imageUrl?: string; status?: 'online' | 'offline' | 'away'; userId: string } | null>(null);
-  const [activeSettingsTab, setActiveSettingsTab] = useState('security');
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -106,6 +105,9 @@ function App() {
   const [bankingModalState, setBankingModalState] = useState<{ openEditBank?: boolean; openPayoutSchedule?: boolean }>({});
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showShopInformationModal, setShowShopInformationModal] = useState(false);
+  const [showPaymentMethodsModal, setShowPaymentMethodsModal] = useState(false);
+  const [profileEditFromSettings, setProfileEditFromSettings] = useState(false);
+  const [profileBackToSettings, setProfileBackToSettings] = useState(false);
 
   // Effect to handle highlighted product and show modal (moved to App level)
   useEffect(() => {
@@ -376,10 +378,15 @@ function App() {
   );
 
   // Profile page with multiple sections
-  const ProfilePage = () => {
+  const ProfilePage = ({ initialEditMode = false, onBack }: { initialEditMode?: boolean; onBack?: () => void }) => {
     const [activeTab, setActiveTab] = useState<'listed' | 'sold' | 'profile'>('listed');
-    const [isEditMode, setIsEditMode] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(initialEditMode);
     const [isImageModalOpen, setIsImageModalOpen] = useState<boolean>(false);
+    
+    // Update edit mode when initialEditMode prop changes
+    useEffect(() => {
+      setIsEditMode(initialEditMode);
+    }, [initialEditMode]);
     
     // Create a ref for the file input
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -758,16 +765,27 @@ function App() {
       <div className="p-8">
         {/* Combined Page Path and Heading */}
         <div className="mb-6">
-          <div className="flex items-center text-sm text-gray-500 mb-2">
-            <span className="hover:text-blue-600 cursor-pointer">Home</span>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mx-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-            <span className="hover:text-blue-600 cursor-pointer">Account</span>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mx-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-            <span className="font-medium text-blue-600">Profile</span>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center text-sm text-gray-500">
+              <span className="hover:text-blue-600 cursor-pointer">Home</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mx-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span className="hover:text-blue-600 cursor-pointer">Account</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mx-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span className="font-medium text-blue-600">Profile</span>
+            </div>
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="flex items-center text-[#3D1560] hover:text-[#6D26AB] transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5 mr-1" />
+                Back to Settings
+              </button>
+            )}
           </div>
           <h1 className="text-2xl font-bold text-gray-800">My Profile Overview</h1>
         </div>
@@ -4875,7 +4893,14 @@ function App() {
         )}
 
         {currentPage === 'profile' && (
-          <ProfilePage />
+          <ProfilePage 
+            initialEditMode={profileEditFromSettings}
+            onBack={profileBackToSettings ? () => {
+              setProfileBackToSettings(false);
+              setProfileEditFromSettings(false);
+              handleNavigate('settings');
+            } : undefined}
+          />
         )}
 
         {currentPage === 'myOrders' && orderAction === null && (
@@ -5073,299 +5098,284 @@ function App() {
         )}
 
         {currentPage === 'settings' && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="p-8 bg-[#F8F8FA] min-h-full"
-          >
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-3xl font-bold text-[#1B1C20] mb-8">Settings</h1>
-              
-              {/* Tabbed Navigation */}
-              <div className="mb-8 border-b border-[#E8E9ED]">
-                <nav className="flex space-x-8">
-                  {[
-                    { id: 'security', label: 'Security & Privacy', icon: Shield },
-                    { id: 'notifications', label: 'Notifications', icon: Bell },
-                    { id: 'personalization', label: 'Personalization', icon: SlidersHorizontal },
-                  ].map((tab) => (
-                    <motion.button
-                      key={tab.id}
-                      onClick={() => setActiveSettingsTab(tab.id)}
-                      className={`flex items-center px-1 py-4 text-sm font-medium border-b-2 transition-colors duration-200 ${
-                        activeSettingsTab === tab.id
-                          ? 'border-[#3D1560] text-[#3D1560]'
-                          : 'border-transparent text-[#70727F] hover:text-[#383A47] hover:border-[#CDCED8]'
-                      }`}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <tab.icon className="h-5 w-5 mr-2" />
-                      {tab.label}
-                    </motion.button>
-                  ))}
-                </nav>
-              </div>
+          <PlaceholderPage title="Settings">
+            <div className="space-y-8">
+              {/* Account Information Section */}
+              <div className="bg-white rounded-lg shadow-lg border border-[#E8E9ED]">
+                <div className="px-6 py-4 border-b border-[#E8E9ED]">
+                  <h2 className="text-xl font-semibold text-[#1B1C20] flex items-center">
+                    <Settings className="h-5 w-5 mr-2 text-[#3D1560]" />
+                    Account Information
+                  </h2>
+                  <p className="text-sm text-[#70727F] mt-1">Manage your account details, profile, and payment methods</p>
+                </div>
+                <div className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Profile & Personal Information */}
+                    <div className="bg-[#F8F8FA] rounded-lg p-3 border border-[#E8E9ED]">
+                      <div className="flex items-center mb-2">
+                        <Users className="h-4 w-4 mr-2 text-[#3D1560]" />
+                        <h3 className="text-sm font-medium text-[#383A47]">Profile & Personal Information</h3>
+                      </div>
+                      <p className="text-xs text-[#70727F] mb-2">Update your name, email, phone, location, and profile picture</p>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs text-[#70727F]">Account Status:</span>
+                        <span className="px-2 py-1 text-xs bg-[#E8F5E9] text-[#4CAF50] rounded-full font-medium">Active</span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setProfileEditFromSettings(true);
+                          setProfileBackToSettings(true);
+                          handleNavigate('profile');
+                        }}
+                        className="px-3 py-1.5 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
+                      >
+                        Edit Profile
+                      </button>
+                    </div>
 
-              {/* Tab Content */}
-              <AnimatePresence mode="wait">
-                <motion.div 
-                  key={activeSettingsTab}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.2 }}
-                  className="space-y-10"
-                >
-                  {/* Security & Privacy Section */}
-                  {activeSettingsTab === 'security' && (
-                    <div className="bg-white p-6 rounded-xl shadow-lg border border-[#E8E9ED]">
-                      <h2 className="text-xl font-semibold text-[#3D1560] mb-6 pb-3 border-b border-[#E8E9ED] flex items-center">
-                        <Shield className="h-5 w-5 mr-2 text-[#3D1560]" /> Account Security & Privacy
-                      </h2>
-                      <div className="space-y-5">
-                        {/* Password Management */}
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="text-md font-medium text-[#383A47]">Password</h3>
-                            <p className="text-sm text-[#70727F]">Change your account password.</p>
-                          </div>
-                          <button 
-                            onClick={() => alert('Open Change Password Modal')}
-                            className="text-sm text-white bg-[#3D1560] hover:bg-[#6D26AB] py-2 px-4 rounded-lg transition-colors flex items-center">
-                            Change Password <ChevronRight className="ml-1 h-4 w-4" />
-                          </button>
-                        </div>
-
-                        {/* Two-Factor Authentication */}
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="text-md font-medium text-[#383A47]">Two-Factor Authentication (2FA)</h3>
-                            <p className="text-sm text-[#70727F]">Add an extra layer of security to your account.</p>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <span className="text-sm text-green-600 font-medium mr-2">Enabled</span> {/* Placeholder status */}
-                            <label htmlFor="2fa-toggle" className="flex items-center cursor-pointer">
-                              <div className="relative">
-                                <input type="checkbox" id="2fa-toggle" className="sr-only peer" defaultChecked />
-                                <div className="block bg-[#E8E9ED] w-12 h-6 rounded-full peer-checked:bg-[#3D1560]"></div>
-                                <div className="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out transform peer-checked:translate-x-full"></div>
-                              </div>
-                            </label>
-                            <button 
-                              onClick={() => alert('Open 2FA Management Page')}
-                              className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium">
-                              Manage
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Privacy Settings */}
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="text-md font-medium text-[#383A47]">Privacy Settings</h3>
-                            <p className="text-sm text-[#70727F]">Control what information is visible to others.</p>
-                          </div>
-                          <button 
-                            onClick={() => alert('Navigate to Privacy Settings Page')}
-                            className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center">
-                            Manage Settings <ChevronRight className="ml-1 h-4 w-4" />
-                          </button>
-                        </div>
-
-                        {/* Login History */}
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="text-md font-medium text-[#383A47]">Login History</h3>
-                            <p className="text-sm text-[#70727F]">View recent login activity on your account.</p>
-                          </div>
-                          <button 
-                            onClick={() => alert('Navigate to Login History Page')}
-                            className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center">
-                            View History <ChevronRight className="ml-1 h-4 w-4" />
-                          </button>
-                        </div>
-
-                        {/* Account Recovery */}
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="text-md font-medium text-[#383A47]">Account Recovery Options</h3>
-                            <p className="text-sm text-[#70727F]">Set up or update your account recovery methods.</p>
-                          </div>
-                          <button 
-                            onClick={() => alert('Navigate to Account Recovery Setup')}
-                            className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center">
-                            Setup Options <ChevronRight className="ml-1 h-4 w-4" />
-                          </button>
-                        </div>
-                        
-                        {/* Security Notifications */}
-                        <div className="flex justify-between items-center">
-                          <div>
-                              <h3 className="text-md font-medium text-[#383A47]">Security Notifications</h3>
-                              <p className="text-sm text-[#70727F]">Receive alerts for important security events.</p>
-                          </div>
-                          <label htmlFor="security-notifications-toggle" className="flex items-center cursor-pointer">
-                              <div className="relative">
-                                  <input type="checkbox" id="security-notifications-toggle" className="sr-only peer" defaultChecked />
-                                  <div className="block bg-[#E8E9ED] w-12 h-6 rounded-full peer-checked:bg-[#3D1560]"></div>
-                                  <div className="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out transform peer-checked:translate-x-full"></div>
-                              </div>
-                          </label>
-                        </div>
-
-                        {/* Data Privacy Controls */}
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="text-md font-medium text-[#383A47]">Data Privacy Controls</h3>
-                            <p className="text-sm text-[#70727F]">Manage how your data is collected and used.</p>
-                          </div>
-                          <button 
-                            onClick={() => alert('Navigate to Data Privacy Page')}
-                            className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center">
-                            Manage Your Data <ChevronRight className="ml-1 h-4 w-4" />
-                          </button>
-                        </div>
-
-                        {/* Account Deletion */}
-                        <div className="flex justify-between items-center pt-4 border-t border-[#E8E9ED] mt-4">
-                          <div>
-                            <h3 className="text-md font-medium text-red-600">Delete Account</h3>
-                            <p className="text-sm text-[#70727F]">Permanently delete your account and all associated data.</p>
-                          </div>
-                          <button 
-                            onClick={() => confirm('Are you sure you want to request account deletion? This action cannot be undone.') && alert('Account deletion request submitted.')}
-                            className="text-sm text-white bg-red-600 hover:bg-red-700 py-2 px-4 rounded-lg transition-colors flex items-center">
-                            <AlertTriangle className="mr-1 h-4 w-4" /> Request Deletion
-                          </button>
-                        </div>
+                    {/* Payment Methods */}
+                    <div className="bg-[#F8F8FA] rounded-lg p-3 border border-[#E8E9ED] flex flex-col">
+                      <div className="flex items-center mb-2">
+                        <CreditCard className="h-4 w-4 mr-2 text-[#3D1560]" />
+                        <h3 className="text-sm font-medium text-[#383A47]">Payment Methods</h3>
+                      </div>
+                      <p className="text-xs text-[#70727F] mb-2 flex-grow">Add, edit, or remove payment methods for faster checkout</p>
+                      <div className="mt-auto">
+                        <button 
+                          onClick={() => setShowPaymentMethodsModal(true)}
+                          className="px-3 py-1.5 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
+                        >
+                          Manage Methods
+                        </button>
                       </div>
                     </div>
-                  )}
+                  </div>
+                </div>
+              </div>
 
-                  {/* Notification Preferences Section */}
-                  {activeSettingsTab === 'notifications' && (
-                    <div className="bg-white p-6 rounded-xl shadow-lg border border-[#E8E9ED]">
-                      <h2 className="text-xl font-semibold text-[#3D1560] mb-6 pb-3 border-b border-[#E8E9ED] flex items-center">
-                        <Bell className="h-5 w-5 mr-2 text-[#3D1560]" /> Notification Preferences
-                      </h2>
-                      <div className="space-y-5">
+              {/* Security & Privacy Section */}
+              <div className="bg-white rounded-lg shadow-lg border border-[#E8E9ED]">
+                <div className="px-6 py-4 border-b border-[#E8E9ED]">
+                  <h2 className="text-xl font-semibold text-[#1B1C20] flex items-center">
+                    <Shield className="h-5 w-5 mr-2 text-[#3D1560]" />
+                    Security & Privacy
+                  </h2>
+                  <p className="text-sm text-[#70727F] mt-1">Manage your account security and privacy settings</p>
+                </div>
+                <div className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {/* Password Management */}
+                    <div className="bg-[#F8F8FA] rounded-lg p-3 border border-[#E8E9ED]">
+                      <div className="flex items-center mb-2">
+                        <Shield className="h-4 w-4 mr-2 text-[#3D1560]" />
+                        <h3 className="text-sm font-medium text-[#383A47]">Password</h3>
+                      </div>
+                      <p className="text-xs text-[#70727F] mb-2">Change your account password</p>
+                      <button 
+                        onClick={() => alert('Open Change Password Modal')}
+                        className="px-3 py-1.5 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
+                      >
+                        Change Password
+                      </button>
+                    </div>
+
+                    {/* Two-Factor Authentication */}
+                    <div className="bg-[#F8F8FA] rounded-lg p-3 border border-[#E8E9ED]">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center">
+                          <Shield className="h-4 w-4 mr-2 text-[#3D1560]" />
+                          <h3 className="text-sm font-medium text-[#383A47]">Two-Factor Authentication</h3>
+                        </div>
+                        <label htmlFor="2fa-toggle" className="flex items-center cursor-pointer">
+                          <div className="relative">
+                            <input type="checkbox" id="2fa-toggle" className="sr-only peer" defaultChecked />
+                            <div className="block bg-[#E8E9ED] w-10 h-5 rounded-full peer-checked:bg-[#3D1560]"></div>
+                            <div className="dot absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out transform peer-checked:translate-x-full"></div>
+                          </div>
+                        </label>
+                      </div>
+                      <p className="text-xs text-[#70727F] mb-2">Add an extra layer of security</p>
+                      <button 
+                        onClick={() => alert('Open 2FA Management Page')}
+                        className="px-3 py-1.5 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
+                      >
+                        Manage 2FA
+                      </button>
+                    </div>
+
+                    {/* Login History */}
+                    <div className="bg-[#F8F8FA] rounded-lg p-3 border border-[#E8E9ED]">
+                      <div className="flex items-center mb-2">
+                        <Clock className="h-4 w-4 mr-2 text-[#3D1560]" />
+                        <h3 className="text-sm font-medium text-[#383A47]">Login History</h3>
+                      </div>
+                      <p className="text-xs text-[#70727F] mb-2">View recent login activity</p>
+                      <button 
+                        onClick={() => alert('Navigate to Login History Page')}
+                        className="px-3 py-1.5 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
+                      >
+                        View History
+                      </button>
+                    </div>
+
+                    {/* Manage Account */}
+                    <div className="bg-[#F8F8FA] rounded-lg p-3 border border-[#E8E9ED]">
+                      <div className="flex items-center mb-2">
+                        <Settings className="h-4 w-4 mr-2 text-[#3D1560]" />
+                        <h3 className="text-sm font-medium text-[#383A47]">Manage Account</h3>
+                      </div>
+                      <p className="text-xs text-[#70727F] mb-2">Account management options</p>
+                      <button 
+                        onClick={() => alert('Navigate to Account Management Page')}
+                        className="px-3 py-1.5 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
+                      >
+                        Manage
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notifications & Preferences Section */}
+              <div className="bg-white rounded-lg shadow-lg border border-[#E8E9ED]">
+                <div className="px-6 py-4 border-b border-[#E8E9ED]">
+                  <h2 className="text-xl font-semibold text-[#1B1C20] flex items-center">
+                    <Bell className="h-5 w-5 mr-2 text-[#3D1560]" />
+                    Notifications & Preferences
+                  </h2>
+                  <p className="text-sm text-[#70727F] mt-1">Manage your notification preferences and customize your experience</p>
+                </div>
+                <div className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Notifications Card */}
+                    <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
+                      <div className="flex items-center mb-4">
+                        <Bell className="h-5 w-5 mr-2 text-[#3D1560]" />
+                        <h3 className="text-lg font-semibold text-[#383A47]">Notifications</h3>
+                      </div>
+
+                      {/* Quick Notification Toggles - 2x2 Grid */}
+                      <div className="grid grid-cols-2 gap-3 mb-4">
                         {[
-                          { id: 'order-updates', label: 'Order Updates', description: 'Get notified about your order status.', checked: true },
-                          { id: 'delivery-notifications', label: 'Delivery Notifications', description: 'Receive updates on package delivery.', checked: true },
-                          { id: 'price-alerts', label: 'Price Alerts', description: 'Alerts for price drops on saved items.', checked: false },
-                          { id: 'availability-alerts', label: 'Availability Alerts', description: 'Get notified when out-of-stock items are back.', checked: true },
-                          { id: 'message-notifications', label: 'Message Notifications', description: 'Alerts for new messages from sellers.', checked: true },
-                          { id: 'review-reminders', label: 'Review Reminders', description: 'Reminders to review completed orders.', checked: false },
-                          { id: 'promotional-offers', label: 'Promotional Offers', description: 'Receive news about promotions and discounts.', checked: false },
-                          { id: 'security-alerts-notif', label: 'Security Alerts (General)', description: 'General security information and tips.', checked: true },
+                          { id: 'order-updates', label: 'Order Updates', description: 'Get notified about your order status', checked: true },
+                          { id: 'delivery-notifications', label: 'Delivery Notifications', description: 'Receive updates on package delivery', checked: true },
+                          { id: 'message-notifications', label: 'Message Notifications', description: 'Alerts for new messages', checked: true },
+                          { id: 'price-alerts', label: 'Price Alerts', description: 'Alerts for price drops on saved items', checked: false },
                         ].map(item => (
-                          <div key={item.id} className="flex justify-between items-center">
-                            <div>
-                              <h3 className="text-md font-medium text-[#383A47]">{item.label}</h3>
-                              <p className="text-sm text-[#70727F]">{item.description}</p>
-                            </div>
-                            <label htmlFor={`${item.id}-toggle`} className="flex items-center cursor-pointer">
-                              <div className="relative">
-                                <input type="checkbox" id={`${item.id}-toggle`} className="sr-only peer" defaultChecked={item.checked} />
-                                <div className="block bg-[#E8E9ED] w-12 h-6 rounded-full peer-checked:bg-[#3D1560]"></div>
-                                <div className="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out transform peer-checked:translate-x-full"></div>
+                          <div key={item.id} className="bg-white rounded-lg p-3 border border-[#E8E9ED]">
+                            <div className="flex flex-col">
+                              <div className="flex items-center justify-between mb-2">
+                                <h4 className="text-xs font-medium text-[#383A47]">{item.label}</h4>
+                                <label htmlFor={`${item.id}-toggle`} className="flex items-center cursor-pointer">
+                                  <div className="relative">
+                                    <input type="checkbox" id={`${item.id}-toggle`} className="sr-only peer" defaultChecked={item.checked} />
+                                    <div className="block bg-[#E8E9ED] w-10 h-5 rounded-full peer-checked:bg-[#3D1560]"></div>
+                                    <div className="dot absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out transform peer-checked:translate-x-full"></div>
+                                  </div>
+                                </label>
                               </div>
-                            </label>
+                              <p className="text-xs text-[#70727F]">{item.description}</p>
+                            </div>
                           </div>
                         ))}
                       </div>
-                    </div>
-                  )}
 
-                  {/* Personalization Section - Updated */}
-                  {activeSettingsTab === 'personalization' && (
-                    <div className="bg-white p-6 rounded-xl shadow-lg border border-[#E8E9ED]">
-                      <h2 className="text-xl font-semibold text-[#3D1560] mb-6 pb-3 border-b border-[#E8E9ED] flex items-center">
-                        <SlidersHorizontal className="h-5 w-5 mr-2 text-[#3D1560]" /> Personalization
-                      </h2>
-                      <div className="space-y-5">
+                      {/* Configure Notifications Button */}
+                      <div>
+                        <button
+                          onClick={() => setShowNotificationsModal(true)}
+                          className="w-full px-3 py-2 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
+                        >
+                          Configure Notifications
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Preferences Card */}
+                    <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
+                      <div className="flex items-center mb-4">
+                        <SlidersHorizontal className="h-5 w-5 mr-2 text-[#3D1560]" />
+                        <h3 className="text-lg font-semibold text-[#383A47]">Preferences</h3>
+                      </div>
+
+                      {/* Preferences Grid - 2x2 */}
+                      <div className="grid grid-cols-2 gap-3 mb-4">
                         {/* Language Settings */}
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="text-md font-medium text-[#383A47]">Language</h3>
-                            <p className="text-sm text-[#70727F]">Choose your preferred language for the platform.</p>
-                          </div>
+                        <div className="bg-white rounded-lg p-3 border border-[#E8E9ED]">
+                          <label className="text-xs font-medium text-[#383A47] mb-2 block">Language</label>
                           <select 
-                            className="border-[#CDCED8] rounded-md text-sm p-2 bg-white hover:border-[#3D1560] focus:ring-2 focus:ring-[#EDD9FF] focus:border-[#3D1560] focus:outline-none transition-all duration-200 w-48"
+                            className="w-full border-[#CDCED8] rounded-md text-xs p-2 bg-white hover:border-[#3D1560] focus:ring-2 focus:ring-[#EDD9FF] focus:border-[#3D1560] focus:outline-none transition-all duration-200"
                             value={selectedLanguage}
                             onChange={(e) => setSelectedLanguage(e.target.value)}
                           >
                             <option value="en">English</option>
-                            <option value="es">Español (Spanish)</option>
-                            <option value="fr">Français (French)</option>
-                            <option value="de">Deutsch (German)</option>
-                            <option value="et">Eesti (Estonian)</option>
+                            <option value="es">Español</option>
+                            <option value="fr">Français</option>
+                            <option value="de">Deutsch</option>
+                            <option value="et">Eesti</option>
                           </select>
                         </div>
 
                         {/* Currency Preferences */}
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="text-md font-medium text-[#383A47]">Currency</h3>
-                            <p className="text-sm text-[#70727F]">Select your preferred currency for pricing.</p>
-                          </div>
+                        <div className="bg-white rounded-lg p-3 border border-[#E8E9ED]">
+                          <label className="text-xs font-medium text-[#383A47] mb-2 block">Currency</label>
                           <select 
-                            className="border-[#CDCED8] rounded-md text-sm p-2 bg-white hover:border-[#3D1560] focus:ring-2 focus:ring-[#EDD9FF] focus:border-[#3D1560] focus:outline-none transition-all duration-200 w-48"
+                            className="w-full border-[#CDCED8] rounded-md text-xs p-2 bg-white hover:border-[#3D1560] focus:ring-2 focus:ring-[#EDD9FF] focus:border-[#3D1560] focus:outline-none transition-all duration-200"
                             value={selectedCurrency}
                             onChange={(e) => setSelectedCurrency(e.target.value)}
                           >
-                            <option value="USD">USD - US Dollar</option>
-                            <option value="EUR">EUR - Euro</option>
-                            <option value="GBP">GBP - British Pound</option>
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                            <option value="GBP">GBP</option>
                           </select>
                         </div>
 
-                        {/* Display Preferences */}
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="text-md font-medium text-[#383A47]">Display Preferences</h3>
-                            <p className="text-sm text-[#70727F]">Customize the look and feel of the platform.</p>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <span className="text-sm text-[#383A47]">Dark Mode:</span>
-                            <label htmlFor="dark-mode-toggle" className="flex items-center cursor-pointer">
-                              <div className="relative">
-                                <input 
-                                  type="checkbox" 
-                                  id="dark-mode-toggle" 
-                                  className="sr-only peer"
-                                  checked={isDarkMode}
-                                  onChange={(e) => setIsDarkMode(e.target.checked)}
-                                />
-                                <div className="block bg-[#E8E9ED] w-12 h-6 rounded-full peer-checked:bg-[#3D1560]"></div>
-                                <div className="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out transform peer-checked:translate-x-full"></div>
-                              </div>
-                            </label>
+                        {/* Dark Mode */}
+                        <div className="bg-white rounded-lg p-3 border border-[#E8E9ED]">
+                          <div className="flex flex-col">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="text-xs font-medium text-[#383A47]">Dark Mode</h4>
+                              <label htmlFor="dark-mode-toggle" className="flex items-center cursor-pointer">
+                                <div className="relative">
+                                  <input 
+                                    type="checkbox" 
+                                    id="dark-mode-toggle" 
+                                    className="sr-only peer"
+                                    checked={isDarkMode}
+                                    onChange={(e) => setIsDarkMode(e.target.checked)}
+                                  />
+                                  <div className="block bg-[#E8E9ED] w-10 h-5 rounded-full peer-checked:bg-[#3D1560]"></div>
+                                  <div className="dot absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out transform peer-checked:translate-x-full"></div>
+                                </div>
+                              </label>
+                            </div>
+                            <p className="text-xs text-[#70727F]">Customize the look and feel</p>
                           </div>
                         </div>
 
-                        {/* Accessibility Settings */}
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="text-md font-medium text-[#383A47]">Accessibility</h3>
-                            <p className="text-sm text-[#70727F]">Adjust settings for enhanced accessibility.</p>
-                          </div>
-                          <button 
-                            onClick={() => alert('Navigate to Accessibility Options Page')}
-                            className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium flex items-center"
-                          >
-                            Accessibility Options <ChevronRight className="ml-1 h-4 w-4" />
-                          </button>
+                        {/* Accessibility Placeholder - Empty card for balance or can add another preference */}
+                        <div className="bg-white rounded-lg p-3 border border-[#E8E9ED] opacity-50">
+                          <h4 className="text-xs font-medium text-[#383A47] mb-2">More Options</h4>
+                          <p className="text-xs text-[#70727F]">Coming soon</p>
                         </div>
                       </div>
+
+                      {/* Accessibility Button */}
+                      <div>
+                        <button 
+                          onClick={() => alert('Navigate to Accessibility Options Page')}
+                          className="w-full px-3 py-2 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
+                        >
+                          Accessibility Options
+                        </button>
+                      </div>
                     </div>
-                  )}
-                </motion.div>
-              </AnimatePresence>
+                  </div>
+                </div>
+              </div>
             </div>
-          </motion.div>
+          </PlaceholderPage>
         )}
 
         {currentPage === 'editListing' && (
@@ -5668,6 +5678,43 @@ function App() {
         isOpen={showNotificationsModal}
         onClose={() => setShowNotificationsModal(false)}
       />
+      {/* Payment Methods Modal */}
+      {showPaymentMethodsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="px-6 py-4 border-b border-[#E8E9ED] flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-semibold text-[#1B1C20] flex items-center">
+                  <CreditCard className="h-5 w-5 mr-2 text-[#3D1560]" />
+                  Payment Methods
+                </h2>
+                <p className="text-sm text-[#70727F] mt-1">Manage your saved payment methods</p>
+              </div>
+              <button
+                onClick={() => setShowPaymentMethodsModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="text-center py-12">
+                <CreditCard className="w-16 h-16 mx-auto mb-4 text-[#CDCED8]" />
+                <h3 className="text-lg font-medium text-[#383A47] mb-2">Payment Methods</h3>
+                <p className="text-sm text-[#70727F] mb-6">Add, edit, or remove payment methods for faster checkout</p>
+                <button
+                  onClick={() => {
+                    alert('Add Payment Method (Coming Soon)');
+                  }}
+                  className="px-4 py-2 bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
+                >
+                  Add Payment Method
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <ShopInformationModal
         isOpen={showShopInformationModal}
         onClose={() => setShowShopInformationModal(false)}
