@@ -141,6 +141,8 @@ interface FormValues extends Record<string, any> {
     id: string;
     name: string;
     price: string;
+    duration: string;
+    durationUnit: 'minutes' | 'hours' | 'days';
     description: string;
     features: string[];
     tierImage?: File | null;
@@ -433,13 +435,15 @@ const mapServiceToFormValues = (service: any): FormValues => {
       id: tier.id,
       name: tier.name,
       price: tier.price?.toString() || '',
+      duration: tier.duration?.toString() || '',
+      durationUnit: 'minutes' as 'minutes' | 'hours' | 'days', // Default to minutes when loading from service
       description: tier.description || '',
       features: [],
       tierImage: null
     })) || [
-      { id: '1', name: 'Basic', price: '', description: '', features: [], tierImage: null },
-      { id: '2', name: 'Standard', price: '', description: '', features: [], tierImage: null },
-      { id: '3', name: 'Premium', price: '', description: '', features: [], tierImage: null }
+      { id: '1', name: 'Basic', price: '', duration: '', durationUnit: 'minutes' as const, description: '', features: [], tierImage: null },
+      { id: '2', name: 'Standard', price: '', duration: '', durationUnit: 'minutes' as const, description: '', features: [], tierImage: null },
+      { id: '3', name: 'Premium', price: '', duration: '', durationUnit: 'minutes' as const, description: '', features: [], tierImage: null }
     ],
     acceptSellerPolicy: true, // Already accepted if editing
     status: service.status || 'pending'
@@ -526,6 +530,8 @@ const ServiceListingForm: React.FC<{
               id: '1',
               name: 'Basic',
               price: '',
+              duration: '',
+              durationUnit: 'minutes' as const,
               description: '',
               features: [],
               tierImage: null
@@ -534,6 +540,8 @@ const ServiceListingForm: React.FC<{
               id: '2',
               name: 'Standard',
               price: '',
+              duration: '',
+              durationUnit: 'minutes' as const,
               description: '',
               features: [],
               tierImage: null
@@ -542,6 +550,8 @@ const ServiceListingForm: React.FC<{
               id: '3',
               name: 'Premium',
               price: '',
+              duration: '',
+              durationUnit: 'minutes' as const,
               description: '',
               features: [],
               tierImage: null
@@ -609,10 +619,12 @@ const ServiceListingForm: React.FC<{
           pricingValid = values.pricingTiers.length > 0 && 
             values.pricingTiers.every(tier => {
               const price = parseFloat(tier.price);
+              const duration = parseFloat(tier.duration);
               const hasValidPrice = !isNaN(price) && price > 0;
+              const hasValidDuration = !isNaN(duration) && duration > 0;
               const hasName = !!tier.name;
               const hasDescription = !!tier.description;
-              return hasValidPrice && hasName && hasDescription;
+              return hasValidPrice && hasValidDuration && hasName && hasDescription;
             });
           
           if (!pricingValid) {
@@ -716,14 +728,25 @@ const ServiceListingForm: React.FC<{
               payAtService: values.paymentOptions?.payAtService || true
             },
             // FIXED: Save pricing tiers if using tiered model
-            tiers: values.pricingModel === 'tiered' && values.pricingTiers ? values.pricingTiers.map(tier => ({
-              id: tier.id,
-              name: tier.name,
-              price: parseFloat(tier.price) || 0,
-              duration: 60, // Default, could be made configurable
-              description: tier.description,
-              onlinePayment: true,
-            })) : undefined,
+            tiers: values.pricingModel === 'tiered' && values.pricingTiers ? values.pricingTiers.map(tier => {
+              const durationValue = parseFloat(tier.duration) || 0;
+              const unit = tier.durationUnit || 'minutes';
+              // Convert to minutes
+              let durationInMinutes = durationValue;
+              if (unit === 'hours') {
+                durationInMinutes = durationValue * 60;
+              } else if (unit === 'days') {
+                durationInMinutes = durationValue * 24 * 60;
+              }
+              return {
+                id: tier.id,
+                name: tier.name,
+                price: parseFloat(tier.price) || 0,
+                duration: durationInMinutes || 60,
+                description: tier.description,
+                onlinePayment: true,
+              };
+            }) : undefined,
             defaultTier: values.pricingModel === 'tiered' && values.pricingTiers.length > 0 ? values.pricingTiers[0].id : undefined,
             views: 0,
             saves: 0,
@@ -2438,14 +2461,25 @@ const ServiceListingForm: React.FC<{
               onlinePayment: formik.values.paymentOptions?.onlinePayment || false,
               payAtService: formik.values.paymentOptions?.payAtService || true
             },
-            tiers: formik.values.pricingModel === 'tiered' && formik.values.pricingTiers ? formik.values.pricingTiers.map(tier => ({
-              id: tier.id,
-              name: tier.name,
-              price: parseFloat(tier.price) || 0,
-              duration: 60,
-              description: tier.description,
-              onlinePayment: true,
-            })) : undefined,
+            tiers: formik.values.pricingModel === 'tiered' && formik.values.pricingTiers ? formik.values.pricingTiers.map(tier => {
+              const durationValue = parseFloat(tier.duration) || 0;
+              const unit = tier.durationUnit || 'minutes';
+              // Convert to minutes
+              let durationInMinutes = durationValue;
+              if (unit === 'hours') {
+                durationInMinutes = durationValue * 60;
+              } else if (unit === 'days') {
+                durationInMinutes = durationValue * 24 * 60;
+              }
+              return {
+                id: tier.id,
+                name: tier.name,
+                price: parseFloat(tier.price) || 0,
+                duration: durationInMinutes || 60,
+                description: tier.description,
+                onlinePayment: true,
+              };
+            }) : undefined,
             defaultTier: formik.values.pricingModel === 'tiered' && formik.values.pricingTiers.length > 0 ? formik.values.pricingTiers[0].id : undefined,
             reviews: [],
           }}

@@ -1,13 +1,14 @@
 import React, { useState, useRef } from 'react';
 import { UserCircle, LogOut, User, ShoppingBag, LayoutDashboard, UserPlus, Settings, ShoppingCart, Bell, Menu, X } from 'lucide-react';
 import { LanguageSelector } from './LanguageSelector';
+import { NotificationsDropdown } from './NotificationsDropdown';
 import { Product } from '../types';
 import { useCart } from '../context/CartContext';
 
 interface NavbarProps {
   isAuthenticated: boolean;
-  user: { 
-    name: string; 
+  user: {
+    name: string;
     email: string;
     imageUrl?: string;
     status?: 'online' | 'offline' | 'away';
@@ -22,20 +23,32 @@ interface NavbarProps {
   onListingSelect: (listing: Product) => void;
   onSellNowClick: () => void;
   onNavigateTo: (page: string) => void;
+  onNotificationClick?: () => void;
+  notificationCount?: number;
+  notifications?: any[];
+  showNotificationsDropdown?: boolean;
+  onNotificationItemClick?: (notification: any) => void;
+  onMarkAllAsRead?: () => void;
 }
 
-export function Navbar({ 
-  isAuthenticated, 
-  user, 
-  onLogin, 
-  onSignup, 
-  onLogout, 
+export function Navbar({
+  isAuthenticated,
+  user,
+  onLogin,
+  onSignup,
+  onLogout,
   onHomeClick,
   onLanguageChange,
   selectedLanguage,
   onListingSelect,
   onSellNowClick,
-  onNavigateTo
+  onNavigateTo,
+  onNotificationClick,
+  notificationCount = 0,
+  notifications = [],
+  showNotificationsDropdown = false,
+  onNotificationItemClick,
+  onMarkAllAsRead
 }: NavbarProps) {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
@@ -145,7 +158,7 @@ export function Navbar({
             </button>
           </div>
 
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-6">
             <button
               onClick={onSellNowClick}
               className="px-4 py-2 bg-[#3D1560] hover:bg-[#6D26AB] text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
@@ -153,22 +166,44 @@ export function Navbar({
               List and Earn
             </button>
 
-            <button className="relative p-2 hover:bg-gray-100 rounded-full transition-colors duration-200">
-              <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
-                3
-              </div>
-              <Bell className="w-6 h-6 text-gray-700" />
-            </button>
+            {/* Icon Group */}
+            <div className="flex items-center space-x-2">
+              {/* Notification Bell with Dropdown */}
+              <div className="relative">
+                <button
+                  className="relative p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                  onClick={onNotificationClick}
+                >
+                  {notificationCount > 0 && (
+                    <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                      {notificationCount}
+                    </div>
+                  )}
+                  <Bell className="w-6 h-6 text-gray-700" />
+                </button>
 
-            <button 
-              className="relative p-2 hover:bg-gray-100 rounded-full"
-              onClick={() => onNavigateTo('cart')}
-            >
-              <div className="absolute -top-1 -right-1 bg-[#3D1560] text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
-                {getCartCount()}
+                {/* Notifications Dropdown */}
+                <NotificationsDropdown
+                  isOpen={showNotificationsDropdown}
+                  onClose={() => onNotificationClick?.()}
+                  notifications={notifications}
+                  onNotificationClick={onNotificationItemClick}
+                  onMarkAllAsRead={onMarkAllAsRead}
+                />
               </div>
-              <ShoppingCart className="w-6 h-6 text-gray-700" />
-            </button>
+
+              <button
+                className="relative p-2 hover:bg-gray-100 rounded-full"
+                onClick={() => onNavigateTo('cart')}
+              >
+                {getCartCount() > 0 && (
+                  <div className="absolute -top-1 -right-1 bg-[#3D1560] text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                    {getCartCount()}
+                  </div>
+                )}
+                <ShoppingCart className="w-6 h-6 text-gray-700" />
+              </button>
+            </div>
 
             {isAuthenticated ? (
               <div className="relative group">
@@ -194,29 +229,15 @@ export function Navbar({
                 
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-2 z-50 border border-gray-100 transform transition-all duration-200 ease-out origin-top-right opacity-0 invisible group-hover:opacity-100 group-hover:visible">
                   <div className="px-4 py-3 border-b border-gray-100">
-                    <div className="flex items-center space-x-3">
-                      {user?.imageUrl ? (
-                        <img 
-                          src={user.imageUrl} 
-                          alt={user.name} 
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <UserCircle className="w-10 h-10 text-[#3D1560]" />
-                      )}
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{user?.userId || 'CM7by141boza'}</p>
-                        <p className="text-xs text-gray-500">{user?.email}</p>
-                        <p className="text-xs text-gray-500 flex items-center">
-                          <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
-                            user?.status === 'online' ? 'bg-green-500' :
-                            user?.status === 'away' ? 'bg-yellow-500' :
-                            'bg-gray-500'
-                          }`} />
-                          {user?.status || 'offline'}
-                        </p>
-                      </div>
-                    </div>
+                    <p className="text-sm font-medium text-gray-700">{user?.email}</p>
+                    <p className="text-xs text-gray-500 flex items-center mt-1">
+                      <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
+                        user?.status === 'online' ? 'bg-green-500' :
+                        user?.status === 'away' ? 'bg-yellow-500' :
+                        'bg-gray-500'
+                      }`} />
+                      {user?.status || 'offline'}
+                    </p>
                   </div>
                   <div className="py-1">
                     <button 
@@ -252,7 +273,7 @@ export function Navbar({
                       </div>
                       <span>Invite Friends</span>
                     </button>
-                    <button 
+                    <button
                       onClick={() => onNavigateTo('settings')}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 group"
                     >
@@ -262,8 +283,14 @@ export function Navbar({
                       <span>Settings</span>
                     </button>
                   </div>
+                  <div className="border-t border-gray-100 py-2">
+                    <div className="px-4 py-2">
+                      <div className="text-xs text-gray-500 mb-2 font-medium">Language</div>
+                      <LanguageSelector onLanguageChange={onLanguageChange} />
+                    </div>
+                  </div>
                   <div className="border-t border-gray-100">
-                    <button 
+                    <button
                       onClick={onLogout}
                       className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-50 group"
                     >
@@ -276,24 +303,22 @@ export function Navbar({
                 </div>
               </div>
             ) : (
-              <div className="flex items-center space-x-2 text-sm">
-                <button 
-                  onClick={() => onNavigateTo('signin')} 
-                  className="text-gray-700 hover:text-[#3D1560]"
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => onNavigateTo('signin')}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#3D1560] hover:bg-gray-50 rounded-lg transition-all duration-200"
                 >
                   Login
                 </button>
-                <span className="text-[#CDCED8]">|</span>
-                <button 
-                  onClick={() => onNavigateTo('signup')} 
-                  className="text-gray-700 hover:text-[#3D1560]"
+                <button
+                  onClick={() => onNavigateTo('signup')}
+                  className="px-4 py-2 text-sm font-medium bg-white border-2 border-[#3D1560] text-[#3D1560] hover:bg-[#3D1560] hover:text-white rounded-lg transition-all duration-200"
                 >
-                  Signup
+                  Sign Up
                 </button>
+                <LanguageSelector onLanguageChange={onLanguageChange} />
               </div>
             )}
-
-            <LanguageSelector onLanguageChange={onLanguageChange} />
           </div>
         </div>
       </div>
@@ -332,18 +357,25 @@ export function Navbar({
 
           <div className="px-3 py-2 flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <button className="relative p-2 hover:bg-gray-100 rounded-full">
+              <button
+                className="relative p-2 hover:bg-gray-100 rounded-full"
+                onClick={onNotificationClick}
+              >
                 <Bell className="w-6 h-6 text-gray-700" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
-                  3
-                </span>
+                {notificationCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                    {notificationCount}
+                  </span>
+                )}
               </button>
 
               <button className="relative p-2 hover:bg-gray-100 rounded-full">
                 <ShoppingCart className="w-6 h-6 text-gray-700" />
-                <span className="absolute -top-1 -right-1 bg-[#3D1560] text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
-                  {getCartCount()}
-                </span>
+                {getCartCount() > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-[#3D1560] text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                    {getCartCount()}
+                  </span>
+                )}
               </button>
             </div>
 

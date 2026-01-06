@@ -21,6 +21,7 @@ const languages = [
 export function LanguageSelector({ onLanguageChange }: LanguageSelectorProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLang, setSelectedLang] = useState('en'); // Default to English
+  const [isOpen, setIsOpen] = useState(false);
 
   const filteredLanguages = languages.filter(lang =>
     lang.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -29,13 +30,24 @@ export function LanguageSelector({ onLanguageChange }: LanguageSelectorProps) {
   const selectedLanguage = languages.find(lang => lang.code === selectedLang);
 
   return (
-    <div className="relative group">
-      <button className="flex items-center space-x-2 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50">
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center space-x-2 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50"
+      >
         <Languages className="w-5 h-5" />
         <span className="text-lg leading-none">{selectedLanguage?.flag}</span>
       </button>
-      
-      <div className="absolute right-0 mt-1 w-64 bg-white rounded-lg shadow-lg py-2 z-50 border border-gray-100 transform transition-all duration-200 ease-out origin-top-right opacity-0 invisible group-hover:opacity-100 group-hover:visible">
+
+      {isOpen && (
+        <>
+          {/* Backdrop to close dropdown when clicking outside */}
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setIsOpen(false)}
+          />
+
+          <div className="absolute right-0 mt-1 w-64 bg-white rounded-lg shadow-lg py-2 z-50 border border-gray-100">
         {/* Search input */}
         <div className="px-3 pb-2">
           <div className="relative">
@@ -59,6 +71,7 @@ export function LanguageSelector({ onLanguageChange }: LanguageSelectorProps) {
                 onLanguageChange(lang.code);
                 setSelectedLang(lang.code);
                 setSearchQuery('');
+                setIsOpen(false);
               }}
               className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
             >
@@ -73,6 +86,8 @@ export function LanguageSelector({ onLanguageChange }: LanguageSelectorProps) {
           )}
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 } 

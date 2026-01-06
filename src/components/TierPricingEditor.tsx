@@ -17,6 +17,8 @@ import {
   Switch,
   Chip,
   Checkbox,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import AddIcon from '@mui/icons-material/Add';
@@ -29,6 +31,8 @@ interface PricingTier {
   id: string;
   name: string;
   price: string;
+  duration: string;
+  durationUnit: 'minutes' | 'hours' | 'days';
   description: string;
   features: string[];
   tierImage: File | null;
@@ -54,6 +58,8 @@ interface TierPricingEditorProps {
     pricingTiers?: Array<{
       name?: string;
       price?: string;
+      duration?: string;
+      durationUnit?: string;
       description?: string;
     }>;
   };
@@ -62,6 +68,8 @@ interface TierPricingEditorProps {
     pricingTiers?: Array<{
       name?: boolean;
       price?: boolean;
+      duration?: boolean;
+      durationUnit?: boolean;
       description?: boolean;
     }>;
   };
@@ -111,6 +119,8 @@ export const TierPricingEditor: React.FC<TierPricingEditorProps> = ({
       id: `tier-${Date.now()}`,
       name: `Tier ${pricingTiers.length + 1}`,
       price: '',
+      duration: '',
+      durationUnit: 'minutes',
       description: '',
       features: [],
       tierImage: null
@@ -259,7 +269,7 @@ export const TierPricingEditor: React.FC<TierPricingEditorProps> = ({
                     helperText={hasTierError(tierIndex, 'name') && tier.name !== '' ? getTierErrorMessage(tierIndex, 'name') : ''}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={3}>
                   <StyledTextField
                     label={
                       <span style={{ color: '#383A47' }}>
@@ -277,6 +287,77 @@ export const TierPricingEditor: React.FC<TierPricingEditorProps> = ({
                     error={hasTierError(tierIndex, 'price') && tier.price !== ''}
                     helperText={hasTierError(tierIndex, 'price') && tier.price !== '' ? getTierErrorMessage(tierIndex, 'price') : ''}
                   />
+                </Grid>
+                <Grid item xs={12} sm={3}>
+                  <Box>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        mb: 0.5, 
+                        color: '#383A47',
+                        fontSize: '0.875rem',
+                        fontWeight: 400
+                      }}
+                    >
+                      Duration <span style={{ color: '#000', fontSize: '1.2em', fontWeight: 'bold' }}>*</span>
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'flex-start' }}>
+                      <TextField
+                        placeholder="e.g., 60"
+                        value={tier.duration}
+                        onChange={(e) => {
+                          // Only allow numbers
+                          const value = e.target.value.replace(/[^0-9]/g, '');
+                          updateTierField(tierIndex, 'duration', value);
+                        }}
+                        sx={{
+                          flex: 1,
+                          '& .MuiOutlinedInput-root': {
+                            '& input[type=number]': {
+                              MozAppearance: 'textfield',
+                            },
+                            '& input[type=number]::-webkit-outer-spin-button': {
+                              WebkitAppearance: 'none',
+                              margin: 0,
+                            },
+                            '& input[type=number]::-webkit-inner-spin-button': {
+                              WebkitAppearance: 'none',
+                              margin: 0,
+                            },
+                          },
+                        }}
+                        inputProps={{
+                          inputMode: 'numeric',
+                          pattern: '[0-9]*',
+                        }}
+                        error={hasTierError(tierIndex, 'duration') && tier.duration !== ''}
+                        helperText={hasTierError(tierIndex, 'duration') && tier.duration !== '' ? getTierErrorMessage(tierIndex, 'duration') : ''}
+                      />
+                      <FormControl 
+                        sx={{ 
+                          minWidth: 100,
+                          '& .MuiOutlinedInput-root': {
+                            height: '56px',
+                          }
+                        }}
+                        error={hasTierError(tierIndex, 'duration') && tier.duration !== ''}
+                      >
+                        <Select
+                          value={tier.durationUnit || 'minutes'}
+                          onChange={(e) => updateTierField(tierIndex, 'durationUnit', e.target.value)}
+                          sx={{
+                            '& .MuiSelect-select': {
+                              py: 1.5,
+                            }
+                          }}
+                        >
+                          <MenuItem value="minutes">Mins</MenuItem>
+                          <MenuItem value="hours">Hours</MenuItem>
+                          <MenuItem value="days">Days</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Box>
+                  </Box>
                 </Grid>
                 <Grid item xs={12}>
                   <StyledTextField

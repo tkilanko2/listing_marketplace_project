@@ -4,9 +4,10 @@ import ConsentModal from '../components/ConsentModal';
 
 interface SignUpPageProps {
   onNavigateTo: (page: string) => void;
+  onSignup?: (email: string, password: string) => void;
 }
 
-export function SignUpPage({ onNavigateTo }: SignUpPageProps) {
+export function SignUpPage({ onNavigateTo, onSignup }: SignUpPageProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [country, setCountry] = useState('');
@@ -23,6 +24,13 @@ export function SignUpPage({ onNavigateTo }: SignUpPageProps) {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (onSignup && isFormValid) {
+      onSignup(email, password);
+    }
+  };
+
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-stretch bg-[#F8F8FA]">
       <div className="w-full lg:w-1/2 px-6 sm:px-10 lg:px-20 py-10 flex flex-col">
@@ -30,7 +38,7 @@ export function SignUpPage({ onNavigateTo }: SignUpPageProps) {
           <h1 className="text-3xl font-semibold text-[#1B1C20] mb-2">Sign up</h1>
           <p className="text-[#70727F] mb-8">Welcome! Please enter your details to get started.</p>
 
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm text-[#383A47] mb-1">Name</label>
               <input

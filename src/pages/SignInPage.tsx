@@ -3,14 +3,22 @@ import ConsentModal from '../components/ConsentModal';
 
 interface SignInPageProps {
   onNavigateTo: (page: string) => void;
+  onLogin?: (email: string, password: string) => void;
 }
 
-export function SignInPage({ onNavigateTo }: SignInPageProps) {
+export function SignInPage({ onNavigateTo, onLogin }: SignInPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [showConsent, setShowConsent] = useState(false);
   const [pendingProvider, setPendingProvider] = useState<'google' | 'facebook' | null>(null);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (onLogin) {
+      onLogin(email, password);
+    }
+  };
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-stretch bg-[#F8F8FA]">
@@ -19,7 +27,7 @@ export function SignInPage({ onNavigateTo }: SignInPageProps) {
           <h1 className="text-3xl font-semibold text-[#1B1C20] mb-2">Sign in</h1>
           <p className="text-[#70727F] mb-8">Welcome back! Please enter your details.</p>
 
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm text-[#383A47] mb-1">Email</label>
               <input
