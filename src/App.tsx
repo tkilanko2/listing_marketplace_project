@@ -60,6 +60,8 @@ import { SellerAppointmentDetailsModal, RescheduleBookingModal } from './compone
 import { NotificationsSettingsModal } from './components/NotificationsSettingsModal';
 import { ShopInformationModal } from './components/ShopInformationModal';
 import { ManageAccountModal } from './components/ManageAccountModal';
+import { TwoFactorAuthModal } from './components/TwoFactorAuthModal';
+import { ChangePasswordModal } from './components/ChangePasswordModal';
 import { Box, Typography } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -112,6 +114,13 @@ function App() {
 
   // Account management modal
   const [showManageAccountModal, setShowManageAccountModal] = useState(false);
+
+  // 2FA state
+  const [is2FAEnabled, setIs2FAEnabled] = useState(false);
+  const [show2FAModal, setShow2FAModal] = useState(false);
+
+  // Password change modal
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
 
   // Effect to handle highlighted product and show modal (moved to App level)
   useEffect(() => {
@@ -315,6 +324,14 @@ function App() {
   const handleLogout = () => {
     setIsAuthenticated(false);
     setUser(null);
+  };
+
+  // Password change handler
+  const handleChangePassword = (currentPassword: string, newPassword: string) => {
+    // Simulate password change
+    alert('Password changed successfully! For security, please sign in again with your new password.');
+    // In production, you would validate the current password and update to new password
+    // Then optionally log out the user to force re-authentication
   };
 
   // Account management handlers
@@ -5206,8 +5223,8 @@ function App() {
                         <h3 className="text-sm font-medium text-[#383A47]">Password</h3>
                       </div>
                       <p className="text-xs text-[#70727F] mb-2">Change your account password</p>
-                      <button 
-                        onClick={() => alert('Open Change Password Modal')}
+                      <button
+                        onClick={() => setShowChangePasswordModal(true)}
                         className="px-3 py-1.5 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
                       >
                         Change Password
@@ -5223,15 +5240,21 @@ function App() {
                         </div>
                         <label htmlFor="2fa-toggle" className="flex items-center cursor-pointer">
                           <div className="relative">
-                            <input type="checkbox" id="2fa-toggle" className="sr-only peer" defaultChecked />
+                            <input
+                              type="checkbox"
+                              id="2fa-toggle"
+                              className="sr-only peer"
+                              checked={is2FAEnabled}
+                              onChange={() => setShow2FAModal(true)}
+                            />
                             <div className="block bg-[#E8E9ED] w-10 h-5 rounded-full peer-checked:bg-[#3D1560]"></div>
                             <div className="dot absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform duration-300 ease-in-out transform peer-checked:translate-x-full"></div>
                           </div>
                         </label>
                       </div>
                       <p className="text-xs text-[#70727F] mb-2">Add an extra layer of security</p>
-                      <button 
-                        onClick={() => alert('Open 2FA Management Page')}
+                      <button
+                        onClick={() => setShow2FAModal(true)}
                         className="px-3 py-1.5 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
                       >
                         Manage 2FA
@@ -5769,6 +5792,21 @@ function App() {
         onDownloadData={handleDownloadData}
         onDeactivateAccount={handleDeactivateAccount}
         onDeleteAccount={handleDeleteAccount}
+      />
+
+      {/* Two-Factor Authentication Modal */}
+      <TwoFactorAuthModal
+        isOpen={show2FAModal}
+        onClose={() => setShow2FAModal(false)}
+        isEnabled={is2FAEnabled}
+        onToggle={setIs2FAEnabled}
+      />
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={showChangePasswordModal}
+        onClose={() => setShowChangePasswordModal(false)}
+        onChangePassword={handleChangePassword}
       />
       </div>
     </SellerPolicyProvider>
