@@ -59,6 +59,7 @@ import { SellerBookingDashboard } from './components/seller-bookings';
 import { SellerAppointmentDetailsModal, RescheduleBookingModal } from './components/seller-bookings';
 import { NotificationsSettingsModal } from './components/NotificationsSettingsModal';
 import { ShopInformationModal } from './components/ShopInformationModal';
+import { ManageAccountModal } from './components/ManageAccountModal';
 import { Box, Typography } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -108,6 +109,9 @@ function App() {
   const [showPaymentMethodsModal, setShowPaymentMethodsModal] = useState(false);
   const [profileEditFromSettings, setProfileEditFromSettings] = useState(false);
   const [profileBackToSettings, setProfileBackToSettings] = useState(false);
+
+  // Account management modal
+  const [showManageAccountModal, setShowManageAccountModal] = useState(false);
 
   // Effect to handle highlighted product and show modal (moved to App level)
   useEffect(() => {
@@ -311,6 +315,36 @@ function App() {
   const handleLogout = () => {
     setIsAuthenticated(false);
     setUser(null);
+  };
+
+  // Account management handlers
+  const handleDownloadData = () => {
+    setShowDownloadDataModal(false);
+    // Simulate data export request
+    alert('Data export requested. You\'ll receive an email when your data is ready to download.');
+  };
+
+  const handleDeactivateAccount = (password: string) => {
+    setShowDeactivateAccountModal(false);
+    // Simulate account deactivation
+    alert('Your account has been deactivated. You can reactivate it anytime by signing in.');
+    // Log out the user
+    setTimeout(() => {
+      handleLogout();
+    }, 2000);
+  };
+
+  const handleDeleteAccount = (password: string, reason: string, exportData: boolean) => {
+    setShowDeleteAccountModal(false);
+    // Simulate account deletion schedule
+    const message = exportData
+      ? 'Account deletion scheduled for 30 days from now. Data export will be sent to your email shortly.'
+      : 'Account deletion scheduled for 30 days from now. You can cancel this request anytime before then.';
+    alert(message);
+    // Log out the user
+    setTimeout(() => {
+      handleLogout();
+    }, 2000);
   };
 
   const handleHomeClick = () => {
@@ -767,15 +801,15 @@ function App() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center text-sm text-gray-500">
-              <span className="hover:text-blue-600 cursor-pointer">Home</span>
+              <span className="hover:text-[#3D1560] cursor-pointer">Home</span>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mx-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-              <span className="hover:text-blue-600 cursor-pointer">Account</span>
+              <span className="hover:text-[#3D1560] cursor-pointer">Account</span>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mx-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-              <span className="font-medium text-blue-600">Profile</span>
+              <span className="font-medium text-[#3D1560]">Profile</span>
             </div>
             {onBack && (
               <button
@@ -949,9 +983,9 @@ function App() {
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <button 
-                    type="button" 
-                    className="absolute bottom-0 right-0 bg-blue-600 text-white p-1.5 rounded-full shadow-md hover:bg-blue-700 transition-colors"
+                  <button
+                    type="button"
+                    className="absolute bottom-0 right-0 bg-gradient-to-r from-[#3D1560] to-[#6D26AB] text-white p-1.5 rounded-full shadow-md hover:shadow-lg hover:scale-110 transition-all"
                     onClick={handleUploadClick}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
@@ -996,8 +1030,8 @@ function App() {
                       <div className="p-4 bg-white">
                         <h3 className="text-lg font-medium text-gray-900">Profile Picture</h3>
                         <div className="mt-4 flex justify-end">
-                          <button 
-                            className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors flex items-center"
+                          <button
+                            className="px-3 py-1.5 bg-gradient-to-r from-[#3D1560] to-[#6D26AB] text-white text-sm rounded hover:shadow-lg transition-all flex items-center"
                             onClick={handleUploadClick}
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
@@ -1018,7 +1052,7 @@ function App() {
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
                   <h3 className="text-base font-medium text-gray-800 pb-2 mb-3 border-b border-gray-200">
                     <div className="flex items-center space-x-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-[#6D26AB]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                       <span>Contact Information</span>
@@ -1058,7 +1092,7 @@ function App() {
                         type="tel" 
                         id="phone" 
                         name="phone"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]"
                         value={formData.phone}
                         onChange={handleInputChange}
                       />
@@ -1069,7 +1103,7 @@ function App() {
                       <select 
                         id="language" 
                         name="language"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]"
                         value={formData.language}
                         onChange={handleInputChange}
                       >
@@ -1093,7 +1127,7 @@ function App() {
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
                   <h3 className="text-base font-medium text-gray-800 pb-2 mb-3 border-b border-gray-200">
                     <div className="flex items-center space-x-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-[#6D26AB]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
@@ -1107,7 +1141,7 @@ function App() {
                       <select 
                         id="currentLocation" 
                         name="currentLocation"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]"
                         value={formData.currentLocation}
                         onChange={handleInputChange}
                       >
@@ -1127,7 +1161,7 @@ function App() {
                           type="text" 
                           id="address.street" 
                           name="address.street"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]"
                           placeholder="e.g. 123 Main St, Apt 4B"
                           value={formData.address.street}
                           onChange={handleInputChange}
@@ -1141,7 +1175,7 @@ function App() {
                             type="text" 
                             id="address.city" 
                             name="address.city"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]"
                             value={formData.address.city}
                             onChange={handleInputChange}
                           />
@@ -1152,7 +1186,7 @@ function App() {
                             type="text" 
                             id="address.postalCode" 
                             name="address.postalCode"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]"
                             value={formData.address.postalCode}
                             onChange={handleInputChange}
                           />
@@ -1165,7 +1199,7 @@ function App() {
                           type="text" 
                           id="address.country" 
                           name="address.country"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]"
                           value={formData.address.country}
                           onChange={handleInputChange}
                         />
@@ -1178,7 +1212,7 @@ function App() {
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
                   <h3 className="text-base font-medium text-gray-800 pb-2 mb-3 border-b border-gray-200">
                     <div className="flex items-center space-x-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-[#6D26AB]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <span>Additional Information</span>
@@ -1195,7 +1229,7 @@ function App() {
                           <select 
                             id="primaryNationality"
                             name="primaryNationality"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]"
                             value={formData.primaryNationality}
                             onChange={handleInputChange}
                           >
@@ -1217,7 +1251,7 @@ function App() {
                           <select 
                             id="secondaryNationality"
                             name="secondaryNationality"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]"
                             value={formData.secondaryNationality}
                             onChange={handleInputChange}
                           >
@@ -1243,7 +1277,7 @@ function App() {
                         <div>
                           <label className="block text-sm text-gray-700 mb-1">Primary Tribe</label>
                           <select 
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]"
                             value={formData.tribes[0]}
                             onChange={(e) => handleTribeChange(0, e.target.value)}
                           >
@@ -1256,7 +1290,7 @@ function App() {
                         <div>
                           <label className="block text-sm text-gray-700 mb-1">Secondary Tribe (Optional)</label>
                           <select 
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]"
                             value={formData.tribes[1]}
                             onChange={(e) => handleTribeChange(1, e.target.value)}
                           >
@@ -1274,7 +1308,7 @@ function App() {
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
                   <h3 className="text-base font-medium text-gray-800 pb-2 mb-3 border-b border-gray-200">
                     <div className="flex items-center space-x-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-[#6D26AB]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                       </svg>
                       <span>Product/Service Interests</span>
@@ -1290,11 +1324,11 @@ function App() {
                           {formData.interests.map((interest) => {
                             const label = interestOptions.find(option => option.value === interest)?.label;
                             return (
-                              <div key={interest} className="bg-blue-100 text-blue-800 text-xs rounded-full px-3 py-1 flex items-center">
+                              <div key={interest} className="bg-[#F5EDFF] text-[#3D1560] text-xs rounded-full px-3 py-1 flex items-center">
                                 {label}
                                 <button 
                                   type="button" 
-                                  className="ml-1 text-blue-500 hover:text-blue-700"
+                                  className="ml-1 text-[#6D26AB] hover:text-blue-700"
                                   onClick={() => handleInterestToggle(interest)}
                                 >
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1315,7 +1349,7 @@ function App() {
                       <button
                         type="button"
                         onClick={() => setIsInterestDropdownOpen(!isInterestDropdownOpen)}
-                        className="w-full flex justify-between items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full flex justify-between items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#6D26AB]"
                       >
                         <span>Browse and select interests</span>
                         <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 text-gray-400 transform transition-transform ${isInterestDropdownOpen ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
@@ -1335,7 +1369,7 @@ function App() {
                           <div className="relative">
                             <input
                               type="text"
-                              className="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]"
                               placeholder="Search interests..."
                               value={interestSearch}
                               onChange={(e) => setInterestSearch(e.target.value)}
@@ -1385,9 +1419,9 @@ function App() {
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
-                  className="px-5 py-2 bg-blue-600 rounded-md text-white hover:bg-blue-700 transition-colors shadow-sm flex items-center"
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-gradient-to-r from-[#3D1560] to-[#6D26AB] rounded-md text-white hover:shadow-lg hover:scale-105 transition-all shadow-sm flex items-center font-medium"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -2569,7 +2603,7 @@ function App() {
             <div className="flex items-center">
               <span className="text-gray-500 text-sm mr-2">Specialization:</span>
               <div className="flex flex-wrap gap-1">
-                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">Beauty & Wellness</span>
+                <span className="bg-[#F5EDFF] text-[#3D1560] text-xs px-2 py-0.5 rounded-full">Beauty & Wellness</span>
                 <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full">Health Services</span>
                 <span className="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full">Home Decor</span>
               </div>
@@ -2625,7 +2659,7 @@ function App() {
                     <div>
                       <p className="text-sm text-gray-500">Specialization</p>
                       <div className="flex flex-wrap gap-2 mt-1">
-                        <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Beauty & Wellness</span>
+                        <span className="bg-[#F5EDFF] text-[#3D1560] text-xs px-2 py-1 rounded-full">Beauty & Wellness</span>
                         <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Health Services</span>
                         <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">Home Decor</span>
                       </div>
@@ -2809,7 +2843,7 @@ function App() {
                 <input 
                   type="text" 
                   placeholder="Search listings..." 
-                  className="border border-gray-300 rounded-md pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                  className="border border-gray-300 rounded-md pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6D26AB] focus:border-blue-500" 
                 />
                 <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
               </div>
@@ -2853,7 +2887,7 @@ function App() {
               
               {/* Status filter on the same row as tabs */}
               <div className="relative">
-                <select className="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <select className="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6D26AB] focus:border-blue-500">
                   <option>All Status</option>
                   <option>Live</option>
                   <option>Draft</option>
@@ -4244,7 +4278,7 @@ function App() {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
                         <input 
                           type="text" 
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]"
                           placeholder="e.g., Sony, Apple, etc."
                         />
                       </div>
@@ -4252,7 +4286,7 @@ function App() {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Model</label>
                         <input 
                           type="text" 
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]"
                           placeholder="e.g., iPhone 13, Galaxy S21, etc."
                         />
                       </div>
@@ -4261,7 +4295,7 @@ function App() {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
                         <input 
                           type="text" 
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]"
                           placeholder="e.g., Black, Red, Blue, etc."
                         />
                       </div>
@@ -4269,7 +4303,7 @@ function App() {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
                         <input 
                           type="text" 
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]"
                           placeholder="e.g., Small, Medium, Large, etc."
                         />
                       </div>
@@ -4278,13 +4312,13 @@ function App() {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Material</label>
                         <input 
                           type="text" 
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]"
                           placeholder="e.g., Plastic, Metal, Wood, etc."
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Condition</label>
-                        <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]">
                           <option>New</option>
                           <option>Used - Like New</option>
                           <option>Used - Good</option>
@@ -4297,7 +4331,7 @@ function App() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Specifications</label>
                       <textarea 
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]"
                         rows={4}
                         placeholder="Enter product specifications, features, and other details"
                       ></textarea>
@@ -4310,7 +4344,7 @@ function App() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Service Type</label>
-                        <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]">
                           <option>One-time</option>
                           <option>Recurring</option>
                           <option>Subscription</option>
@@ -4321,11 +4355,11 @@ function App() {
                         <div className="flex items-center space-x-2">
                           <input 
                             type="number" 
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]"
                             placeholder="e.g., 60"
                             defaultValue={listing.name.includes('Haircut') ? '60' : '90'}
                           />
-                          <select className="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                          <select className="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]">
                             <option>Minutes</option>
                             <option>Hours</option>
                             <option>Days</option>
@@ -4335,7 +4369,7 @@ function App() {
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                        <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" defaultValue={listing.location === 'In-store only' ? 'in-store' : 'online'}>
+                        <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]" defaultValue={listing.location === 'In-store only' ? 'in-store' : 'online'}>
                           <option value="in-store">In Store Only</option>
                           <option value="online">Online</option>
                           <option value="both">Both In Store & Online</option>
@@ -4344,7 +4378,7 @@ function App() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Availability</label>
-                        <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]">
                           <option>Weekdays Only</option>
                           <option>Weekends Only</option>
                           <option>All Week</option>
@@ -4356,7 +4390,7 @@ function App() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Requirements/Prerequisites</label>
                       <textarea 
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6D26AB]"
                         rows={4}
                         placeholder="Enter any requirements or prerequisites for customers"
                       ></textarea>
@@ -5225,9 +5259,9 @@ function App() {
                         <Settings className="h-4 w-4 mr-2 text-[#3D1560]" />
                         <h3 className="text-sm font-medium text-[#383A47]">Manage Account</h3>
                       </div>
-                      <p className="text-xs text-[#70727F] mb-2">Account management options</p>
-                      <button 
-                        onClick={() => alert('Navigate to Account Management Page')}
+                      <p className="text-xs text-[#70727F] mb-2">Download your data, deactivate, or delete your account</p>
+                      <button
+                        onClick={() => setShowManageAccountModal(true)}
                         className="px-3 py-1.5 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
                       >
                         Manage
@@ -5726,6 +5760,15 @@ function App() {
           businessHours: 'Mon-Fri: 9AM-6PM',
           specializations: ['Beauty & Wellness', 'Health Services', 'Home Decor']
         }}
+      />
+
+      {/* Account Management Modal */}
+      <ManageAccountModal
+        isOpen={showManageAccountModal}
+        onClose={() => setShowManageAccountModal(false)}
+        onDownloadData={handleDownloadData}
+        onDeactivateAccount={handleDeactivateAccount}
+        onDeleteAccount={handleDeleteAccount}
       />
       </div>
     </SellerPolicyProvider>
