@@ -3651,6 +3651,8 @@ function App() {
   // Seller Dashboard Settings placeholder
   const SellerDashboardSettings = () => {
     const [autoConfirmBookings, setAutoConfirmBookings] = useState(false);
+    const [identityVerificationStatus, setIdentityVerificationStatus] = useState<'not_started' | 'pending' | 'verified'>('not_started');
+    const [proofOfAddressStatus, setProofOfAddressStatus] = useState<'not_started' | 'pending' | 'verified'>('not_started');
     
     return (
     <PlaceholderPage title="Seller Settings">
@@ -3755,40 +3757,80 @@ function App() {
               </h2>
             </div>
             <div className="p-6">
-              <div className="space-y-4">
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <h3 className="text-md font-medium text-[#383A47]">Identity Verification</h3>
-                      <p className="text-sm text-[#70727F]">Government-issued ID verification</p>
-                    </div>
-                    <span className="px-2 py-1 text-xs bg-[#FFE5ED] text-[#DF678C] rounded-full">Not Started</span>
+              <div className="grid grid-cols-2 gap-4">
+                {/* Identity Verification */}
+                <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED]">
+                  <h3 className="text-sm font-medium text-[#383A47] mb-2">
+                    Identity Verification
+                  </h3>
+                  <p className="text-xs text-[#70727F] mb-3">
+                    Government-issued ID verification
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      identityVerificationStatus === 'verified' 
+                        ? 'bg-[#E8F5E9] text-[#4CAF50]'
+                        : identityVerificationStatus === 'pending'
+                        ? 'bg-[#FFF8DD] text-[#DAA520]'
+                        : 'bg-[#FFE5ED] text-[#DF678C]'
+                    }`}>
+                      {identityVerificationStatus === 'verified' ? 'Verified' : 
+                       identityVerificationStatus === 'pending' ? 'Pending' : 'Not Started'}
+                    </span>
+                    {identityVerificationStatus !== 'verified' && identityVerificationStatus !== 'pending' && (
+                      <button
+                        onClick={() => {
+                          // Check if mobile or desktop
+                          const isMobile = window.innerWidth < 768;
+                          
+                          if (isMobile) {
+                            // Show QR code for mobile
+                            alert('Please scan the QR code to complete identity verification.\n\nURL: https://verify.expats.com');
+                          } else {
+                            // Open external verification in new tab
+                            window.open('https://verify.expats.com', '_blank');
+                          }
+                        }}
+                        className="px-2.5 py-1 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
+                      >
+                        Verify
+                      </button>
+                    )}
                   </div>
-                  {(() => {
-                    const kycStatus = "Not Started"; // This would come from state/API
-                    if (kycStatus !== "Pending") {
-                      return (
-                        <button
-                          onClick={() => {
-                            // Check if mobile or desktop
-                            const isMobile = window.innerWidth < 768;
-                            
-                            if (isMobile) {
-                              // Show QR code for mobile
-                              alert('Please scan the QR code to complete identity verification.\n\nURL: https://verify.expats.com');
-                            } else {
-                              // Open external verification in new tab
-                              window.open('https://verify.expats.com', '_blank');
-                            }
-                          }}
-                          className="px-3 py-1.5 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
-                        >
-                          Verify Identity
-                        </button>
-                      );
-                    }
-                    return null;
-                  })()}
+                </div>
+
+                {/* Proof of Address */}
+                <div className="bg-[#F8F8FA] rounded-lg p-4 border border-[#E8E9ED] flex flex-col">
+                  <h3 className="text-sm font-medium text-[#383A47] mb-2">
+                    Proof of Address
+                  </h3>
+                  <p className="text-xs text-[#70727F] mb-3">
+                    Utility bill or bank statement
+                  </p>
+                  <div className="flex items-center justify-between mt-auto">
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      proofOfAddressStatus === 'verified' 
+                        ? 'bg-[#E8F5E9] text-[#4CAF50]'
+                        : proofOfAddressStatus === 'pending'
+                        ? 'bg-[#FFF8DD] text-[#DAA520]'
+                        : 'bg-[#FFE5ED] text-[#DF678C]'
+                    }`}>
+                      {proofOfAddressStatus === 'verified' ? 'Verified' : 
+                       proofOfAddressStatus === 'pending' ? 'Pending' : 'Not Started'}
+                    </span>
+                    {proofOfAddressStatus !== 'verified' && proofOfAddressStatus !== 'pending' && (
+                      <button
+                        onClick={() => {
+                          // Open proof of address upload modal or page
+                          alert('Proof of Address upload will open here.\n\nAcceptable documents:\n- Utility bill\n- Bank statement\n- Government-issued document\n\nMust be dated within last 3 months.');
+                          // TODO: Open upload modal or navigate to upload page
+                        }}
+                        className="px-2.5 py-1 text-xs bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] active:bg-[#9B53D9] transition-all font-medium shadow-sm"
+                      >
+                        Upload
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
