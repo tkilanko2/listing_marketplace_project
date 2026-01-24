@@ -1,0 +1,17 @@
+id,name,icon,description,tab,faqCount,hasSubcategories,subcategories
+getting-started,Getting Started,Rocket,Learn how to create an account and get started,general,5,false,
+account-security,Account & Security,Shield,Manage your account settings and security,general,6,false,
+payments-billing,Payments & Billing,CreditCard,Payment methods transactions and billing,general,8,true,"Payment Methods,Refunds,Transaction History,Billing Questions"
+platform-features,Platform Features,Settings,Learn about platform features and tools,general,7,false,
+safety-trust,Safety & Trust,ShieldCheck,Platform safety reporting and trust,general,5,false,
+booking-services,Booking Services,Calendar,How to book and manage service appointments,general,9,true,"How to Book,Rescheduling,Cancellations,Service Delivery"
+placing-orders,Placing Orders,ShoppingBag,Ordering products and checkout process,general,7,false,
+payments-refunds-buyer,Payments & Refunds,CreditCard,Payment methods and refund process for buyers,general,8,true,"Payment Methods,Refund Process,Payment Issues"
+reviews-ratings,Reviews & Ratings,Star,How to leave reviews and rate providers,general,5,false,
+communication-buyer,Communication,MessageCircle,Messaging sellers and contacting support,general,4,false,
+getting-started-seller,Getting Started as a Seller,Store,Seller registration and setup,seller,6,false,
+managing-listings,Managing Listings,FileText,Create and manage your service and product listings,seller,12,true,"Service Listings,Product Listings,Pricing & Tiers,Availability"
+orders-bookings-seller,Orders & Bookings,Package,Manage orders bookings and fulfillment,seller,10,true,"Managing Bookings,Order Fulfillment,Shipping & Tracking,Cancellations"
+payments-earnings,Payments & Earnings,DollarSign,Payouts fees and financial information,seller,14,true,"Payouts,Fees,Bank Setup,Tax Information"
+seller-tools,Seller Tools,BarChart3,Analytics insights and seller tools,seller,6,false,
+seller-policies,Seller Policies,FileCheck,Seller terms policies and guidelines,seller,7,false,

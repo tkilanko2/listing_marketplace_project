@@ -37,7 +37,8 @@ import {
 import { Order, OrderStatus } from '../types';
 import { OrderStatusTimeline } from '../components/OrderStatusTimeline';
 import { ReviewModal } from '../components/ReviewModal';
-import { getBookingTransactionHistory, FinancialTransaction } from '../mockData';
+import { getBookingTransactionHistory, FinancialTransaction, addSupportTicket } from '../mockData';
+import { ContactSupportModal } from '../components/ContactSupportModal';
 
 // Extended Order interface to include customer for booking context
 interface BookingOrder extends Order {
@@ -66,6 +67,9 @@ interface SellerBookingDetailsPageProps {
   }) => void;
   onConfirmBooking?: (bookingId: string) => void;
   onDeclineBooking?: (bookingId: string, reason?: string) => void;
+  onNavigate?: (page: string) => void;
+  userEmail?: string;
+  userId?: string;
 }
 
 interface SellerPaymentBreakdown {
@@ -280,7 +284,10 @@ export function SellerBookingDetailsPage({
   onNavigateToService,
   onNavigateToMessages,
   onConfirmBooking,
-  onDeclineBooking
+  onDeclineBooking,
+  onNavigate,
+  userEmail,
+  userId
 }: SellerBookingDetailsPageProps) {
   console.log('🔍 SellerBookingDetailsPage - Rendering with booking:', booking);
   
@@ -313,6 +320,7 @@ export function SellerBookingDetailsPage({
   const [bookingConfirmationOpen, setBookingConfirmationOpen] = useState(false);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [openTransactionMenu, setOpenTransactionMenu] = useState<string | null>(null);
+  const [contactSupportOpen, setContactSupportOpen] = useState(false);
 
   // Get transaction history for this booking
   const transactionHistory = getBookingTransactionHistory(booking.id);
@@ -1561,14 +1569,24 @@ export function SellerBookingDetailsPage({
             <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
               <h3 className="text-lg font-semibold text-[#1B1C20] mb-3">Support & Resources</h3>
               <div className="space-y-2.5">
-                <button className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE] gap-2.5">
+                <button 
+                  onClick={() => setContactSupportOpen(true)}
+                  className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE] gap-2.5"
+                >
                     <MessageCircle className="w-4 h-4" />
                   Contact Support
                   </button>
-                <button className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE] gap-2.5">
+                <button 
+                  onClick={() => {
+                    if (onNavigate) {
+                      onNavigate('help?seller');
+                    }
+                  }}
+                  className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE] gap-2.5"
+                >
                   <FileText className="w-4 h-4" /> 
                   Seller Help Center
-                  </button>
+                </button>
                 <button className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE] gap-2.5">
                   <Shield className="w-4 h-4" />
                   Seller Protection
@@ -1762,6 +1780,26 @@ export function SellerBookingDetailsPage({
         revieweeName={formatCustomerName(customerInfo.name)}
         serviceName={booking.service?.name}
         bookingId={booking.id}
+      />
+
+      {/* Contact Support Modal */}
+      <ContactSupportModal
+        isOpen={contactSupportOpen}
+        onClose={() => setContactSupportOpen(false)}
+        onSubmit={(ticketData) => {
+          addSupportTicket(ticketData);
+          alert('Support ticket submitted successfully! Our team will get back to you soon.');
+        }}
+        userEmail={userEmail}
+        userId={userId}
+        userRole="seller"
+        context={{
+          type: 'booking',
+          bookingId: booking.id,
+          listingId: booking.service?.id,
+          listingName: booking.service?.name
+        }}
+        onNavigate={onNavigate}
       />
     </div>
   );

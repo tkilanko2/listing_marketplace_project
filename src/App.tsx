@@ -62,6 +62,7 @@ import { ShopInformationModal } from './components/ShopInformationModal';
 import { ManageAccountModal } from './components/ManageAccountModal';
 import { TwoFactorAuthModal } from './components/TwoFactorAuthModal';
 import { ChangePasswordModal } from './components/ChangePasswordModal';
+import { HelpCenterPage } from './pages/HelpCenterPage';
 import { Box, Typography } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -96,6 +97,7 @@ function App() {
     sellerId: string;
   } | null>(null);
   const [startNewThread, setStartNewThread] = useState(false);
+  const [helpTab, setHelpTab] = useState<'general' | 'seller'>('general');
   
   // State for My Shop modal (moved to App level to persist across navigation)
   const [showMyShopModal, setShowMyShopModal] = useState(false);
@@ -395,7 +397,19 @@ function App() {
 
   // Handler for sidebar navigation
   const handleNavigate = (page: string) => {
-    setCurrentPage(page as any);
+    // Handle help center with tab parameter (e.g., 'help?seller')
+    if (page.startsWith('help')) {
+      const params = new URLSearchParams(page.split('?')[1] || '');
+      const tab = params.get('tab') as 'general' | 'seller' | null;
+      if (tab && ['general', 'seller'].includes(tab)) {
+        setHelpTab(tab);
+      } else {
+        setHelpTab('general'); // Default to general for buyers or invalid tabs
+      }
+      setCurrentPage('help');
+    } else {
+      setCurrentPage(page as any);
+    }
     // Reset order action and selected order when navigating to myOrders
     if (page === 'myOrders') {
       setOrderAction(null);
@@ -4865,11 +4879,11 @@ function App() {
         )}
 
         {currentPage === 'signin' && (
-          <SignInPage onNavigateTo={handleNavigate} />
+          <SignInPage onNavigateTo={handleNavigate} onLogin={handleLogin} />
         )}
 
         {currentPage === 'signup' && (
-          <SignUpPage onNavigateTo={handleNavigate} />
+          <SignUpPage onNavigateTo={handleNavigate} onSignup={handleSignup} />
         )}
         
         {currentPage === 'serviceDetails' && selectedListing?.type === 'service' && (
@@ -4996,6 +5010,8 @@ function App() {
                   onNavigateToMyBookings={() => setCurrentPage('myBookings')}
                   onNavigateToMessages={handleNavigateToMessages}
                   onNavigate={handleNavigate}
+                  userEmail={user?.email}
+                  userId={user?.userId}
                 />
               );
             } else {
@@ -5014,6 +5030,8 @@ function App() {
                     }
                   }}
                   onNavigate={handleNavigate}
+                  userEmail={user?.email}
+                  userId={user?.userId}
                 />
               );
             }
@@ -5068,6 +5086,8 @@ function App() {
           <SellerOrderDetailsPage 
             order={selectedSellerOrder}
             onBack={handleBackToSellerOrders}
+            userEmail={user?.email}
+            userId={user?.userId}
             onNavigateToListing={(listingId) => {
               console.log('🚀 Navigate to listing:', listingId);
               // Set the product to highlight and show details for
@@ -5078,6 +5098,7 @@ function App() {
               console.log('📍 Navigated to sellerDashboard_myShop');
             }}
             onNavigateToMessages={handleNavigateToMessages}
+            onNavigate={handleNavigate}
           />
         )}
 
@@ -5093,6 +5114,9 @@ function App() {
             userRegion="US"
             selectedServiceMode="at_seller"
             onNavigateToMessages={handleNavigateToMessages}
+            onNavigate={handleNavigate}
+            userEmail={user?.email}
+            userId={user?.userId}
           />
         )}
 
@@ -5146,6 +5170,18 @@ function App() {
 
         {currentPage === 'privacyPolicy' && (
           <PrivacyPolicyPage onBack={() => handleNavigate('signup')} />
+        )}
+
+        {currentPage === 'help' && (
+          <HelpCenterPage
+            initialTab={helpTab}
+            onBack={() => {
+              // Navigate back to previous page or landing
+              const previousPage = window.history.state?.previousPage || 'landing';
+              handleNavigate(previousPage);
+            }}
+            onNavigate={handleNavigate}
+          />
         )}
 
         {currentPage === 'settings' && (

@@ -40,6 +40,8 @@ import {
 } from 'lucide-react';
 import { Order, ActivityLogEntry, OrderStatus } from '../types';
 import { OrderStatusTimeline } from '../components/OrderStatusTimeline';
+import { ContactSupportModal } from '../components/ContactSupportModal';
+import { addSupportTicket } from '../mockData';
 
 interface SellerOrderDetailsPageProps {
   order: Order;
@@ -52,6 +54,9 @@ interface SellerOrderDetailsPageProps {
     sellerName: string;
     sellerId: string;
   }) => void;
+  onNavigate?: (page: string) => void;
+  userEmail?: string;
+  userId?: string;
 }
 
 interface SellerPaymentBreakdown {
@@ -295,7 +300,7 @@ const AddNotesModal: React.FC<AddNotesModalProps> = ({
   );
 };
 
-export function SellerOrderDetailsPage({ order, onBack, onNavigateToListing, onNavigateToMessages }: SellerOrderDetailsPageProps) {
+export function SellerOrderDetailsPage({ order, onBack, onNavigateToListing, onNavigateToMessages, onNavigate, userEmail, userId }: SellerOrderDetailsPageProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'earnings' | 'activity'>('details');
   const [trackingDetailsOpen, setTrackingDetailsOpen] = useState(false);
   const [addTrackingOpen, setAddTrackingOpen] = useState(false);
@@ -1385,11 +1390,21 @@ export function SellerOrderDetailsPage({ order, onBack, onNavigateToListing, onN
             <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
               <h3 className="text-lg font-semibold text-[#1B1C20] mb-3">Support & Resources</h3>
               <div className="space-y-2.5">
-                <button className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE] gap-2.5">
+                <button 
+                  onClick={() => setContactSupportOpen(true)}
+                  className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE] gap-2.5"
+                >
                   <MessageCircle className="w-4 h-4" /> 
                   Contact Support
                 </button>
-                <button className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE] gap-2.5">
+                <button 
+                  onClick={() => {
+                    if (onNavigate) {
+                      onNavigate('help?seller');
+                    }
+                  }}
+                  className="w-full flex items-center text-sm text-[#3D1560] hover:text-[#6D26AB] transition-colors p-3 rounded-md hover:bg-[#EDD9FF] border border-transparent hover:border-[#D0B0EE] gap-2.5"
+                >
                   <FileText className="w-4 h-4" /> 
                   Seller Help Center
                 </button>
@@ -1480,6 +1495,26 @@ export function SellerOrderDetailsPage({ order, onBack, onNavigateToListing, onN
           </div>
         </div>
       )}
+
+      {/* Contact Support Modal */}
+      <ContactSupportModal
+        isOpen={contactSupportOpen}
+        onClose={() => setContactSupportOpen(false)}
+        onSubmit={(ticketData) => {
+          addSupportTicket(ticketData);
+          alert('Support ticket submitted successfully! Our team will get back to you soon.');
+        }}
+        userEmail={userEmail}
+        userId={userId}
+        userRole="seller"
+        context={{
+          type: 'order',
+          orderId: order.id,
+          listingId: order.items?.[0]?.product.id,
+          listingName: order.items?.[0]?.product.name
+        }}
+        onNavigate={onNavigate}
+      />
     </div>
   );
 }

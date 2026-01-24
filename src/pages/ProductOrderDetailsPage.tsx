@@ -31,11 +31,14 @@ import {
   Clock,
   Home,
   Info,
-  Copy
+  Copy,
+  HelpCircle
 } from 'lucide-react';
 import { Order } from '../types';
 import SellerTermsModal from '../components/SellerTermsModal';
 import { OrderStatusTimeline } from '../components/OrderStatusTimeline';
+import { ContactSupportModal } from '../components/ContactSupportModal';
+import { addSupportTicket } from '../mockData';
 
 interface ProductOrderDetailsPageProps {
   order: Order;
@@ -43,6 +46,8 @@ interface ProductOrderDetailsPageProps {
   userRegion?: 'US' | 'EU' | 'UK'; // For tax calculation display
   onNavigateToProduct?: (productId: string) => void; // For buyer navigation to product details
   onNavigate?: (page: string) => void; // General navigation
+  userEmail?: string;
+  userId?: string;
 }
 
 interface PaymentBreakdown {
@@ -54,7 +59,7 @@ interface PaymentBreakdown {
   total: number;
 }
 
-export function ProductOrderDetailsPage({ order, onBack, userRegion = 'US', onNavigateToProduct, onNavigate }: ProductOrderDetailsPageProps) {
+export function ProductOrderDetailsPage({ order, onBack, userRegion = 'US', onNavigateToProduct, onNavigate, userEmail, userId }: ProductOrderDetailsPageProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'payment' | 'activity'>('details');
   const [trackingDetailsOpen, setTrackingDetailsOpen] = useState(false);
   const [productTermsOpen, setProductTermsOpen] = useState(false);
@@ -907,11 +912,23 @@ export function ProductOrderDetailsPage({ order, onBack, userRegion = 'US', onNa
              <div className="bg-[#FFFFFF] rounded-lg shadow-sm border border-[#E8E9ED] p-6">
                <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Need Help?</h3>
                <div className="space-y-3">
-                 <button className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-[#CDCED8] text-[#383A47] hover:bg-[#E8E9ED] transition-colors duration-200 text-sm">
-                   <Shield className="w-4 h-4" />
+                 <button 
+                   onClick={() => setContactSupportOpen(true)}
+                   className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] transition-colors duration-200 text-sm font-medium shadow-sm hover:shadow-md"
+                 >
+                   <MessageCircle className="w-4 h-4" />
                    Contact Support
                  </button>
-                 <button className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-[#CDCED8] text-[#383A47] hover:bg-[#E8E9ED] transition-colors duration-200 text-sm">
+                 <button 
+                   onClick={() => {
+                     if (onNavigate) {
+                       onNavigate('help');
+                     } else {
+                       window.open('https://help.expatray.com', '_blank');
+                     }
+                   }}
+                   className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-[#CDCED8] text-[#383A47] hover:bg-[#E8E9ED] transition-colors duration-200 text-sm"
+                 >
                    <ExternalLink className="w-4 h-4" />
                    Help Center
                  </button>
@@ -931,6 +948,26 @@ export function ProductOrderDetailsPage({ order, onBack, userRegion = 'US', onNa
         serviceName={order.items?.[0]?.product.name || 'Product'}
         providerName={order.items?.[0]?.product.seller?.name || 'Seller'}
         serviceType="product"
+        onNavigate={onNavigate}
+      />
+
+      {/* Contact Support Modal */}
+      <ContactSupportModal
+        isOpen={contactSupportOpen}
+        onClose={() => setContactSupportOpen(false)}
+        onSubmit={(ticketData) => {
+          addSupportTicket(ticketData);
+          alert('Support ticket submitted successfully! Our team will get back to you soon.');
+        }}
+        userEmail={userEmail}
+        userId={userId}
+        userRole="buyer"
+        context={{
+          type: 'order',
+          orderId: order.id,
+          listingId: order.items?.[0]?.product.id,
+          listingName: order.items?.[0]?.product.name
+        }}
         onNavigate={onNavigate}
       />
     </div>

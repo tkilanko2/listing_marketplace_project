@@ -124,6 +124,53 @@ export interface Service extends BaseItem {
   reviews: Review[];
 }
 
+export interface SupportTicket {
+  id: string;
+  userId?: string;
+  userEmail: string;
+  userRole: 'buyer' | 'seller';
+  subject: string;
+  category: string;
+  message: string;
+  attachments: File[];
+  context?: {
+    type: 'booking' | 'order' | 'listing' | 'general';
+    bookingId?: string;
+    orderId?: string;
+    listingId?: string;
+    listingName?: string;
+  };
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface FAQItem {
+  id: string;
+  question: string;
+  answer: string;
+  category: string;
+  subcategory?: string;
+  tags: string[];
+  tab: 'general' | 'seller';
+  views?: number;
+  helpful?: number;
+  notHelpful?: number;
+  related?: string[]; // FAQ IDs
+  createdAt?: Date;
+}
+
+export interface FAQCategory {
+  id: string;
+  name: string;
+  icon: string; // Icon name from lucide-react
+  description: string;
+  tab: 'general' | 'seller';
+  subcategories?: string[];
+  faqCount: number;
+  hasSubcategories: boolean;
+}
+
 export interface Product extends BaseItem {
   type: 'product';
   condition: 'new' | 'used' | 'refurbished';

@@ -3716,5 +3716,1713 @@ export const mockPayoutRecords: PayoutRecord[] = (() => {
   return payouts;
 })();
 
+// ========================================
+// SUPPORT TICKETS STORAGE
+// ========================================
+
+import { SupportTicket } from './types';
+
+// In-memory storage for support tickets
+export const supportTickets: SupportTicket[] = [];
+
+// Function to add a new support ticket
+export function addSupportTicket(ticketData: Omit<SupportTicket, 'id' | 'status' | 'createdAt' | 'updatedAt'>): SupportTicket {
+  const newTicket: SupportTicket = {
+    ...ticketData,
+    id: `TICKET-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    status: 'open',
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+  
+  supportTickets.push(newTicket);
+  console.log('✅ Support ticket created:', newTicket);
+  return newTicket;
+}
+
+// Function to get all support tickets
+export function getAllSupportTickets(): SupportTicket[] {
+  return [...supportTickets];
+}
+
+// Function to get support tickets by user
+export function getSupportTicketsByUser(userId?: string, userEmail?: string): SupportTicket[] {
+  return supportTickets.filter(ticket => 
+    (userId && ticket.userId === userId) || 
+    (userEmail && ticket.userEmail === userEmail)
+  );
+}
+
+// Function to get support tickets by status
+export function getSupportTicketsByStatus(status: SupportTicket['status']): SupportTicket[] {
+  return supportTickets.filter(ticket => ticket.status === status);
+}
+
+// ========================================
+// FAQ DATA STRUCTURES & EXPORTS
+// ========================================
+
+import { FAQItem, FAQCategory } from './types';
+
+// FAQ Categories with sub-categories where applicable
+export const faqCategories: FAQCategory[] = [
+  // General Tab Categories
+  {
+    id: 'getting-started',
+    name: 'Getting Started',
+    icon: 'Rocket',
+    description: 'Learn how to create an account and get started',
+    tab: 'general',
+    faqCount: 5,
+    hasSubcategories: false
+  },
+  {
+    id: 'account-security',
+    name: 'Account & Security',
+    icon: 'Shield',
+    description: 'Manage your account settings and security',
+    tab: 'general',
+    faqCount: 6,
+    hasSubcategories: false
+  },
+  {
+    id: 'payments-billing',
+    name: 'Payments & Billing',
+    icon: 'CreditCard',
+    description: 'Payment methods, transactions, and billing',
+    tab: 'general',
+    faqCount: 8,
+    hasSubcategories: true,
+    subcategories: ['Payment Methods', 'Refunds', 'Transaction History', 'Billing Questions']
+  },
+  {
+    id: 'platform-features',
+    name: 'Platform Features',
+    icon: 'Settings',
+    description: 'Learn about platform features and tools',
+    tab: 'general',
+    faqCount: 7,
+    hasSubcategories: false
+  },
+  {
+    id: 'safety-trust',
+    name: 'Safety & Trust',
+    icon: 'ShieldCheck',
+    description: 'Platform safety, reporting, and trust',
+    tab: 'general',
+    faqCount: 5,
+    hasSubcategories: false
+  },
+  
+  // Buyer Categories (merged into General)
+  {
+    id: 'booking-services',
+    name: 'Booking Services',
+    icon: 'Calendar',
+    description: 'How to book and manage service appointments',
+    tab: 'general',
+    faqCount: 9,
+    hasSubcategories: true,
+    subcategories: ['How to Book', 'Rescheduling', 'Cancellations', 'Service Delivery']
+  },
+  {
+    id: 'placing-orders',
+    name: 'Placing Orders',
+    icon: 'ShoppingBag',
+    description: 'Ordering products and checkout process',
+    tab: 'general',
+    faqCount: 7,
+    hasSubcategories: false
+  },
+  {
+    id: 'payments-refunds-buyer',
+    name: 'Payments & Refunds',
+    icon: 'CreditCard',
+    description: 'Payment methods and refund process for buyers',
+    tab: 'general',
+    faqCount: 8,
+    hasSubcategories: true,
+    subcategories: ['Payment Methods', 'Refund Process', 'Payment Issues']
+  },
+  {
+    id: 'reviews-ratings',
+    name: 'Reviews & Ratings',
+    icon: 'Star',
+    description: 'How to leave reviews and rate providers',
+    tab: 'general',
+    faqCount: 5,
+    hasSubcategories: false
+  },
+  {
+    id: 'communication-buyer',
+    name: 'Communication',
+    icon: 'MessageCircle',
+    description: 'Messaging sellers and contacting support',
+    tab: 'general',
+    faqCount: 4,
+    hasSubcategories: false
+  },
+  
+  // Seller Tab Categories
+  {
+    id: 'getting-started-seller',
+    name: 'Getting Started as a Seller',
+    icon: 'Store',
+    description: 'Seller registration and setup',
+    tab: 'seller',
+    faqCount: 6,
+    hasSubcategories: false
+  },
+  {
+    id: 'managing-listings',
+    name: 'Managing Listings',
+    icon: 'FileText',
+    description: 'Create and manage your service and product listings',
+    tab: 'seller',
+    faqCount: 12,
+    hasSubcategories: true,
+    subcategories: ['Service Listings', 'Product Listings', 'Pricing & Tiers', 'Availability']
+  },
+  {
+    id: 'orders-bookings-seller',
+    name: 'Orders & Bookings',
+    icon: 'Package',
+    description: 'Manage orders, bookings, and fulfillment',
+    tab: 'seller',
+    faqCount: 10,
+    hasSubcategories: true,
+    subcategories: ['Managing Bookings', 'Order Fulfillment', 'Shipping & Tracking', 'Cancellations']
+  },
+  {
+    id: 'payments-earnings',
+    name: 'Payments & Earnings',
+    icon: 'DollarSign',
+    description: 'Payouts, fees, and financial information',
+    tab: 'seller',
+    faqCount: 14,
+    hasSubcategories: true,
+    subcategories: ['Payouts', 'Fees', 'Bank Setup', 'Tax Information']
+  },
+  {
+    id: 'seller-tools',
+    name: 'Seller Tools',
+    icon: 'BarChart3',
+    description: 'Analytics, insights, and seller tools',
+    tab: 'seller',
+    faqCount: 6,
+    hasSubcategories: false
+  },
+  {
+    id: 'seller-policies',
+    name: 'Seller Policies',
+    icon: 'FileCheck',
+    description: 'Seller terms, policies, and guidelines',
+    tab: 'seller',
+    faqCount: 7,
+    hasSubcategories: false
+  }
+];
+
+// FAQ Items - Initial Content
+export const mockFAQs: FAQItem[] = [
+  // ========== GENERAL TAB ==========
+  
+  // Getting Started
+  {
+    id: 'faq-gen-001',
+    question: 'How do I create an account?',
+    answer: 'To create an account, click on "Sign Up" in the top right corner of the page. You can sign up using your email address or through social media accounts. After signing up, you\'ll receive a verification email to confirm your account.',
+    category: 'Getting Started',
+    tab: 'general',
+    tags: ['account', 'signup', 'registration', 'verification'],
+    views: 1250,
+    helpful: 89,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-gen-002',
+    question: 'How do I verify my email address?',
+    answer: 'After creating your account, check your email inbox for a verification email from ExpatTray. Click the verification link in the email to verify your account. If you didn\'t receive the email, check your spam folder or request a new verification email from your account settings.',
+    category: 'Getting Started',
+    tab: 'general',
+    tags: ['verification', 'email', 'account'],
+    views: 890,
+    helpful: 67,
+    notHelpful: 2
+  },
+  {
+    id: 'faq-gen-003',
+    question: 'How do I set up my profile?',
+    answer: 'Go to "My Profile" from the navigation menu. You can add your profile picture, update your personal information, set your location, and add details about yourself. A complete profile helps other users trust you and makes transactions smoother.',
+    category: 'Getting Started',
+    tab: 'general',
+    tags: ['profile', 'setup', 'account'],
+    views: 650,
+    helpful: 52,
+    notHelpful: 1
+  },
+  {
+    id: 'faq-gen-004',
+    question: 'What is ExpatTray?',
+    answer: 'ExpatTray is a marketplace platform that connects service providers and sellers with customers. You can book services, buy products, and connect with local businesses. The platform supports both service bookings (like haircuts, consultations) and product orders.',
+    category: 'Getting Started',
+    tab: 'general',
+    tags: ['platform', 'overview', 'introduction'],
+    views: 2100,
+    helpful: 145,
+    notHelpful: 5
+  },
+  {
+    id: 'faq-gen-005',
+    question: 'Is ExpatTray available in my country?',
+    answer: 'ExpatTray is available in multiple countries. Check the platform footer or contact support to see if we operate in your region. We\'re continuously expanding to new markets.',
+    category: 'Getting Started',
+    tab: 'general',
+    tags: ['availability', 'countries', 'location'],
+    views: 450,
+    helpful: 38,
+    notHelpful: 2
+  },
+  
+  // Account & Security
+  {
+    id: 'faq-gen-006',
+    question: 'How do I change my password?',
+    answer: 'Go to Settings > Account Security > Change Password. Enter your current password and your new password. Make sure your new password is at least 8 characters long and includes uppercase, lowercase, numbers, and special characters.',
+    category: 'Account & Security',
+    tab: 'general',
+    tags: ['password', 'security', 'account'],
+    views: 780,
+    helpful: 61,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-gen-007',
+    question: 'How do I enable two-factor authentication?',
+    answer: 'Go to Settings > Account Security > Two-Factor Authentication. Click "Enable 2FA" and follow the instructions to set up using an authenticator app like Google Authenticator or Authy. This adds an extra layer of security to your account.',
+    category: 'Account & Security',
+    tab: 'general',
+    tags: ['2fa', 'security', 'authentication'],
+    views: 420,
+    helpful: 35,
+    notHelpful: 1
+  },
+  {
+    id: 'faq-gen-008',
+    question: 'How do I update my privacy settings?',
+    answer: 'Navigate to Settings > Privacy to manage your privacy preferences. You can control who can see your profile, manage data sharing preferences, and adjust notification settings.',
+    category: 'Account & Security',
+    tab: 'general',
+    tags: ['privacy', 'settings', 'data'],
+    views: 320,
+    helpful: 28,
+    notHelpful: 1
+  },
+  {
+    id: 'faq-gen-009',
+    question: 'How do I delete my account?',
+    answer: 'Go to Settings > Account Management > Delete Account. You\'ll be asked to confirm your password and provide a reason. Account deletion is permanent and cannot be undone. All your data will be deleted according to our privacy policy.',
+    category: 'Account & Security',
+    tab: 'general',
+    tags: ['account', 'deletion', 'privacy'],
+    views: 180,
+    helpful: 15,
+    notHelpful: 0
+  },
+  {
+    id: 'faq-gen-010',
+    question: 'What should I do if my account is compromised?',
+    answer: 'If you suspect your account has been compromised, immediately change your password and enable two-factor authentication. Contact support immediately at support@expatray.com with "URGENT: Account Security" in the subject line. We\'ll help secure your account.',
+    category: 'Account & Security',
+    tab: 'general',
+    tags: ['security', 'compromised', 'hacked'],
+    views: 95,
+    helpful: 12,
+    notHelpful: 0
+  },
+  {
+    id: 'faq-gen-011',
+    question: 'How do I recover a forgotten password?',
+    answer: 'Click "Forgot Password" on the login page. Enter your email address and you\'ll receive a password reset link. Click the link in the email to create a new password. The link expires after 24 hours for security reasons.',
+    category: 'Account & Security',
+    tab: 'general',
+    tags: ['password', 'recovery', 'reset'],
+    views: 560,
+    helpful: 48,
+    notHelpful: 2
+  },
+  
+  // Payments & Billing - Payment Methods
+  {
+    id: 'faq-gen-012',
+    question: 'What payment methods are accepted?',
+    answer: 'We accept major credit cards (Visa, Mastercard, American Express), debit cards, PayPal, Apple Pay, and Google Pay. Payment methods may vary by region. Check the checkout page to see available options in your area.',
+    category: 'Payments & Billing',
+    subcategory: 'Payment Methods',
+    tab: 'general',
+    tags: ['payment', 'methods', 'cards', 'paypal'],
+    views: 1890,
+    helpful: 132,
+    notHelpful: 4
+  },
+  {
+    id: 'faq-gen-013',
+    question: 'Is my payment information secure?',
+    answer: 'Yes, all payment information is encrypted and securely processed. We use industry-standard SSL encryption and work with trusted payment processors. We never store your full credit card details on our servers.',
+    category: 'Payments & Billing',
+    subcategory: 'Payment Methods',
+    tab: 'general',
+    tags: ['security', 'payment', 'encryption'],
+    views: 1450,
+    helpful: 98,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-gen-014',
+    question: 'Can I save my payment method?',
+    answer: 'Yes, you can save payment methods for faster checkout. Saved payment methods are encrypted and stored securely. You can add, edit, or remove saved payment methods from Settings > Payment Methods.',
+    category: 'Payments & Billing',
+    subcategory: 'Payment Methods',
+    tab: 'general',
+    tags: ['payment', 'save', 'checkout'],
+    views: 720,
+    helpful: 58,
+    notHelpful: 2
+  },
+  
+  // Payments & Billing - Refunds
+  {
+    id: 'faq-gen-015',
+    question: 'How do I request a refund?',
+    answer: 'Go to your order or booking details page and click "Request Refund". Select a reason and provide details. Refund requests are reviewed within 24-48 hours. Once approved, refunds are processed within 5-10 business days to your original payment method.',
+    category: 'Payments & Billing',
+    subcategory: 'Refunds',
+    tab: 'general',
+    tags: ['refund', 'request', 'money'],
+    views: 1120,
+    helpful: 87,
+    notHelpful: 5
+  },
+  {
+    id: 'faq-gen-016',
+    question: 'How long do refunds take?',
+    answer: 'Refund processing time depends on your payment method. Credit/debit card refunds typically take 5-10 business days. PayPal refunds are usually faster, taking 3-5 business days. The refund appears in your account once your bank or payment provider processes it.',
+    category: 'Payments & Billing',
+    subcategory: 'Refunds',
+    tab: 'general',
+    tags: ['refund', 'time', 'processing'],
+    views: 980,
+    helpful: 74,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-gen-017',
+    question: 'Can I cancel a refund request?',
+    answer: 'Yes, if your refund request is still pending review, you can cancel it from your order/booking details page. Once a refund is approved and processed, it cannot be cancelled.',
+    category: 'Payments & Billing',
+    subcategory: 'Refunds',
+    tab: 'general',
+    tags: ['refund', 'cancel', 'request'],
+    views: 210,
+    helpful: 18,
+    notHelpful: 1
+  },
+  
+  // Payments & Billing - Transaction History
+  {
+    id: 'faq-gen-018',
+    question: 'How do I view my transaction history?',
+    answer: 'Go to "My Orders" or "My Bookings" to see your transaction history. You can filter by date, status, or type. Each transaction shows payment details, dates, and you can download receipts.',
+    category: 'Payments & Billing',
+    subcategory: 'Transaction History',
+    tab: 'general',
+    tags: ['transactions', 'history', 'orders'],
+    views: 650,
+    helpful: 52,
+    notHelpful: 2
+  },
+  {
+    id: 'faq-gen-019',
+    question: 'How do I download a receipt?',
+    answer: 'Go to your order or booking details page. Click "Download Receipt" or "View Receipt" to download a PDF copy of your receipt. Receipts include all transaction details and can be used for tax or expense purposes.',
+    category: 'Payments & Billing',
+    subcategory: 'Transaction History',
+    tab: 'general',
+    tags: ['receipt', 'download', 'invoice'],
+    views: 890,
+    helpful: 71,
+    notHelpful: 2
+  },
+  
+  // Payments & Billing - Billing Questions
+  {
+    id: 'faq-gen-020',
+    question: 'Why was I charged twice?',
+    answer: 'If you see a duplicate charge, it may be a pending authorization that will drop off. Check your bank statement after 2-3 business days. If the charge remains, contact support immediately with your order/booking ID and we\'ll investigate.',
+    category: 'Payments & Billing',
+    subcategory: 'Billing Questions',
+    tab: 'general',
+    tags: ['billing', 'charge', 'duplicate'],
+    views: 340,
+    helpful: 28,
+    notHelpful: 2
+  },
+  
+  // Platform Features
+  {
+    id: 'faq-gen-021',
+    question: 'How does the messaging system work?',
+    answer: 'You can message sellers or buyers directly from order/booking pages or through the Messages section. Messages are encrypted and stored securely. You\'ll receive notifications for new messages.',
+    category: 'Platform Features',
+    tab: 'general',
+    tags: ['messaging', 'communication', 'chat'],
+    views: 780,
+    helpful: 63,
+    notHelpful: 2
+  },
+  {
+    id: 'faq-gen-022',
+    question: 'How do I manage notifications?',
+    answer: 'Go to Settings > Notifications to customize which notifications you receive. You can enable/disable email notifications, push notifications, and choose which events trigger notifications (orders, messages, reviews, etc.).',
+    category: 'Platform Features',
+    tab: 'general',
+    tags: ['notifications', 'settings', 'alerts'],
+    views: 520,
+    helpful: 42,
+    notHelpful: 1
+  },
+  {
+    id: 'faq-gen-023',
+    question: 'How do I search for services or products?',
+    answer: 'Use the search bar at the top of the page. You can search by keywords, category, or location. Use filters to narrow results by price, rating, availability, and more. Save your favorite searches for quick access.',
+    category: 'Platform Features',
+    tab: 'general',
+    tags: ['search', 'filters', 'browse'],
+    views: 1120,
+    helpful: 89,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-gen-024',
+    question: 'How do I save items for later?',
+    answer: 'Click the heart icon on any listing to save it to your favorites. Access saved items from "Saved Items" in your profile menu. You can organize saved items into collections and receive notifications about price changes or availability.',
+    category: 'Platform Features',
+    tab: 'general',
+    tags: ['save', 'favorites', 'wishlist'],
+    views: 890,
+    helpful: 71,
+    notHelpful: 2
+  },
+  {
+    id: 'faq-gen-025',
+    question: 'Can I share listings with others?',
+    answer: 'Yes, you can share listings via social media, email, or copy the link. Click the share icon on any listing page to see sharing options. Shared links allow others to view the listing even if they don\'t have an account.',
+    category: 'Platform Features',
+    tab: 'general',
+    tags: ['share', 'social', 'link'],
+    views: 450,
+    helpful: 38,
+    notHelpful: 1
+  },
+  {
+    id: 'faq-gen-026',
+    question: 'How do I change my language preference?',
+    answer: 'Click the language selector in the top navigation bar or go to Settings > Language. Select your preferred language from the dropdown. The interface will update immediately.',
+    category: 'Platform Features',
+    tab: 'general',
+    tags: ['language', 'settings', 'preferences'],
+    views: 320,
+    helpful: 27,
+    notHelpful: 1
+  },
+  {
+    id: 'faq-gen-027',
+    question: 'What are the platform fees?',
+    answer: 'Platform fees vary by transaction type. Service bookings typically have a 10-15% service fee, while product orders may have different fee structures. All fees are clearly displayed before you complete a transaction. Sellers see their earnings breakdown in the Finance section.',
+    category: 'Platform Features',
+    tab: 'general',
+    tags: ['fees', 'platform', 'costs'],
+    views: 1560,
+    helpful: 112,
+    notHelpful: 6
+  },
+  
+  // Safety & Trust
+  {
+    id: 'faq-gen-028',
+    question: 'How does ExpatTray ensure platform safety?',
+    answer: 'We verify sellers, use secure payment processing, provide dispute resolution, and have a review system. We also monitor for fraudulent activity and have a dedicated safety team. Report any suspicious activity immediately.',
+    category: 'Safety & Trust',
+    tab: 'general',
+    tags: ['safety', 'security', 'trust'],
+    views: 980,
+    helpful: 75,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-gen-029',
+    question: 'How do I report a problem or issue?',
+    answer: 'Use the "Contact Support" button on any page or go to the order/booking details page and click "Report Issue". Provide as much detail as possible. Our support team will investigate and respond within 24-48 hours.',
+    category: 'Safety & Trust',
+    tab: 'general',
+    tags: ['report', 'issue', 'problem'],
+    views: 650,
+    helpful: 52,
+    notHelpful: 2
+  },
+  {
+    id: 'faq-gen-030',
+    question: 'How does dispute resolution work?',
+    answer: 'If you have a dispute with a seller or buyer, contact support with details. We\'ll review the case, may request evidence, and work to resolve it fairly. Disputes are typically resolved within 5-7 business days.',
+    category: 'Safety & Trust',
+    tab: 'general',
+    tags: ['dispute', 'resolution', 'conflict'],
+    views: 420,
+    helpful: 34,
+    notHelpful: 2
+  },
+  {
+    id: 'faq-gen-031',
+    question: 'Where can I read the Terms of Service?',
+    answer: 'You can access our Terms of Service from the footer of any page or by going to Settings > Legal > Terms of Service. The terms outline your rights and responsibilities when using the platform.',
+    category: 'Safety & Trust',
+    tab: 'general',
+    tags: ['terms', 'legal', 'tos'],
+    views: 420,
+    helpful: 34,
+    notHelpful: 1
+  },
+  {
+    id: 'faq-gen-032',
+    question: 'What is your privacy policy?',
+    answer: 'Our Privacy Policy explains how we collect, use, and protect your data. You can read it in Settings > Legal > Privacy Policy or from the footer. We\'re GDPR compliant and take data protection seriously.',
+    category: 'Safety & Trust',
+    tab: 'general',
+    tags: ['privacy', 'data', 'gdpr'],
+    views: 560,
+    helpful: 45,
+    notHelpful: 2
+  },
+  
+  // ========== BUYER TAB ==========
+  
+  // Booking Services - How to Book
+  {
+    id: 'faq-buyer-001',
+    question: 'How do I book a service?',
+    answer: 'Browse services and click "Book Now" on a service you like. Select your preferred date and time slot, choose any service tiers if available, fill in your details, and complete payment. You\'ll receive a confirmation email with all booking details.',
+    category: 'Booking Services',
+    subcategory: 'How to Book',
+    tab: 'general',
+    tags: ['booking', 'service', 'how-to'],
+    views: 2340,
+    helpful: 167,
+    notHelpful: 5
+  },
+  {
+    id: 'faq-buyer-002',
+    question: 'Can I book a service without an account?',
+    answer: 'You can browse services without an account, but you\'ll need to create an account to complete a booking. Creating an account is free and takes just a few minutes. You can also proceed as a guest for some services, but creating an account gives you better features.',
+    category: 'Booking Services',
+    subcategory: 'How to Book',
+    tab: 'general',
+    tags: ['booking', 'account', 'guest'],
+    views: 890,
+    helpful: 68,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-buyer-003',
+    question: 'What are service tiers?',
+    answer: 'Service tiers are different pricing options for the same service. For example, a haircut might have Basic, Standard, and Premium tiers with different prices and features. Choose the tier that best fits your needs and budget.',
+    category: 'Booking Services',
+    subcategory: 'How to Book',
+    tab: 'general',
+    tags: ['tiers', 'pricing', 'options'],
+    views: 1120,
+    helpful: 84,
+    notHelpful: 3
+  },
+  
+  // Booking Services - Rescheduling
+  {
+    id: 'faq-buyer-004',
+    question: 'How do I reschedule my appointment?',
+    answer: 'Go to your booking details page and click "Reschedule". Select a new date and time from available slots. Rescheduling is free if done at least 24 hours before your appointment. Late rescheduling may incur fees depending on the seller\'s policy.',
+    category: 'Booking Services',
+    subcategory: 'Rescheduling',
+    tab: 'general',
+    tags: ['reschedule', 'appointment', 'change'],
+    views: 1450,
+    helpful: 108,
+    notHelpful: 4
+  },
+  {
+    id: 'faq-buyer-005',
+    question: 'Can I reschedule multiple times?',
+    answer: 'Yes, you can reschedule as many times as needed, subject to availability and the seller\'s cancellation policy. However, frequent rescheduling may affect your account standing. Check the service terms for specific rescheduling policies.',
+    category: 'Booking Services',
+    subcategory: 'Rescheduling',
+    tab: 'general',
+    tags: ['reschedule', 'multiple', 'policy'],
+    views: 560,
+    helpful: 43,
+    notHelpful: 2
+  },
+  
+  // Booking Services - Cancellations
+  {
+    id: 'faq-buyer-006',
+    question: 'How do I cancel a booking?',
+    answer: 'Go to your booking details page and click "Cancel Booking". Select a reason for cancellation. Cancellations made at least 24 hours in advance are typically fully refunded. Late cancellations may be subject to fees per the seller\'s policy.',
+    category: 'Booking Services',
+    subcategory: 'Cancellations',
+    tab: 'general',
+    tags: ['cancel', 'booking', 'refund'],
+    views: 1780,
+    helpful: 132,
+    notHelpful: 6
+  },
+  {
+    id: 'faq-buyer-007',
+    question: 'Will I get a refund if I cancel?',
+    answer: 'Refund eligibility depends on when you cancel and the seller\'s cancellation policy. Cancellations 24+ hours in advance are usually fully refunded. Late cancellations may receive partial refunds or no refund. Check the service terms before booking.',
+    category: 'Booking Services',
+    subcategory: 'Cancellations',
+    tab: 'general',
+    tags: ['cancel', 'refund', 'policy'],
+    views: 1340,
+    helpful: 98,
+    notHelpful: 5
+  },
+  
+  // Booking Services - Service Delivery
+  {
+    id: 'faq-buyer-008',
+    question: 'What are the service delivery options?',
+    answer: 'Services can be delivered in three ways: At Provider (you go to their location), At Your Location (they come to you), or Remote (online/virtual service). Check the service listing to see which options are available.',
+    category: 'Booking Services',
+    subcategory: 'Service Delivery',
+    tab: 'general',
+    tags: ['delivery', 'location', 'remote'],
+    views: 980,
+    helpful: 74,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-buyer-009',
+    question: 'How do I provide my address for at-home services?',
+    answer: 'When booking a service with "At Your Location" option, you\'ll be prompted to enter your address during checkout. The address is shared with the provider only after booking confirmation. You can update it from the booking details page if needed.',
+    category: 'Booking Services',
+    subcategory: 'Service Delivery',
+    tab: 'general',
+    tags: ['address', 'location', 'home'],
+    views: 650,
+    helpful: 52,
+    notHelpful: 2
+  },
+  
+  // Placing Orders
+  {
+    id: 'faq-buyer-010',
+    question: 'How do I add items to my cart?',
+    answer: 'Click "Add to Cart" on any product listing. You can adjust the quantity before adding. View your cart by clicking the cart icon in the top navigation. You can continue shopping and add more items before checkout.',
+    category: 'Placing Orders',
+    tab: 'general',
+    tags: ['cart', 'add', 'shopping'],
+    views: 1120,
+    helpful: 89,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-buyer-011',
+    question: 'How does the checkout process work?',
+    answer: 'Go to your cart and click "Checkout". You\'ll need to: 1) Sign in or create an account, 2) Enter shipping address, 3) Select shipping method, 4) Choose payment method, 5) Review order, 6) Confirm and pay. You\'ll receive an order confirmation email.',
+    category: 'Placing Orders',
+    tab: 'general',
+    tags: ['checkout', 'process', 'order'],
+    views: 1450,
+    helpful: 112,
+    notHelpful: 4
+  },
+  {
+    id: 'faq-buyer-012',
+    question: 'Can I modify my order after placing it?',
+    answer: 'You can modify or cancel your order if it hasn\'t been processed yet. Go to your order details page and look for modification options. Once the seller starts processing your order, modifications may not be possible. Contact the seller or support for assistance.',
+    category: 'Placing Orders',
+    tab: 'general',
+    tags: ['modify', 'order', 'change'],
+    views: 780,
+    helpful: 61,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-buyer-013',
+    question: 'What shipping options are available?',
+    answer: 'Shipping options vary by seller and product. Common options include standard shipping, express shipping, and local pickup. Shipping costs and delivery times are shown during checkout. Some sellers offer free shipping for orders over a certain amount.',
+    category: 'Placing Orders',
+    tab: 'general',
+    tags: ['shipping', 'delivery', 'options'],
+    views: 1340,
+    helpful: 98,
+    notHelpful: 4
+  },
+  {
+    id: 'faq-buyer-014',
+    question: 'How do I track my order?',
+    answer: 'Once your order ships, you\'ll receive a tracking number via email. Go to your order details page and click "Track Order" to see real-time shipping updates. You can also view tracking information in the order details.',
+    category: 'Placing Orders',
+    tab: 'general',
+    tags: ['tracking', 'shipping', 'order'],
+    views: 1890,
+    helpful: 142,
+    notHelpful: 5
+  },
+  {
+    id: 'faq-buyer-015',
+    question: 'What if my order doesn\'t arrive?',
+    answer: 'If your order doesn\'t arrive by the estimated delivery date, first check the tracking information. If there\'s no update or the order is significantly delayed, contact the seller through the order details page. If unresolved, contact support for assistance.',
+    category: 'Placing Orders',
+    tab: 'general',
+    tags: ['missing', 'delivery', 'problem'],
+    views: 560,
+    helpful: 45,
+    notHelpful: 2
+  },
+  {
+    id: 'faq-buyer-016',
+    question: 'Can I order from multiple sellers in one transaction?',
+    answer: 'Each seller processes orders separately, so you\'ll need to complete separate checkouts for different sellers. However, you can add multiple items from the same seller to one cart and checkout together.',
+    category: 'Placing Orders',
+    tab: 'general',
+    tags: ['multiple', 'sellers', 'cart'],
+    views: 420,
+    helpful: 34,
+    notHelpful: 1
+  },
+  
+  // Payments & Refunds - Payment Methods
+  {
+    id: 'faq-buyer-017',
+    question: 'What payment methods can I use as a buyer?',
+    answer: 'You can pay using credit cards, debit cards, PayPal, Apple Pay, or Google Pay. All payment methods are secure and encrypted. Choose your preferred method during checkout.',
+    category: 'Payments & Refunds',
+    subcategory: 'Payment Methods',
+    tab: 'general',
+    tags: ['payment', 'methods', 'buyer'],
+    views: 1120,
+    helpful: 87,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-buyer-018',
+    question: 'When is my payment charged?',
+    answer: 'Payment is charged immediately when you complete your order or booking. For bookings, payment is typically held until the service is completed. For product orders, payment is charged at checkout.',
+    category: 'Payments & Refunds',
+    subcategory: 'Payment Methods',
+    tab: 'general',
+    tags: ['payment', 'charge', 'when'],
+    views: 1450,
+    helpful: 112,
+    notHelpful: 4
+  },
+  
+  // Payments & Refunds - Refund Process
+  {
+    id: 'faq-buyer-019',
+    question: 'How do I request a refund for a booking?',
+    answer: 'Go to your booking details page and click "Request Refund". Select your reason (cancellation, service issue, etc.) and provide details. The seller will review your request. If approved, refunds are processed within 5-10 business days.',
+    category: 'Payments & Refunds',
+    subcategory: 'Refund Process',
+    tab: 'general',
+    tags: ['refund', 'booking', 'request'],
+    views: 1780,
+    helpful: 134,
+    notHelpful: 6
+  },
+  {
+    id: 'faq-buyer-020',
+    question: 'How do I request a refund for an order?',
+    answer: 'Go to your order details page and click "Request Refund" or "Return Item". Select a reason and provide details. The seller reviews return requests. Once approved, you\'ll receive return instructions. Refunds are processed after the seller receives the returned item.',
+    category: 'Payments & Refunds',
+    subcategory: 'Refund Process',
+    tab: 'general',
+    tags: ['refund', 'order', 'return'],
+    views: 1560,
+    helpful: 118,
+    notHelpful: 5
+  },
+  {
+    id: 'faq-buyer-021',
+    question: 'What is the refund policy?',
+    answer: 'Refund policies vary by seller and are shown in the service/product terms. Generally, cancellations 24+ hours in advance are fully refunded. Late cancellations or no-shows may not be refunded. Product returns typically require items to be unused and in original packaging.',
+    category: 'Payments & Refunds',
+    subcategory: 'Refund Process',
+    tab: 'general',
+    tags: ['refund', 'policy', 'terms'],
+    views: 1890,
+    helpful: 142,
+    notHelpful: 6
+  },
+  
+  // Payments & Refunds - Payment Issues
+  {
+    id: 'faq-buyer-022',
+    question: 'My payment was declined. What should I do?',
+    answer: 'Check that your card has sufficient funds, isn\'t expired, and that billing information matches. Try a different payment method. If issues persist, contact your bank or payment provider. You can also contact support for assistance.',
+    category: 'Payments & Refunds',
+    subcategory: 'Payment Issues',
+    tab: 'general',
+    tags: ['payment', 'declined', 'error'],
+    views: 780,
+    helpful: 61,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-buyer-023',
+    question: 'I was charged but my order didn\'t go through. What now?',
+    answer: 'This is usually a temporary authorization that will drop off. Check your account after 2-3 business days. If the charge remains and you don\'t have an order confirmation, contact support immediately with your payment details and we\'ll investigate.',
+    category: 'Payments & Refunds',
+    subcategory: 'Payment Issues',
+    tab: 'general',
+    tags: ['payment', 'charge', 'error'],
+    views: 450,
+    helpful: 36,
+    notHelpful: 2
+  },
+  {
+    id: 'faq-buyer-024',
+    question: 'Can I get a refund if I\'m not satisfied with the service?',
+    answer: 'If you\'re not satisfied, first contact the seller to discuss the issue. Many sellers are willing to resolve problems. If unresolved, you can request a refund through the booking details page. Refunds for service quality issues are reviewed on a case-by-case basis.',
+    category: 'Payments & Refunds',
+    subcategory: 'Payment Issues',
+    tab: 'general',
+    tags: ['refund', 'satisfaction', 'quality'],
+    views: 1120,
+    helpful: 87,
+    notHelpful: 4
+  },
+  
+  // Reviews & Ratings
+  {
+    id: 'faq-buyer-025',
+    question: 'How do I leave a review?',
+    answer: 'After a completed service or delivered order, go to the booking/order details page. You\'ll see a "Leave Review" button. Rate the service/product and provider, write your review, and optionally upload photos. Reviews help other buyers make informed decisions.',
+    category: 'Reviews & Ratings',
+    tab: 'general',
+    tags: ['review', 'rating', 'feedback'],
+    views: 1340,
+    helpful: 102,
+    notHelpful: 4
+  },
+  {
+    id: 'faq-buyer-026',
+    question: 'Can I edit or delete my review?',
+    answer: 'You can edit your review within 30 days of posting it. Go to the booking/order details page and click "Edit Review". You cannot delete reviews, but you can contact support if there\'s a valid reason to remove one.',
+    category: 'Reviews & Ratings',
+    tab: 'general',
+    tags: ['review', 'edit', 'delete'],
+    views: 650,
+    helpful: 52,
+    notHelpful: 2
+  },
+  {
+    id: 'faq-buyer-027',
+    question: 'What should I include in a review?',
+    answer: 'A helpful review includes: your overall experience, quality of service/product, communication with the seller, value for money, and any specific highlights or concerns. Be honest and constructive. Reviews help both future buyers and sellers improve.',
+    category: 'Reviews & Ratings',
+    tab: 'general',
+    tags: ['review', 'guidelines', 'tips'],
+    views: 780,
+    helpful: 61,
+    notHelpful: 2
+  },
+  {
+    id: 'faq-buyer-028',
+    question: 'How long do I have to leave a review?',
+    answer: 'You can leave a review within 30 days of service completion or order delivery. After 30 days, the review option expires. We encourage leaving reviews soon after your experience while details are fresh.',
+    category: 'Reviews & Ratings',
+    tab: 'general',
+    tags: ['review', 'time', 'deadline'],
+    views: 420,
+    helpful: 34,
+    notHelpful: 1
+  },
+  {
+    id: 'faq-buyer-029',
+    question: 'Can I leave a review anonymously?',
+    answer: 'Reviews show your username and profile picture, but you can use a display name that doesn\'t reveal your identity. However, the seller will know who left the review for their records. This helps maintain review authenticity.',
+    category: 'Reviews & Ratings',
+    tab: 'general',
+    tags: ['review', 'anonymous', 'privacy'],
+    views: 320,
+    helpful: 26,
+    notHelpful: 1
+  },
+  
+  // Communication
+  {
+    id: 'faq-buyer-030',
+    question: 'How do I message a seller?',
+    answer: 'Go to the seller\'s profile or listing page and click "Message" or "Contact Seller". You can also message from order/booking details pages. Messages are private and secure. Sellers typically respond within 24 hours.',
+    category: 'Communication',
+    tab: 'general',
+    tags: ['message', 'contact', 'seller'],
+    views: 1120,
+    helpful: 89,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-buyer-031',
+    question: 'How do I contact support?',
+    answer: 'Click "Contact Support" on any page or go to your order/booking details and click "Contact Support". Fill out the support form with your question or issue. Our team responds within 24-48 hours. You can also email support@expatray.com.',
+    category: 'Communication',
+    tab: 'general',
+    tags: ['support', 'contact', 'help'],
+    views: 890,
+    helpful: 71,
+    notHelpful: 2
+  },
+  {
+    id: 'faq-buyer-032',
+    question: 'How do I coordinate appointment details?',
+    answer: 'Use the messaging feature to coordinate with your service provider. Discuss specific requirements, confirm address details for at-home services, or clarify any questions. All communication is stored in your messages for reference.',
+    category: 'Communication',
+    tab: 'general',
+    tags: ['appointment', 'coordination', 'details'],
+    views: 650,
+    helpful: 52,
+    notHelpful: 2
+  },
+  {
+    id: 'faq-buyer-033',
+    question: 'What if a seller doesn\'t respond to my message?',
+    answer: 'Sellers typically respond within 24 hours. If they don\'t respond after 48 hours, you can send a follow-up message or contact support. Inactive sellers may have their accounts temporarily suspended.',
+    category: 'Communication',
+    tab: 'general',
+    tags: ['message', 'response', 'seller'],
+    views: 450,
+    helpful: 36,
+    notHelpful: 1
+  },
+  
+  // ========== SELLER TAB ==========
+  
+  // Getting Started as a Seller
+  {
+    id: 'faq-seller-001',
+    question: 'How do I become a seller?',
+    answer: 'Click "Sell Now" in the top navigation or go to Seller Dashboard. Complete the seller registration form, verify your identity, and set up your shop. Once approved, you can start creating listings and accepting orders.',
+    category: 'Getting Started as a Seller',
+    tab: 'seller',
+    tags: ['seller', 'registration', 'become'],
+    views: 2340,
+    helpful: 178,
+    notHelpful: 6
+  },
+  {
+    id: 'faq-seller-002',
+    question: 'What information do I need to set up my shop?',
+    answer: 'You\'ll need: business name, description, contact information, location, business hours, payment/banking details, and verification documents. The more complete your shop profile, the more trustworthy you appear to buyers.',
+    category: 'Getting Started as a Seller',
+    tab: 'seller',
+    tags: ['shop', 'setup', 'information'],
+    views: 1890,
+    helpful: 142,
+    notHelpful: 5
+  },
+  {
+    id: 'faq-seller-003',
+    question: 'How do I verify my seller account?',
+    answer: 'Go to Seller Dashboard > Settings > Verification. Upload required documents (ID, business license if applicable, proof of address). Verification typically takes 1-3 business days. You\'ll receive an email once verified.',
+    category: 'Getting Started as a Seller',
+    tab: 'seller',
+    tags: ['verification', 'seller', 'account'],
+    views: 1450,
+    helpful: 108,
+    notHelpful: 4
+  },
+  {
+    id: 'faq-seller-004',
+    question: 'Can I sell both services and products?',
+    answer: 'Yes! You can create both service listings and product listings from your Seller Dashboard. Many sellers offer both. Just make sure each listing is properly categorized and has accurate information.',
+    category: 'Getting Started as a Seller',
+    tab: 'seller',
+    tags: ['services', 'products', 'both'],
+    views: 1120,
+    helpful: 87,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-seller-005',
+    question: 'Is there a fee to become a seller?',
+    answer: 'No, creating a seller account is free. You only pay transaction fees when you make a sale. Transaction fees vary by service type and are clearly shown in your seller dashboard. There are no monthly fees or subscription costs.',
+    category: 'Getting Started as a Seller',
+    tab: 'seller',
+    tags: ['fee', 'cost', 'free'],
+    views: 1780,
+    helpful: 134,
+    notHelpful: 5
+  },
+  {
+    id: 'faq-seller-006',
+    question: 'How long does seller approval take?',
+    answer: 'Seller account approval typically takes 1-3 business days after you submit all required information and documents. You\'ll receive email updates about your approval status. Once approved, you can immediately start creating listings.',
+    category: 'Getting Started as a Seller',
+    tab: 'seller',
+    tags: ['approval', 'time', 'process'],
+    views: 980,
+    helpful: 74,
+    notHelpful: 3
+  },
+  
+  // Managing Listings - Service Listings
+  {
+    id: 'faq-seller-007',
+    question: 'How do I create a service listing?',
+    answer: 'Go to Seller Dashboard > My Shop > Create Listing > Service. Fill in service details (name, description, category, price, duration, availability), upload photos, set service delivery modes, and configure pricing tiers if desired. Click "Publish" when ready.',
+    category: 'Managing Listings',
+    subcategory: 'Service Listings',
+    tab: 'seller',
+    tags: ['service', 'listing', 'create'],
+    views: 2340,
+    helpful: 178,
+    notHelpful: 6
+  },
+  {
+    id: 'faq-seller-008',
+    question: 'How do I set up service availability?',
+    answer: 'In your service listing, go to the Availability section. You can set weekly schedules (e.g., Monday-Friday 9am-5pm) or specific date ranges with time slots. Use the availability scheduler to block out unavailable times. Save your schedule and it will show to buyers.',
+    category: 'Managing Listings',
+    subcategory: 'Service Listings',
+    tab: 'seller',
+    tags: ['availability', 'schedule', 'calendar'],
+    views: 1890,
+    helpful: 142,
+    notHelpful: 5
+  },
+  {
+    id: 'faq-seller-009',
+    question: 'What are service delivery modes?',
+    answer: 'Service delivery modes determine where services are provided: At Seller (customers come to you), At Buyer (you go to customer), or Remote (online/virtual). You can enable multiple modes. Each mode may have different pricing or requirements.',
+    category: 'Managing Listings',
+    subcategory: 'Service Listings',
+    tab: 'seller',
+    tags: ['delivery', 'modes', 'location'],
+    views: 1450,
+    helpful: 108,
+    notHelpful: 4
+  },
+  
+  // Managing Listings - Product Listings
+  {
+    id: 'faq-seller-010',
+    question: 'How do I create a product listing?',
+    answer: 'Go to Seller Dashboard > My Shop > Create Listing > Product. Add product name, description, category, price, quantity, photos, shipping options, and return policy. Make sure to include accurate product details and high-quality photos.',
+    category: 'Managing Listings',
+    subcategory: 'Product Listings',
+    tab: 'seller',
+    tags: ['product', 'listing', 'create'],
+    views: 1780,
+    helpful: 134,
+    notHelpful: 5
+  },
+  {
+    id: 'faq-seller-011',
+    question: 'How do I manage product inventory?',
+    answer: 'Go to My Shop and click on a product listing. Update the quantity available. When an order is placed, inventory automatically decreases. Set up low stock alerts to know when to restock. You can also mark items as out of stock temporarily.',
+    category: 'Managing Listings',
+    subcategory: 'Product Listings',
+    tab: 'seller',
+    tags: ['inventory', 'stock', 'quantity'],
+    views: 1120,
+    helpful: 87,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-seller-012',
+    question: 'How do I set shipping options for products?',
+    answer: 'When creating or editing a product listing, go to Shipping section. Set shipping methods (standard, express, etc.), costs, and delivery times. You can offer free shipping for orders over a certain amount. Shipping options appear to buyers during checkout.',
+    category: 'Managing Listings',
+    subcategory: 'Product Listings',
+    tab: 'seller',
+    tags: ['shipping', 'options', 'delivery'],
+    views: 980,
+    helpful: 74,
+    notHelpful: 3
+  },
+  
+  // Managing Listings - Pricing & Tiers
+  {
+    id: 'faq-seller-013',
+    question: 'How do I set up pricing tiers for services?',
+    answer: 'In your service listing, go to Pricing section and click "Add Tier". Create tiers like Basic, Standard, Premium with different prices, durations, and features. Buyers can choose the tier that fits their needs. This helps you offer options at different price points.',
+    category: 'Managing Listings',
+    subcategory: 'Pricing & Tiers',
+    tab: 'seller',
+    tags: ['pricing', 'tiers', 'options'],
+    views: 1340,
+    helpful: 102,
+    notHelpful: 4
+  },
+  {
+    id: 'faq-seller-014',
+    question: 'Can I change the price of my listing?',
+    answer: 'Yes, you can edit your listing prices anytime. Go to My Shop, click on a listing, and edit the price. Price changes take effect immediately for new bookings/orders. Existing bookings/orders keep their original prices.',
+    category: 'Managing Listings',
+    subcategory: 'Pricing & Tiers',
+    tab: 'seller',
+    tags: ['price', 'change', 'edit'],
+    views: 890,
+    helpful: 68,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-seller-015',
+    question: 'How do I edit an existing listing?',
+    answer: 'Go to Seller Dashboard > My Shop, find your listing, and click "Edit". You can update any details: description, photos, price, availability, etc. Changes are saved immediately. Note that some changes may affect existing bookings, so review carefully.',
+    category: 'Managing Listings',
+    subcategory: 'Pricing & Tiers',
+    tab: 'seller',
+    tags: ['edit', 'listing', 'update'],
+    views: 1450,
+    helpful: 112,
+    notHelpful: 4
+  },
+  
+  // Managing Listings - Availability
+  {
+    id: 'faq-seller-016',
+    question: 'How do I temporarily disable a listing?',
+    answer: 'Go to My Shop, find your listing, and click the status toggle or "Deactivate". The listing will be hidden from buyers but you can reactivate it anytime. This is useful for taking a break or updating listings without deleting them.',
+    category: 'Managing Listings',
+    subcategory: 'Availability',
+    tab: 'seller',
+    tags: ['disable', 'deactivate', 'listing'],
+    views: 780,
+    helpful: 61,
+    notHelpful: 2
+  },
+  {
+    id: 'faq-seller-017',
+    question: 'Can I set different availability for different service modes?',
+    answer: 'Yes, you can set different availability schedules for "At Seller", "At Buyer", and "Remote" modes. For example, you might offer remote services 24/7 but in-person services only on weekdays. Configure this in the Availability section of your listing.',
+    category: 'Managing Listings',
+    subcategory: 'Availability',
+    tab: 'seller',
+    tags: ['availability', 'modes', 'schedule'],
+    views: 560,
+    helpful: 43,
+    notHelpful: 2
+  },
+  {
+    id: 'faq-seller-018',
+    question: 'How do I block specific dates from bookings?',
+    answer: 'In your service listing\'s Availability section, use the calendar to block specific dates. You can also set recurring blocks (e.g., every Sunday). Blocked dates won\'t show available time slots to buyers.',
+    category: 'Managing Listings',
+    subcategory: 'Availability',
+    tab: 'seller',
+    tags: ['block', 'dates', 'unavailable'],
+    views: 650,
+    helpful: 52,
+    notHelpful: 2
+  },
+  
+  // Orders & Bookings - Managing Bookings
+  {
+    id: 'faq-seller-019',
+    question: 'How do I accept or decline a booking request?',
+    answer: 'Go to Seller Dashboard > Bookings and click on a pending booking. Review the details and click "Accept" or "Decline". If you decline, you can optionally provide a reason. Accepted bookings are confirmed and the customer is notified.',
+    category: 'Orders & Bookings',
+    subcategory: 'Managing Bookings',
+    tab: 'seller',
+    tags: ['accept', 'decline', 'booking'],
+    views: 2340,
+    helpful: 178,
+    notHelpful: 6
+  },
+  {
+    id: 'faq-seller-020',
+    question: 'How long do I have to respond to a booking request?',
+    answer: 'You typically have 24-48 hours to respond to booking requests. If you don\'t respond, the booking may be automatically declined or cancelled. Responding quickly improves your seller rating and customer satisfaction.',
+    category: 'Orders & Bookings',
+    subcategory: 'Managing Bookings',
+    tab: 'seller',
+    tags: ['response', 'time', 'booking'],
+    views: 1450,
+    helpful: 112,
+    notHelpful: 4
+  },
+  {
+    id: 'faq-seller-021',
+    question: 'Can I reschedule a customer\'s booking?',
+    answer: 'Yes, go to the booking details page and click "Reschedule". Select a new date and time from your available slots. The customer will be notified and can confirm or request a different time. Rescheduling requires customer approval.',
+    category: 'Orders & Bookings',
+    subcategory: 'Managing Bookings',
+    tab: 'seller',
+    tags: ['reschedule', 'booking', 'change'],
+    views: 1120,
+    helpful: 87,
+    notHelpful: 3
+  },
+  
+  // Orders & Bookings - Order Fulfillment
+  {
+    id: 'faq-seller-022',
+    question: 'How do I mark an order as shipped?',
+    answer: 'Go to the order details page and click "Mark as Shipped" or "Add Tracking". Enter the tracking number and carrier. Upload proof of shipment photos if required. The buyer will be notified and can track their order.',
+    category: 'Orders & Bookings',
+    subcategory: 'Order Fulfillment',
+    tab: 'seller',
+    tags: ['ship', 'tracking', 'fulfillment'],
+    views: 1890,
+    helpful: 142,
+    notHelpful: 5
+  },
+  {
+    id: 'faq-seller-023',
+    question: 'What if I can\'t fulfill an order?',
+    answer: 'If you cannot fulfill an order, contact the buyer immediately through messaging to explain the situation. You may need to cancel the order and issue a refund. Frequent cancellations can affect your seller rating, so communicate early if issues arise.',
+    category: 'Orders & Bookings',
+    subcategory: 'Order Fulfillment',
+    tab: 'seller',
+    tags: ['fulfill', 'cancel', 'issue'],
+    views: 780,
+    helpful: 61,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-seller-024',
+    question: 'How do I handle order cancellations?',
+    answer: 'If a buyer cancels, you\'ll be notified. Cancellations 24+ hours in advance are typically fully refunded. Late cancellations may result in partial payment to you per your cancellation policy. Review cancellation requests and approve/deny as appropriate.',
+    category: 'Orders & Bookings',
+    subcategory: 'Order Fulfillment',
+    tab: 'seller',
+    tags: ['cancel', 'order', 'refund'],
+    views: 1340,
+    helpful: 102,
+    notHelpful: 4
+  },
+  
+  // Orders & Bookings - Shipping & Tracking
+  {
+    id: 'faq-seller-025',
+    question: 'How do I add tracking information?',
+    answer: 'Go to the order details page and click "Add Tracking". Enter the tracking number, select the carrier (USPS, FedEx, DHL, etc.), and optionally upload proof of shipment photos. The tracking information is immediately available to the buyer.',
+    category: 'Orders & Bookings',
+    subcategory: 'Shipping & Tracking',
+    tab: 'seller',
+    tags: ['tracking', 'shipping', 'carrier'],
+    views: 1560,
+    helpful: 118,
+    notHelpful: 5
+  },
+  {
+    id: 'faq-seller-026',
+    question: 'What shipping carriers are supported?',
+    answer: 'You can use any shipping carrier (USPS, FedEx, UPS, DHL, local carriers, etc.). When adding tracking, select your carrier from the dropdown or enter a custom carrier name. The platform supports tracking from major carriers automatically.',
+    category: 'Orders & Bookings',
+    subcategory: 'Shipping & Tracking',
+    tab: 'seller',
+    tags: ['carrier', 'shipping', 'options'],
+    views: 890,
+    helpful: 68,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-seller-027',
+    question: 'Do I need to provide proof of shipment?',
+    answer: 'Proof of shipment (photos of packaged items, shipping labels) is recommended and may be required for certain orders. It helps protect you in case of disputes and provides buyers with confidence. Upload photos when marking orders as shipped.',
+    category: 'Orders & Bookings',
+    subcategory: 'Shipping & Tracking',
+    tab: 'seller',
+    tags: ['proof', 'shipment', 'photos'],
+    views: 650,
+    helpful: 52,
+    notHelpful: 2
+  },
+  
+  // Orders & Bookings - Cancellations
+  {
+    id: 'faq-seller-028',
+    question: 'What is my cancellation policy?',
+    answer: 'You set your own cancellation policy when creating listings. Common policies include: Full refund 24+ hours, Partial refund for late cancellations, or No refund for no-shows. Your policy is shown to buyers before they book. You can update it in listing settings.',
+    category: 'Orders & Bookings',
+    subcategory: 'Cancellations',
+    tab: 'seller',
+    tags: ['cancellation', 'policy', 'refund'],
+    views: 1120,
+    helpful: 87,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-seller-029',
+    question: 'Can I cancel a booking I already accepted?',
+    answer: 'Yes, but frequent cancellations can negatively impact your seller rating. If you must cancel, do so as early as possible and communicate with the buyer. Explain the reason. The buyer will receive a full refund and may leave feedback about the cancellation.',
+    category: 'Orders & Bookings',
+    subcategory: 'Cancellations',
+    tab: 'seller',
+    tags: ['cancel', 'booking', 'seller'],
+    views: 780,
+    helpful: 61,
+    notHelpful: 3
+  },
+  
+  // Payments & Earnings - Payouts
+  {
+    id: 'faq-seller-030',
+    question: 'How do payouts work?',
+    answer: 'When a customer pays for your service or product, the payment is processed and held. After the service is completed or product is delivered, funds are released to your pending balance. Payouts are sent to your bank account according to your payout schedule (weekly, bi-weekly, or monthly).',
+    category: 'Payments & Earnings',
+    subcategory: 'Payouts',
+    tab: 'seller',
+    tags: ['payout', 'earnings', 'money'],
+    views: 3450,
+    helpful: 267,
+    notHelpful: 8
+  },
+  {
+    id: 'faq-seller-031',
+    question: 'When do I receive my earnings?',
+    answer: 'Earnings are held until service completion or order delivery confirmation. After that, funds move to "Available for Withdrawal" in your Finance dashboard. Payouts are processed according to your schedule (weekly on Fridays, bi-weekly, or monthly on the 1st).',
+    category: 'Payments & Earnings',
+    subcategory: 'Payouts',
+    tab: 'seller',
+    tags: ['earnings', 'when', 'receive'],
+    views: 2890,
+    helpful: 223,
+    notHelpful: 7
+  },
+  {
+    id: 'faq-seller-032',
+    question: 'How do I set up my bank account for payouts?',
+    answer: 'Go to Seller Dashboard > Settings > Banking. Click "Add Bank Account" and enter your bank details (account number, routing number, account holder name). Verify your account (may take 1-2 business days). Once verified, you can receive payouts.',
+    category: 'Payments & Earnings',
+    subcategory: 'Payouts',
+    tab: 'seller',
+    tags: ['bank', 'account', 'setup'],
+    views: 2340,
+    helpful: 178,
+    notHelpful: 6
+  },
+  {
+    id: 'faq-seller-033',
+    question: 'Can I change my payout schedule?',
+    answer: 'Yes, go to Settings > Banking > Payout Schedule. You can choose weekly (Fridays), bi-weekly, or monthly (1st of month). Changes take effect for the next payout cycle. More frequent payouts may have slightly higher processing fees.',
+    category: 'Payments & Earnings',
+    subcategory: 'Payouts',
+    tab: 'seller',
+    tags: ['payout', 'schedule', 'change'],
+    views: 1450,
+    helpful: 112,
+    notHelpful: 4
+  },
+  {
+    id: 'faq-seller-034',
+    question: 'What is the minimum payout amount?',
+    answer: 'The minimum payout amount is typically $10 or equivalent in your currency. If your available balance is below the minimum, it will accumulate until it reaches the threshold. You can check your current balance in the Finance dashboard.',
+    category: 'Payments & Earnings',
+    subcategory: 'Payouts',
+    tab: 'seller',
+    tags: ['minimum', 'payout', 'amount'],
+    views: 1120,
+    helpful: 87,
+    notHelpful: 3
+  },
+  
+  // Payments & Earnings - Fees
+  {
+    id: 'faq-seller-035',
+    question: 'What fees do I pay as a seller?',
+    answer: 'Sellers pay a transaction fee (typically 10-15% of the sale price) which covers payment processing, platform services, and customer support. Fees are deducted automatically from each transaction. You see the exact fee breakdown in your Finance dashboard.',
+    category: 'Payments & Earnings',
+    subcategory: 'Fees',
+    tab: 'seller',
+    tags: ['fees', 'transaction', 'cost'],
+    views: 2890,
+    helpful: 223,
+    notHelpful: 7
+  },
+  {
+    id: 'faq-seller-036',
+    question: 'Are there any hidden fees?',
+    answer: 'No, all fees are transparent and shown upfront. You\'ll see the exact transaction fee, payment processing fee, and your net earnings before accepting each booking or order. There are no monthly fees, listing fees, or hidden charges.',
+    category: 'Payments & Earnings',
+    subcategory: 'Fees',
+    tab: 'seller',
+    tags: ['fees', 'hidden', 'transparent'],
+    views: 1340,
+    helpful: 102,
+    notHelpful: 4
+  },
+  {
+    id: 'faq-seller-037',
+    question: 'How are refund fees handled?',
+    answer: 'If you issue a refund, the original transaction fees are typically refunded to you. However, payment processing fees may not be refundable depending on the payment method. Check your Finance dashboard for detailed refund fee information.',
+    category: 'Payments & Earnings',
+    subcategory: 'Fees',
+    tab: 'seller',
+    tags: ['refund', 'fees', 'transaction'],
+    views: 780,
+    helpful: 61,
+    notHelpful: 3
+  },
+  
+  // Payments & Earnings - Bank Setup
+  {
+    id: 'faq-seller-038',
+    question: 'How do I verify my bank account?',
+    answer: 'After adding your bank account, we\'ll make two small test deposits (usually under $1). Check your bank statement and enter these amounts in Settings > Banking > Verify Account. Verification typically takes 1-2 business days.',
+    category: 'Payments & Earnings',
+    subcategory: 'Bank Setup',
+    tab: 'seller',
+    tags: ['bank', 'verify', 'account'],
+    views: 1560,
+    helpful: 118,
+    notHelpful: 5
+  },
+  {
+    id: 'faq-seller-039',
+    question: 'Can I use multiple bank accounts?',
+    answer: 'You can add multiple bank accounts, but only one can be set as your primary payout account at a time. You can switch your primary account anytime in Settings > Banking. All payouts go to your primary account.',
+    category: 'Payments & Earnings',
+    subcategory: 'Bank Setup',
+    tab: 'seller',
+    tags: ['bank', 'multiple', 'accounts'],
+    views: 650,
+    helpful: 52,
+    notHelpful: 2
+  },
+  {
+    id: 'faq-seller-040',
+    question: 'What if my bank account details change?',
+    answer: 'Go to Settings > Banking and update your bank account information. You may need to re-verify the account. Update your details before your next payout to avoid delays. Contact support if you need to change details for an upcoming payout.',
+    category: 'Payments & Earnings',
+    subcategory: 'Bank Setup',
+    tab: 'seller',
+    tags: ['bank', 'update', 'change'],
+    views: 420,
+    helpful: 34,
+    notHelpful: 1
+  },
+  
+  // Payments & Earnings - Tax Information
+  {
+    id: 'faq-seller-041',
+    question: 'Do I need to pay taxes on my earnings?',
+    answer: 'Yes, as a seller, you\'re responsible for reporting and paying taxes on your earnings. We provide tax documents (1099 forms in the US) for sellers who meet reporting thresholds. Consult a tax professional for advice on your specific situation.',
+    category: 'Payments & Earnings',
+    subcategory: 'Tax Information',
+    tab: 'seller',
+    tags: ['tax', 'earnings', 'reporting'],
+    views: 1890,
+    helpful: 142,
+    notHelpful: 5
+  },
+  {
+    id: 'faq-seller-042',
+    question: 'How do I download my tax documents?',
+    answer: 'Go to Finance > Tax Documents (available after year-end). Download your 1099 or equivalent tax forms. These documents summarize your annual earnings and fees. Keep them for your tax filing. Contact support if you need tax documents for previous years.',
+    category: 'Payments & Earnings',
+    subcategory: 'Tax Information',
+    tab: 'seller',
+    tags: ['tax', 'documents', 'download'],
+    views: 980,
+    helpful: 74,
+    notHelpful: 3
+  },
+  
+  // Seller Tools
+  {
+    id: 'faq-seller-043',
+    question: 'How do I view my sales analytics?',
+    answer: 'Go to Seller Dashboard > Overview or Analytics. You\'ll see metrics like total revenue, number of orders, average order value, conversion rates, and trends over time. Use filters to view data by date range, product/service type, or category.',
+    category: 'Seller Tools',
+    tab: 'seller',
+    tags: ['analytics', 'sales', 'metrics'],
+    views: 1340,
+    helpful: 102,
+    notHelpful: 4
+  },
+  {
+    id: 'faq-seller-044',
+    question: 'What performance metrics are tracked?',
+    answer: 'We track: response time to messages, booking acceptance rate, order fulfillment time, customer ratings, cancellation rate, and overall seller rating. These metrics help you improve and are visible to buyers on your profile.',
+    category: 'Seller Tools',
+    tab: 'seller',
+    tags: ['metrics', 'performance', 'rating'],
+    views: 1120,
+    helpful: 87,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-seller-045',
+    question: 'How do I manage my customer communications?',
+    answer: 'Use the Messages section in your Seller Dashboard to view and respond to all customer messages. You can filter by order/booking, search conversations, and set up automated responses. Quick responses improve your seller rating.',
+    category: 'Seller Tools',
+    tab: 'seller',
+    tags: ['customers', 'communication', 'messages'],
+    views: 890,
+    helpful: 68,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-seller-046',
+    question: 'Can I export my sales data?',
+    answer: 'Yes, go to Finance > Export Data. You can export transaction history, earnings reports, and tax information as CSV or Excel files. Exports include all relevant details for accounting or tax purposes.',
+    category: 'Seller Tools',
+    tab: 'seller',
+    tags: ['export', 'data', 'sales'],
+    views: 650,
+    helpful: 52,
+    notHelpful: 2
+  },
+  {
+    id: 'faq-seller-047',
+    question: 'How do I manage inventory for products?',
+    answer: 'Go to My Shop and click on a product listing. Update the quantity available. Set low stock alerts to get notified when inventory is running low. You can also bulk update inventory for multiple products from the My Shop page.',
+    category: 'Seller Tools',
+    tab: 'seller',
+    tags: ['inventory', 'stock', 'manage'],
+    views: 780,
+    helpful: 61,
+    notHelpful: 2
+  },
+  {
+    id: 'faq-seller-048',
+    question: 'What tools help me grow my business?',
+    answer: 'Use analytics to identify best-selling items, optimize pricing based on performance data, respond quickly to improve ratings, offer promotions, and use high-quality photos. The Seller Dashboard provides insights and recommendations to help you grow.',
+    category: 'Seller Tools',
+    tab: 'seller',
+    tags: ['growth', 'business', 'tools'],
+    views: 560,
+    helpful: 43,
+    notHelpful: 2
+  },
+  
+  // Seller Policies
+  {
+    id: 'faq-seller-049',
+    question: 'What are the seller terms and conditions?',
+    answer: 'Seller terms outline your rights and responsibilities as a seller on ExpatTray. They cover listing requirements, transaction policies, fee structures, and platform rules. Read the full terms in Settings > Legal > Seller Terms or from the footer.',
+    category: 'Seller Policies',
+    tab: 'seller',
+    tags: ['terms', 'conditions', 'seller'],
+    views: 1450,
+    helpful: 112,
+    notHelpful: 4
+  },
+  {
+    id: 'faq-seller-050',
+    question: 'What is my return policy?',
+    answer: 'You set your own return policy when creating product listings. Common policies include: 30-day returns, items must be unused, buyer pays return shipping, etc. Your policy is shown to buyers before purchase. You can update it in listing settings.',
+    category: 'Seller Policies',
+    tab: 'seller',
+    tags: ['return', 'policy', 'refund'],
+    views: 1120,
+    helpful: 87,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-seller-051',
+    question: 'What happens if I violate platform policies?',
+    answer: 'Policy violations can result in warnings, temporary suspension, or permanent account termination depending on severity. Common violations include: fake listings, misleading information, failure to fulfill orders, or inappropriate behavior. Review policies regularly.',
+    category: 'Seller Policies',
+    tab: 'seller',
+    tags: ['violation', 'policy', 'suspension'],
+    views: 650,
+    helpful: 52,
+    notHelpful: 2
+  },
+  {
+    id: 'faq-seller-052',
+    question: 'How does seller protection work?',
+    answer: 'Seller protection covers you in cases of fraudulent chargebacks, buyer disputes without merit, or platform errors. We review each case individually. Maintain good records (communications, proof of delivery) to support protection claims. See Seller Protection in Settings.',
+    category: 'Seller Policies',
+    tab: 'seller',
+    tags: ['protection', 'seller', 'disputes'],
+    views: 890,
+    helpful: 68,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-seller-053',
+    question: 'Can I set my own cancellation policy?',
+    answer: 'Yes, you set your cancellation policy when creating listings. You can offer full refunds, partial refunds, or no refunds based on timing (e.g., 24+ hours = full refund, less than 24 hours = no refund). Your policy is clearly shown to buyers before booking.',
+    category: 'Seller Policies',
+    tab: 'seller',
+    tags: ['cancellation', 'policy', 'refund'],
+    views: 1340,
+    helpful: 102,
+    notHelpful: 4
+  },
+  {
+    id: 'faq-seller-054',
+    question: 'What are the listing quality requirements?',
+    answer: 'Listings must have: clear title, detailed description, high-quality photos (at least 3), accurate pricing, correct category, and honest information. Low-quality or misleading listings may be removed. See Listing Guidelines in Seller Dashboard for details.',
+    category: 'Seller Policies',
+    tab: 'seller',
+    tags: ['listing', 'quality', 'requirements'],
+    views: 980,
+    helpful: 74,
+    notHelpful: 3
+  },
+  {
+    id: 'faq-seller-055',
+    question: 'How do I handle customer disputes?',
+    answer: 'First, communicate directly with the customer through messaging to resolve the issue. If unresolved, they may open a dispute. Provide evidence (photos, messages, proof of delivery) to support your case. Our support team reviews disputes and makes fair decisions.',
+    category: 'Seller Policies',
+    tab: 'seller',
+    tags: ['dispute', 'customer', 'resolution'],
+    views: 780,
+    helpful: 61,
+    notHelpful: 3
+  }
+];
+
+// Helper functions to get FAQs
+export function getFAQsByTab(tab: 'general' | 'buyer' | 'seller'): FAQItem[] {
+  return mockFAQs.filter(faq => faq.tab === tab);
+}
+
+export function getFAQsByCategory(category: string, tab?: 'general' | 'seller'): FAQItem[] {
+  let filtered = mockFAQs.filter(faq => faq.category === category);
+  if (tab) {
+    filtered = filtered.filter(faq => faq.tab === tab);
+  }
+  return filtered;
+}
+
+export function getFAQsBySubcategory(category: string, subcategory: string, tab?: 'general' | 'seller'): FAQItem[] {
+  let filtered = mockFAQs.filter(faq => 
+    faq.category === category && faq.subcategory === subcategory
+  );
+  if (tab) {
+    filtered = filtered.filter(faq => faq.tab === tab);
+  }
+  return filtered;
+}
+
+export function searchFAQs(query: string, tab?: 'general' | 'seller'): FAQItem[] {
+  const lowerQuery = query.toLowerCase();
+  let filtered = mockFAQs.filter(faq => 
+    faq.question.toLowerCase().includes(lowerQuery) ||
+    faq.answer.toLowerCase().includes(lowerQuery) ||
+    faq.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
+  );
+  if (tab) {
+    filtered = filtered.filter(faq => faq.tab === tab);
+  }
+  return filtered;
+}
+
+export function getCategoryById(categoryId: string): FAQCategory | undefined {
+  return faqCategories.find(cat => cat.id === categoryId);
+}
+
+export function getCategoriesByTab(tab: 'general' | 'seller'): FAQCategory[] {
+  return faqCategories.filter(cat => cat.tab === tab);
+}
+
 // Export the actual transactions array
 export const allFinancialTransactionsExport = allFinancialTransactions;

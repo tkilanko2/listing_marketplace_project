@@ -31,12 +31,15 @@ import {
   X,
   Copy,
   PlusCircle,
-  Info
+  Info,
+  HelpCircle
 } from 'lucide-react';
 import { Order, ActivityLogEntry, Service, OrderStatus } from '../types';
 import SellerTermsModal from '../components/SellerTermsModal';
 import { OrderStatusTimeline } from '../components/OrderStatusTimeline';
 import { ReviewModal } from '../components/ReviewModal';
+import { ContactSupportModal } from '../components/ContactSupportModal';
+import { addSupportTicket } from '../mockData';
 
 interface BookingDetailsPageProps {
   booking: Order;
@@ -52,6 +55,8 @@ interface BookingDetailsPageProps {
     sellerId: string;
   }) => void; // Navigate to messaging
   onNavigate?: (page: string) => void; // General navigation
+  userEmail?: string; // User email for support form
+  userId?: string; // User ID for support form
 }
 
 interface PaymentBreakdown {
@@ -71,11 +76,12 @@ function mapServiceStatus(status: string, userRole: 'buyer' | 'seller'): string 
   return status;
 }
 
-export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selectedServiceMode = 'at_seller', onNavigateToMyBookings, onNavigateToMessages, onNavigate }: BookingDetailsPageProps) {
+export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selectedServiceMode = 'at_seller', onNavigateToMyBookings, onNavigateToMessages, onNavigate, userEmail, userId }: BookingDetailsPageProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'payment' | 'activity'>('details');
   const [appointmentDetailsOpen, setAppointmentDetailsOpen] = useState(false);
   const [serviceTermsOpen, setServiceTermsOpen] = useState(false);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [contactSupportOpen, setContactSupportOpen] = useState(false);
 
   // Assume My Orders is always buyer view
   const userRole: 'buyer' | 'seller' = 'buyer';
@@ -1248,8 +1254,34 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
               </div>
             </div>
 
-
-
+            {/* Support Card */}
+            <div className="bg-[#FFFFFF] rounded-lg shadow-sm border border-[#E8E9ED] p-6">
+              <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Need Help?</h3>
+              <div className="space-y-3">
+                <button 
+                  onClick={() => setContactSupportOpen(true)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#3D1560] text-white rounded-lg hover:bg-[#6D26AB] transition-colors duration-200 text-sm font-medium shadow-sm hover:shadow-md"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Contact Support
+                </button>
+                <button 
+                  onClick={() => {
+                    // Navigate to help center if available, or open in new tab
+                    if (onNavigate) {
+                      onNavigate('help');
+                    } else {
+                      // Fallback: could open help center URL
+                      window.open('https://help.expatray.com', '_blank');
+                    }
+                  }}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-[#CDCED8] text-[#383A47] hover:bg-[#E8E9ED] transition-colors duration-200 text-sm"
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  Help Center
+                </button>
+              </div>
+            </div>
             
           </div>
         </div>
@@ -1278,6 +1310,25 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
           bookingId={booking.id}
         />
       )}
+      <ContactSupportModal
+        isOpen={contactSupportOpen}
+        onClose={() => setContactSupportOpen(false)}
+        onSubmit={(ticketData) => {
+          addSupportTicket(ticketData);
+          // Show success message
+          alert('Support ticket submitted successfully! Our team will get back to you soon.');
+        }}
+        userEmail={userEmail}
+        userId={userId}
+        userRole="buyer"
+        context={{
+          type: 'booking',
+          bookingId: booking.id,
+          listingId: booking.service?.id,
+          listingName: booking.service?.name
+        }}
+        onNavigate={onNavigate}
+      />
     </div>
   );
 }
