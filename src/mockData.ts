@@ -3759,6 +3759,188 @@ export function getSupportTicketsByStatus(status: SupportTicket['status']): Supp
 }
 
 // ========================================
+// MESSAGING STORAGE
+// ========================================
+
+interface Message {
+  id: string;
+  threadId: string;
+  senderId: string;
+  senderType: 'buyer' | 'seller';
+  senderName: string;
+  title: string;
+  issueCategory: string;
+  content: string;
+  attachments?: { name: string; url: string; size: number }[];
+  timestamp: Date;
+  status: 'unread' | 'read';
+}
+
+interface MessageThread {
+  id: string;
+  type: 'booking' | 'order' | 'listing';
+  title: string;
+  participants: { 
+    buyer: { id: string; name: string };
+    seller: { id: string; name: string };
+  };
+  messages: Message[];
+  lastActivity: Date;
+  unreadCount: number;
+  status: 'active' | 'resolved';
+}
+
+const messageThreads: MessageThread[] = [
+  {
+    id: 'BK001',
+    type: 'booking',
+    title: 'Booking #BK001 - Hair Styling Service',
+    participants: {
+      buyer: { id: 'user1', name: 'John D.' },
+      seller: { id: 'seller1', name: 'Sarah M.' }
+    },
+    messages: [
+      {
+        id: 'msg1',
+        threadId: 'BK001',
+        senderId: 'buyer1',
+        senderType: 'buyer',
+        senderName: 'John D.',
+        title: 'Service Location',
+        issueCategory: 'Service Location/Address',
+        content: 'Hi, I wanted to confirm the exact address for my appointment tomorrow. Could you please provide the specific building entrance to use?',
+        timestamp: new Date('2024-01-15T10:30:00'),
+        status: 'read'
+      },
+      {
+        id: 'msg2',
+        threadId: 'BK001',
+        senderId: 'seller1',
+        senderType: 'seller',
+        senderName: 'Sarah M.',
+        title: 'Service Location',
+        issueCategory: 'Service Location/Address',
+        content: 'Hello John! The address is 123 Main Street, Suite 201. Please use the main entrance and take the elevator to the 2nd floor.',
+        timestamp: new Date('2024-01-15T14:20:00'),
+        status: 'unread'
+      }
+    ],
+    lastActivity: new Date('2024-01-15T14:20:00'),
+    unreadCount: 1,
+    status: 'active'
+  },
+  {
+    id: 'OR002',
+    type: 'order',
+    title: 'Order #OR002 - Wireless Headphones',
+    participants: {
+      buyer: { id: 'user1', name: 'John D.' },
+      seller: { id: 'seller2', name: 'Tech Store' }
+    },
+    messages: [
+      {
+        id: 'msg3',
+        threadId: 'OR002',
+        senderId: 'buyer1',
+        senderType: 'buyer',
+        senderName: 'John D.',
+        title: 'Shipping Delay',
+        issueCategory: 'Shipping & Delivery',
+        content: 'Hi, I noticed my order hasn\'t been shipped yet. The expected ship date was 2 days ago. Could you please provide an update?',
+        timestamp: new Date('2024-01-14T09:15:00'),
+        status: 'read'
+      }
+    ],
+    lastActivity: new Date('2024-01-14T09:15:00'),
+    unreadCount: 0,
+    status: 'active'
+  }
+];
+
+export function getMessageThreadsForUser(userId: string, userType: 'buyer' | 'seller'): MessageThread[] {
+  return messageThreads.filter(thread =>
+    userType === 'buyer'
+      ? thread.participants.buyer.id === userId
+      : thread.participants.seller.id === userId
+  );
+}
+
+export function getMessageThreadById(threadId: string): MessageThread | undefined {
+  return messageThreads.find(thread => thread.id === threadId);
+}
+
+export function addMessageToThread(params: {
+  threadId: string;
+  message: Message;
+  orderInfo?: {
+    id: string;
+    type: 'booking' | 'order' | 'listing';
+    title: string;
+    sellerName: string;
+    sellerId: string;
+    buyerId?: string;
+    buyerName?: string;
+  };
+  currentUserId: string;
+  currentUserType: 'buyer' | 'seller';
+}): MessageThread | undefined {
+  const { threadId, message, orderInfo, currentUserId, currentUserType } = params;
+  let thread = messageThreads.find(item => item.id === threadId);
+
+  if (!thread && orderInfo) {
+    thread = {
+      id: orderInfo.id,
+      type: orderInfo.type,
+      title: orderInfo.title,
+      participants: {
+        buyer: {
+          id: currentUserType === 'buyer'
+            ? currentUserId
+            : orderInfo.buyerId || 'unknown-buyer',
+          name: currentUserType === 'buyer'
+            ? 'You'
+            : orderInfo.buyerName || 'Buyer'
+        },
+        seller: {
+          id: orderInfo.sellerId,
+          name: orderInfo.sellerName
+        }
+      },
+      messages: [],
+      lastActivity: new Date(),
+      unreadCount: 0,
+      status: 'active'
+    };
+    messageThreads.unshift(thread);
+  }
+
+  if (thread) {
+    thread.messages.push(message);
+    thread.lastActivity = new Date();
+  }
+
+  return thread;
+}
+
+export function markThreadReadForUser(threadId: string, currentUserId: string): void {
+  const thread = messageThreads.find(item => item.id === threadId);
+  if (!thread) return;
+  thread.messages = thread.messages.map(message =>
+    message.senderId !== currentUserId ? { ...message, status: 'read' } : message
+  );
+}
+
+export function getUnreadCountForUser(threadId: string, currentUserId: string): number {
+  const thread = messageThreads.find(item => item.id === threadId);
+  if (!thread) return 0;
+  return thread.messages.filter(message => message.status === 'unread' && message.senderId !== currentUserId).length;
+}
+
+export function hasUnreadMessagesForUser(threadId: string, currentUserId: string): boolean {
+  return getUnreadCountForUser(threadId, currentUserId) > 0;
+}
+
+// ========================================
 // FAQ DATA STRUCTURES & EXPORTS
 // ========================================
 

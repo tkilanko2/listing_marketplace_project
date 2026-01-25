@@ -40,11 +40,20 @@ interface ServiceDetailsPageProps {
   onBack: () => void;
   onProviderSelect: (provider: ServiceProvider) => void;
   onListingSelect: (listing: ListingItem) => void;
+  onNavigateToMessages?: (listingInfo?: {
+    id: string;
+    type: 'listing';
+    title: string;
+    sellerName: string;
+    sellerId: string;
+    buyerId?: string;
+    buyerName?: string;
+  }) => void; // Navigate to messaging with listing context
   isItemSaved: boolean;
   toggleSaveItem: () => void;
 }
 
-export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelect, onListingSelect, isItemSaved, toggleSaveItem }: ServiceDetailsPageProps) {
+export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelect, onListingSelect, onNavigateToMessages, isItemSaved, toggleSaveItem }: ServiceDetailsPageProps) {
   const [provider, setProvider] = useState(service.provider);
   // Show other tiers of the same service type, plus other services from the same provider
   const serviceTiers = getServiceTiers(service.serviceType).filter(s => s.id !== service.id);
@@ -403,7 +412,22 @@ export function ServiceDetailsPage({ service, onBookNow, onBack, onProviderSelec
                         <Share2 className="w-4 h-4 mr-1" />
                         <span>Share</span>
                       </button>
-                      <button className="flex items-center justify-center px-4 py-3 rounded-lg border border-[#CDCED8] text-xs font-medium text-[#70727F] hover:bg-[#E8E9ED] transition-colors">
+                      <button 
+                        onClick={() => {
+                          if (onNavigateToMessages) {
+                            const listingInfo = {
+                              id: service.id,
+                              type: 'listing' as const,
+                              title: `${service.name} - ${service.serviceType}`,
+                              sellerName: service.provider?.username || 'Provider',
+                              sellerId: service.provider?.id || 'unknown',
+                              buyerName: 'You'
+                            };
+                            onNavigateToMessages(listingInfo);
+                          }
+                        }}
+                        className="flex items-center justify-center px-4 py-3 rounded-lg border border-[#CDCED8] text-xs font-medium text-[#70727F] hover:bg-[#E8E9ED] transition-colors"
+                      >
                         <Mail className="w-4 h-4 mr-1" />
                         <span>Contact</span>
                       </button>

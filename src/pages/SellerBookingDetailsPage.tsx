@@ -37,7 +37,7 @@ import {
 import { Order, OrderStatus } from '../types';
 import { OrderStatusTimeline } from '../components/OrderStatusTimeline';
 import { ReviewModal } from '../components/ReviewModal';
-import { getBookingTransactionHistory, FinancialTransaction, addSupportTicket } from '../mockData';
+import { getBookingTransactionHistory, FinancialTransaction, addSupportTicket, hasUnreadMessagesForUser } from '../mockData';
 import { ContactSupportModal } from '../components/ContactSupportModal';
 
 // Extended Order interface to include customer for booking context
@@ -60,7 +60,7 @@ interface SellerBookingDetailsPageProps {
   onNavigateToService?: (serviceId: string) => void;
   onNavigateToMessages?: (threadId?: string, orderInfo?: {
     id: string;
-    type: 'booking' | 'order';
+    type: 'booking' | 'order' | 'listing';
     title: string;
     sellerName: string;
     sellerId: string;
@@ -437,6 +437,32 @@ export function SellerBookingDetailsPage({
   const paymentBreakdown = calculateSellerPaymentBreakdown();
 
   // Helper function to check if seller can review the customer
+  // Helper function to check if completed booking is within 2 days
+  const isCompletedWithin2Days = (): boolean => {
+    if (mappedStatus !== 'completed') return false;
+    const completionDate = booking.appointmentDate || booking.orderDate;
+    const daysSinceCompletion = Math.floor((new Date().getTime() - completionDate.getTime()) / (1000 * 60 * 60 * 24));
+    return daysSinceCompletion <= 2;
+  };
+
+  // Helper function to check if booking is pending (not yet confirmed)
+  const isBookingPending = (): boolean => {
+    return mappedStatus === 'pending' || mappedStatus === 'requested';
+  };
+
+  // Helper function to check if we should show customer name (only when pending)
+  const shouldShowCustomerName = (): boolean => {
+    return isBookingPending();
+  };
+
+  // Helper function to check if we should show message CTA (not completed + 2 days)
+  const shouldShowMessageCTA = (): boolean => {
+    if (mappedStatus === 'completed') {
+      return isCompletedWithin2Days();
+    }
+    return statusConfig.canMessage;
+  };
+
   const canSellerReviewCustomer = (): boolean => {
     // Only allow reviews for completed services
     if (mappedStatus !== 'completed') return false;
@@ -522,7 +548,7 @@ export function SellerBookingDetailsPage({
           canAccept: false,
           canDecline: false,
           canReschedule: false,
-          canMessage: true,
+          canMessage: isCompletedWithin2Days(), // Only allow messaging within 2 days
           canViewAppointment: true,
           canAddNotes: true,
           canViewPerformance: true,
@@ -540,7 +566,7 @@ export function SellerBookingDetailsPage({
           canAccept: false,
           canDecline: false,
           canReschedule: false,
-          canMessage: true,
+          canMessage: false, // Disable messaging for cancelled bookings
           canViewAppointment: false,
           canAddNotes: true,
           canViewPerformance: true,
@@ -558,7 +584,7 @@ export function SellerBookingDetailsPage({
           canAccept: false,
           canDecline: false,
           canReschedule: true,
-          canMessage: true,
+          canMessage: false, // Disable messaging for failed bookings
           canViewAppointment: false,
           canAddNotes: true,
           canViewPerformance: true,
@@ -605,9 +631,12 @@ export function SellerBookingDetailsPage({
 
   const statusConfig = getStatusConfig();
   const StatusIcon = statusConfig.icon;
+  const viewerId = userId || booking.service?.provider?.id || 'current-seller';
+  const hasUnreadMessages = hasUnreadMessagesForUser(booking.id, viewerId);
 
   const customerInfo = {
     name: formatCustomerName(booking.customer?.name || booking.id),
+    userId: booking.userId || booking.customer?.id || booking.id, // Prioritize userId from Order, then customer.id, then booking.id
     email: booking.customer?.email || `customer.${booking.id.toLowerCase()}@example.com`,
     phone: booking.customer?.phone || '(555) 123-4567',
     isReturning: true
@@ -748,12 +777,23 @@ export function SellerBookingDetailsPage({
                   <User className="w-5 h-5 text-[#3D1560]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-[#1B1C20] text-sm truncate">{formatCustomerName(customerInfo.name)}</p>
-                  <div className="flex items-center gap-2 text-xs text-[#70727F]">
-                    <User className="w-3 h-3" />
-                    <span className="truncate">CM{booking.id.slice(-6).toUpperCase()}</span>
-                  </div>
+                  <p className="font-medium text-[#1B1C20] text-sm truncate">{customerInfo.userId}</p>
+                  {shouldShowCustomerName() && (
+                    <p className="text-xs text-[#70727F] mt-1">{formatCustomerName(booking.customer?.name || '')}</p>
+                  )}
                 </div>
+                {shouldShowMessageCTA() && (
+                  <button
+                    onClick={handleContactCustomer}
+                    className="relative text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium py-2 px-4 rounded-md border border-[#3D1560] hover:bg-[#EDD9FF] transition-all duration-200 flex items-center gap-2"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    Contact
+                    {hasUnreadMessages && (
+                      <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-[#DF678C]" />
+                    )}
+                  </button>
+                )}
               </div>
             </div>
 
@@ -820,8 +860,17 @@ export function SellerBookingDetailsPage({
   const handleContactCustomer = () => {
     console.log('Opening customer contact');
     if (onNavigateToMessages) {
-      // Sellers can only reply to existing threads, so just pass the thread ID
-      onNavigateToMessages(booking.id);
+      // Pass order info to create new thread or find existing one
+      const orderInfo = {
+        id: booking.id,
+        type: 'booking' as const,
+        title: `Booking #${booking.id} - ${booking.service?.name || 'Service'}`,
+        sellerName: booking.service?.provider?.username || 'Provider',
+        sellerId: booking.service?.provider?.id || 'unknown',
+        buyerId: booking.userId || booking.customer?.id,
+        buyerName: formatCustomerName(booking.customer?.name || '')
+      };
+      onNavigateToMessages(undefined, orderInfo); // Pass undefined for threadId to force new thread creation
     }
   };
 
@@ -1258,18 +1307,23 @@ export function SellerBookingDetailsPage({
                           <User className="w-8 h-8 text-[#3D1560]" />
                         </div>
                         <div className="flex-1">
-                          <h4 className="text-lg font-semibold text-[#3D1560] mb-0.5">{formatCustomerName(customerInfo.name)}</h4>
-                          <div className="flex items-center gap-3 text-sm text-[#70727F]">
-                            <div className="flex items-center gap-1">
-                              <User className="w-4 h-4" />
-                              <span>CM{booking.id.slice(-6).toUpperCase()}</span>
-                            </div>
-                          </div>
+                          <h4 className="text-lg font-semibold text-[#3D1560] mb-0.5">{customerInfo.userId}</h4>
+                          {shouldShowCustomerName() && (
+                            <p className="text-sm text-[#70727F]">{formatCustomerName(booking.customer?.name || '')}</p>
+                          )}
                         </div>
-                        <button className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium py-2 px-4 rounded-md border border-[#3D1560] hover:bg-[#EDD9FF] transition-all duration-200 flex items-center gap-2">
-                          <MessageCircle className="w-4 h-4" />
-                          Contact
-                        </button>
+                        {shouldShowMessageCTA() && (
+                          <button
+                            onClick={handleContactCustomer}
+                            className="relative text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium py-2 px-4 rounded-md border border-[#3D1560] hover:bg-[#EDD9FF] transition-all duration-200 flex items-center gap-2"
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                            Contact
+                            {hasUnreadMessages && (
+                              <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-[#DF678C]" />
+                            )}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1440,10 +1494,13 @@ export function SellerBookingDetailsPage({
                   {statusConfig.canMessage && (
                     <button
                       onClick={handleContactCustomer}
-                      className="w-full flex items-center gap-2 text-[#3D1560] hover:text-[#6D26AB] hover:bg-[#EDD9FF] transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium"
+                      className="relative w-full flex items-center gap-2 text-[#3D1560] hover:text-[#6D26AB] hover:bg-[#EDD9FF] transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium"
                     >
                       <MessageCircle className="w-4 h-4" />
                       Message Customer
+                      {hasUnreadMessages && (
+                        <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-[#DF678C]" />
+                      )}
                     </button>
                   )}
                   {statusConfig.canAddNotes && (

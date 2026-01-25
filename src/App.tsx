@@ -91,10 +91,12 @@ function App() {
   const [messagingThreadId, setMessagingThreadId] = useState<string | null>(null);
   const [messagingOrderInfo, setMessagingOrderInfo] = useState<{
     id: string;
-    type: 'booking' | 'order';
+    type: 'booking' | 'order' | 'listing';
     title: string;
     sellerName: string;
     sellerId: string;
+    buyerId?: string;
+    buyerName?: string;
   } | null>(null);
   const [startNewThread, setStartNewThread] = useState(false);
   const [helpTab, setHelpTab] = useState<'general' | 'seller'>('general');
@@ -3147,10 +3149,12 @@ function App() {
 
   const handleNavigateToMessages = (threadId?: string, orderInfo?: {
     id: string;
-    type: 'booking' | 'order';
+    type: 'booking' | 'order' | 'listing';
     title: string;
     sellerName: string;
     sellerId: string;
+    buyerId?: string;
+    buyerName?: string;
   }) => {
     setMessagingThreadId(threadId || null);
     setMessagingOrderInfo(orderInfo || null);
@@ -4935,6 +4939,7 @@ function App() {
             onBack={handleBackToLanding}
             onProviderSelect={handleProviderSelect}
             onListingSelect={handleListingSelect}
+            onNavigateToMessages={handleNavigateToMessages}
             isItemSaved={isItemSaved(selectedListing.id)}
             toggleSaveItem={() => toggleSaveItem(selectedListing.id)}
           />
@@ -4948,6 +4953,7 @@ function App() {
             onProviderSelect={handleProviderSelect}
             onListingSelect={handleListingSelect}
             onNavigateTo={handleNavigate}
+            onNavigateToMessages={handleNavigateToMessages}
             isItemSaved={isItemSaved(selectedListing.id)}
             toggleSaveItem={() => toggleSaveItem(selectedListing.id)}
           />
@@ -5622,30 +5628,41 @@ function App() {
           />
         )}
 
-        {currentPage === 'messages' && (
-          <MessagingPage 
-            threadId={messagingThreadId || undefined}
-            currentUserId={user?.userId || 'user1'}
-            currentUserType={(() => {
-              // Determine user type based on current page context
-              if (currentPage === 'messages' && (selectedSellerOrder || selectedSellerBooking)) {
-                return 'seller';
-              }
-              // Check if we came from seller dashboard
-              if (messagingOrderInfo && (
-                selectedSellerOrder || 
-                selectedSellerBooking ||
-                currentPage.includes('seller')
-              )) {
-                return 'seller';
-              }
-              return 'buyer';
-            })()}
-            onBack={handleBackFromMessages}
-            startNewThread={startNewThread}
-            orderInfo={messagingOrderInfo || undefined}
-          />
-        )}
+        {currentPage === 'messages' && (() => {
+          const messagingUserType = (() => {
+            if (currentPage === 'messages' && (selectedSellerOrder || selectedSellerBooking)) {
+              return 'seller';
+            }
+            if (messagingOrderInfo && (
+              selectedSellerOrder || 
+              selectedSellerBooking ||
+              currentPage.includes('seller')
+            )) {
+              return 'seller';
+            }
+            return 'buyer';
+          })();
+
+          const messagingUserId =
+            messagingUserType === 'seller'
+              ? (selectedSellerBooking?.service?.provider?.id ||
+                  selectedSellerOrder?.service?.provider?.id ||
+                  CURRENT_SELLER_ID ||
+                  user?.userId ||
+                  'seller1')
+              : (user?.userId || 'user1');
+
+          return (
+            <MessagingPage 
+              threadId={messagingThreadId || undefined}
+              currentUserId={messagingUserId}
+              currentUserType={messagingUserType}
+              onBack={handleBackFromMessages}
+              startNewThread={startNewThread}
+              orderInfo={messagingOrderInfo || undefined}
+            />
+          );
+        })()}
 
         {/* My Shop Modal - Rendered at App level to persist across navigation */}
         {showMyShopModal && selectedMyShopListing && (

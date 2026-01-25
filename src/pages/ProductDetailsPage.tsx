@@ -36,6 +36,15 @@ interface ProductDetailsPageProps {
   onProviderSelect: (provider: ServiceProvider) => void;
   onListingSelect: (listing: ListingItem) => void;
   onNavigateTo?: (page: string) => void;
+  onNavigateToMessages?: (listingInfo?: {
+    id: string;
+    type: 'listing';
+    title: string;
+    sellerName: string;
+    sellerId: string;
+    buyerId?: string;
+    buyerName?: string;
+  }) => void; // Navigate to messaging with listing context
   isItemSaved: boolean;
   toggleSaveItem: () => void;
 }
@@ -47,6 +56,7 @@ export function ProductDetailsPage({
   onProviderSelect, 
   onListingSelect,
   onNavigateTo,
+  onNavigateToMessages,
   isItemSaved,
   toggleSaveItem
 }: ProductDetailsPageProps) {
@@ -465,6 +475,25 @@ export function ProductDetailsPage({
                         Add to Cart
                       </div>
                     </div>
+                    <button
+                      onClick={() => {
+                        if (onNavigateToMessages) {
+                          const listingInfo = {
+                            id: product.id,
+                            type: 'listing' as const,
+                            title: `${product.name} - ${product.category}`,
+                            sellerName: product.provider?.username || 'Provider',
+                            sellerId: product.provider?.id || 'unknown',
+                            buyerName: 'You'
+                          };
+                          onNavigateToMessages(listingInfo);
+                        }
+                      }}
+                      className="w-full bg-white text-[#70727F] px-6 py-3 rounded-lg font-medium border border-[#CDCED8] hover:bg-[#E8E9ED] transition-colors shadow-sm hover:shadow-md flex items-center justify-center gap-2"
+                    >
+                      <Mail className="w-4 h-4" />
+                      <span>Contact Seller</span>
+                    </button>
                   </div>
 
                   <div className="flex justify-center gap-4 pt-2 border-t border-[#CDCED8]">

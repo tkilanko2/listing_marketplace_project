@@ -39,7 +39,7 @@ import SellerTermsModal from '../components/SellerTermsModal';
 import { OrderStatusTimeline } from '../components/OrderStatusTimeline';
 import { ReviewModal } from '../components/ReviewModal';
 import { ContactSupportModal } from '../components/ContactSupportModal';
-import { addSupportTicket } from '../mockData';
+import { addSupportTicket, hasUnreadMessagesForUser } from '../mockData';
 
 interface BookingDetailsPageProps {
   booking: Order;
@@ -86,6 +86,31 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
   // Assume My Orders is always buyer view
   const userRole: 'buyer' | 'seller' = 'buyer';
   const mappedStatus = mapServiceStatus(booking.status, userRole) as OrderStatus;
+  const viewerId = userId || booking.userId || 'current-user';
+  const hasUnreadMessages = hasUnreadMessagesForUser(booking.id, viewerId);
+
+  // Helper function to check if completed booking is within 2 days
+  const isCompletedWithin2Days = (): boolean => {
+    if (mappedStatus !== 'completed') return false;
+    const completionDate = booking.appointmentDate || booking.orderDate;
+    const daysSinceCompletion = Math.floor((new Date().getTime() - completionDate.getTime()) / (1000 * 60 * 60 * 24));
+    return daysSinceCompletion <= 2;
+  };
+
+  // Helper function to check if booking is completed
+  const isBookingCompleted = (): boolean => {
+    return mappedStatus === 'completed';
+  };
+
+  // Helper function to check if we should show seller name (only when NOT completed)
+  const shouldShowSellerName = (): boolean => {
+    return !isBookingCompleted();
+  };
+
+  // Helper function to check if we should show message CTA (only when NOT completed)
+  const shouldShowMessageCTA = (): boolean => {
+    return !isBookingCompleted();
+  };
 
   // Helper function to check if buyer can review the service provider
   const canBuyerReviewProvider = (): boolean => {
@@ -248,7 +273,7 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
           description: 'Service has been successfully completed',
           canCancel: false,
           canReschedule: false,
-          canMessage: true,
+          canMessage: isCompletedWithin2Days(), // Only allow messaging within 2 days
           canViewDetails: true,
           canReview: canBuyerReviewProvider() // Dynamic review capability
         };
@@ -262,7 +287,7 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
           description: 'This booking has been cancelled',
           canCancel: false,
           canReschedule: false,
-          canMessage: true,
+          canMessage: false, // Disable messaging for cancelled bookings
           canViewDetails: false,
           canReview: false
         };
@@ -276,7 +301,7 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
           description: 'Customer did not show up for the appointment',
           canCancel: false,
           canReschedule: true,
-          canMessage: true,
+          canMessage: false, // Disable messaging for failed bookings
           canViewDetails: false,
           canReview: false
         };
@@ -393,8 +418,8 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
     const nameParts = fullName.trim().split(' ');
     if (nameParts.length === 1) return nameParts[0];
     const firstName = nameParts[0];
-    const lastInitial = nameParts[nameParts.length - 1].charAt(0).toUpperCase() + '.';
-    return `${firstName} ${lastInitial}`;
+    const lastNameInitial = nameParts[nameParts.length - 1].charAt(0).toUpperCase();
+    return `${firstName} ${lastNameInitial}.`;
   };
 
   // Mock activity timeline
@@ -571,9 +596,9 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
 
 
 
-            {/* Provider Information */}
+            {/* Seller Information */}
             <div className="pb-4 border-b border-[#E8E9ED]">
-              <h5 className="text-sm font-semibold text-[#1B1C20] mb-3">Service Provider</h5>
+              <h5 className="text-sm font-semibold text-[#1B1C20] mb-3">Seller Information</h5>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full overflow-hidden border border-[#CDCED8] flex-shrink-0">
                   <img 
@@ -583,13 +608,36 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-[#1B1C20] text-sm truncate">{booking.service.provider.name || formatProviderName(booking.service.provider.username)}</p>
-                  <p className="text-xs text-[#70727F] mb-1">ID: {booking.service.provider.id}</p>
-                  <div className="flex items-center gap-1 text-xs text-[#70727F]">
-                    <Star className="w-3.5 h-3.5 text-yellow-500 fill-current" />
-                    <span>{booking.service.provider.rating.toFixed(1)}</span>
-                  </div>
+                  <p className="font-medium text-[#1B1C20] text-sm truncate">{booking.service.provider.id}</p>
+                  {shouldShowSellerName() && (
+                    <p className="text-xs text-[#70727F] mt-1">{booking.service.provider.name || formatProviderName(booking.service.provider.username)}</p>
+                  )}
                 </div>
+                {shouldShowMessageCTA() && (
+                  <button
+                    onClick={() => {
+                      if (onNavigateToMessages) {
+                        const orderInfo = {
+                          id: booking.id,
+                          type: 'booking' as const,
+                          title: `Booking #${booking.id} - ${booking.service?.name || 'Service'}`,
+                          sellerName: booking.service?.provider?.username || 'Provider',
+                          sellerId: booking.service?.provider?.id || 'unknown',
+                          buyerId: userId || booking.userId || 'current-user',
+                          buyerName: 'You'
+                        };
+                        onNavigateToMessages(undefined, orderInfo);
+                      }
+                    }}
+                    className="relative text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium py-2 px-4 rounded-md border border-[#3D1560] hover:bg-[#EDD9FF] transition-all duration-200 flex items-center gap-2"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    Contact
+                    {hasUnreadMessages && (
+                      <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-[#DF678C]" />
+                    )}
+                  </button>
+                )}
               </div>
             </div>
 
@@ -963,12 +1011,12 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                       );
                     })()}
 
-                    {/* Provider Information Card */}
+                    {/* Seller Information Card */}
                     {booking.service && booking.service.provider && (() => {
                       const provider = booking.service.provider;
                       return (
                         <div className="bg-[#FFFFFF] p-5 rounded-lg border border-[#E8E9ED] shadow-sm">
-                          <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Service Provider</h3>
+                          <h3 className="text-lg font-semibold text-[#1B1C20] mb-4">Seller Information</h3>
                           <div className="flex items-center gap-4">
                             <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#EDD9FF]">
                               <img 
@@ -978,9 +1026,11 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                               />
                             </div>
                             <div className="flex-1">
-                              <h4 className="text-lg font-semibold text-[#3D1560] mb-0.5">{provider.name || formatProviderName(provider.username)}</h4>
-                              <p className="text-xs text-[#70727F] mb-1">ID: {provider.id}</p>
-                              <div className="flex items-center gap-3 text-sm text-[#70727F]">
+                              <h4 className="text-lg font-semibold text-[#3D1560] mb-0.5">{provider.id}</h4>
+                              {shouldShowSellerName() && (
+                                <p className="text-sm text-[#70727F] mt-1">{provider.name || formatProviderName(provider.username)}</p>
+                              )}
+                              <div className="flex items-center gap-3 text-sm text-[#70727F] mt-2">
                                 <div className="flex items-center gap-1">
                                   <Star className="w-4 h-4 text-[#FFC107] fill-current" />
                                   {provider.rating?.toFixed(1) || 'N/A'} 
@@ -989,25 +1039,32 @@ export function BookingDetailsPage({ booking, onBack, userRegion = 'US', selecte
                                 </div>
                               </div>
                             </div>
-                            <button 
+                            {shouldShowMessageCTA() && (
+                              <button 
                               onClick={() => {
                                 if (onNavigateToMessages) {
-                                  // Buyers can start new threads - check if thread exists, if not, pass order info
+                                  // Buyers can start new threads - pass order info without threadId to create new thread
                                   const orderInfo = {
                                     id: booking.id,
                                     type: 'booking' as const,
                                     title: `Booking #${booking.id} - ${booking.service?.name || 'Service'}`,
                                     sellerName: booking.service?.provider?.username || 'Provider',
-                                    sellerId: booking.service?.provider?.id || 'unknown'
+                                    sellerId: booking.service?.provider?.id || 'unknown',
+                                    buyerId: userId || booking.userId || 'current-user',
+                                    buyerName: 'You'
                                   };
-                                  onNavigateToMessages(booking.id, orderInfo);
+                                  onNavigateToMessages(undefined, orderInfo); // Pass undefined for threadId to force new thread creation
                                 }
                               }}
-                              className="text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium py-2 px-4 rounded-md border border-[#3D1560] hover:bg-[#EDD9FF] transition-all duration-200 flex items-center gap-2"
+                                className="relative text-sm text-[#3D1560] hover:text-[#6D26AB] font-medium py-2 px-4 rounded-md border border-[#3D1560] hover:bg-[#EDD9FF] transition-all duration-200 flex items-center gap-2"
                             >
                               <MessageCircle className="w-4 h-4" />
                               Contact
+                                {hasUnreadMessages && (
+                                  <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-[#DF678C]" />
+                                )}
                             </button>
+                            )}
                           </div>
                         </div>
                       );
